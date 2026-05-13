@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Set TAG environment variable
-        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
 
       - name: Checkout demo branch
         uses: actions/checkout@v6

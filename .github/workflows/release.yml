@@ -102,10 +102,9 @@ jobs:
           cp -r dist "$STAGING/"
           cp package.json package-lock.json .npmrc .nvmrc start.sh "$STAGING/"
           cp db/schema.sql "$STAGING/schema.sql"
-          [ -f .env.sample ]        && cp .env.sample        "$STAGING/" || true
-          [ -f docker-compose.yml ] && cp docker-compose.yml "$STAGING/" || true
-          [ -f LICENSE ]            && cp LICENSE            "$STAGING/" || true
-          [ -f README.md ]          && cp README.md          "$STAGING/" || true
+          for f in .env.sample docker-compose.yml LICENSE README.md; do
+            [ -f "$f" ] && cp "$f" "$STAGING/"
+          done
 
           TARBALL="${STAGING}.tar.gz"
           ZIPFILE="${STAGING}.zip"
