@@ -1,4 +1,4 @@
-name: 🚀 Deploy to Vercel
+name: 🔺 Deploy to Vercel
 on:
   push:
     branches:
@@ -29,16 +29,16 @@ jobs:
           fi
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
-          # Check out the branch from the previous step. 
+          # Check out the branch from the previous step.
           ref: ${{ steps.determine_branch.outputs.branchName }}
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: 22
-      
+
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
