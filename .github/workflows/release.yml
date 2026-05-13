@@ -23,6 +23,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 concurrency:
   group: release-${{ inputs.tag || github.ref_name }}
@@ -115,6 +117,15 @@ jobs:
           echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
           echo "zipfile=$ZIPFILE" >> "$GITHUB_OUTPUT"
 
+      - name: 🪪 Attest build provenance
+        id: attest
+        if: steps.tag.outputs.skip != 'true'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            ${{ steps.package.outputs.tarball }}
+            ${{ steps.package.outputs.zipfile }}
+
       - name: 🚀 Create draft release
         id: release
         if: steps.tag.outputs.skip != 'true'
@@ -140,6 +151,8 @@ jobs:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
           RELEASE_URL: ${{ steps.release.outputs.url }}
           RELEASE_OUTCOME: ${{ steps.release.outcome }}
+          ATTEST_URL: ${{ steps.attest.outputs.attestation-url }}
+          ATTEST_OUTCOME: ${{ steps.attest.outcome }}
         run: |
           {
             echo "| Step | Result |"
@@ -158,6 +171,15 @@ jobs:
                 echo "| Artifacts | \`domain-locker-${TAG}.tar.gz\`, \`domain-locker-${TAG}.zip\` |"
               else
                 echo "| Draft release | ❌ Failed (outcome: ${RELEASE_OUTCOME:-unknown}) |"
+              fi
+              if [ "$ATTEST_OUTCOME" = "success" ]; then
+                if [ -n "$ATTEST_URL" ]; then
+                  echo "| Provenance | ✅ [View attestation](${ATTEST_URL}) |"
+                else
+                  echo "| Provenance | ✅ Attested |"
+                fi
+              elif [ -n "$ATTEST_OUTCOME" ]; then
+                echo "| Provenance | ⚠️ ${ATTEST_OUTCOME} |"
               fi
             else
               echo "| Tag | ❌ Could not resolve |"
