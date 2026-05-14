@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import DatabaseService from '~/app/services/database.service';
 import { Router } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -27,38 +27,36 @@ interface MonthlyExpirations {
   styleUrls: ['./year-calendar.component.scss'],
 })
 export class YearCalendarComponent implements OnInit {
+  private databaseService = inject(DatabaseService);
+  private router = inject(Router);
+  private errorHandler = inject(ErrorHandlerService);
+
   selectedYear = new Date().getFullYear();
   currentYear = new Date().getFullYear();
   monthsData: MonthlyExpirations[] = [];
   noExpirations = false;
-
-  constructor(
-    private databaseService: DatabaseService,
-    private router: Router,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnInit(): void {
     this.loadYearData();
   }
 
   loadYearData(): void {
-    this.databaseService.instance.valuationQueries.getDomainCostings().subscribe(
-      (domains) => {
-        const filteredDomains = domains
-          .filter(domain => new Date(domain.expiry_date).getFullYear() === this.selectedYear)
+    this.databaseService.instance.valuationQueries.getDomainCostings().subscribe({
+      next: (domains) => {
+        const filteredDomains: ExpiringDomain[] = domains
+          .filter(domain => domain.expiry_date && new Date(domain.expiry_date).getFullYear() === this.selectedYear)
           .map(domain => ({
-            domain_name: domain.domain_name,
-            expiry_date: domain.expiry_date,
+            domain_name: domain.domain_name || '',
+            expiry_date: domain.expiry_date || '',
             renewal_cost: domain.renewal_cost,
             registrar: domain.registrar,
             auto_renew: domain.auto_renew
           }));
-          
+
         this.populateMonthsData(filteredDomains);
         this.noExpirations = this.monthsData.every(month => month.domains.length === 0);
       },
-      (error) => {
+      error: (error) => {
         this.errorHandler.handleError({
           error,
           message: 'Failed to load domain costings',
@@ -66,7 +64,7 @@ export class YearCalendarComponent implements OnInit {
           showToast: true,
         });
       }
-    );
+    });
   }
 
   populateMonthsData(domains: ExpiringDomain[]): void {

@@ -1,11 +1,12 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
 import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
 import { Notification } from '~/app/../types/Database';
+import { NotificationChannels } from '~/types/common';
 
 export class NotificationQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
   ) {}
 
@@ -26,7 +27,7 @@ export class NotificationQueries {
   }
 
   // Fetch notification preferences for the logged-in user
-  async getNotificationChannels() {
+  async getNotificationChannels(): Promise<NotificationChannels | null> {
     const { data, error } = await this.supabase
       .from('user_info')
       .select('notification_channels')
@@ -40,11 +41,11 @@ export class NotificationQueries {
       })
       throw error;
     }
-    return data?.notification_channels || null;
+    return (data?.notification_channels as NotificationChannels) || null;
   }
 
   // Update notification preferences for the logged-in user
-  async updateNotificationChannels(preferences: any) {
+  async updateNotificationChannels(preferences: NotificationChannels) {
     const userId = await this.getCurrentUser().then(user => user?.id);
 
     const { error } = await this.supabase
@@ -148,7 +149,7 @@ export class NotificationQueries {
   }
   
   
-  async markAllNotificationsRead(read = true): Promise<Observable<void>> {
+  async markAllNotificationsRead(_read = true): Promise<Observable<void>> {
     const userId = await this.getCurrentUser().then(user => user?.id);
     return from(
       this.supabase
@@ -249,28 +250,28 @@ export class NotificationQueries {
 
   
   // Method to update notifications
-  async updateNotificationTypes(domainId: string, notifications: { notification_type: string; is_enabled: boolean }[]): Promise<void> {
+  async updateNotificationTypes(domainId: string, notifications: { type: string; isEnabled: boolean }[]): Promise<void> {
     for (const notification of notifications) {
-      const { data: existingNotification, error: notificationError } = await this.supabase
+      const { data: existingNotification } = await this.supabase
         .from('notification_preferences')
         .select('id')
         .eq('domain_id', domainId)
-        .eq('notification_type', notification.notification_type)
+        .eq('notification_type', notification.type)
         .single();
-  
+
       if (existingNotification) {
         await this.supabase
           .from('notification_preferences')
-          .update({ is_enabled: notification.is_enabled })
+          .update({ is_enabled: notification.isEnabled })
           .eq('domain_id', domainId)
-          .eq('notification_type', notification.notification_type);
+          .eq('notification_type', notification.type);
       } else {
         await this.supabase
           .from('notification_preferences')
           .insert({
             domain_id: domainId,
-            notification_type: notification.notification_type,
-            is_enabled: notification.is_enabled
+            notification_type: notification.type,
+            is_enabled: notification.isEnabled,
           });
       }
     }

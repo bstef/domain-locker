@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { ErrorHandlerService } from '~/app/services/error-handler.service';
+import { ErrorHandlerService, ErrorLogEntry } from '~/app/services/error-handler.service';
 
 interface BuildLogChoice {
   file: string;
@@ -19,17 +19,14 @@ interface BuildLogChoice {
     }
   `],
 })
-export default class ErrorLogs {
-  public errorLog: { date: Date; message: string; location?: string; error?: any }[] = [];
+export default class ErrorLogs implements OnInit {
+  private errorHandler = inject(ErrorHandlerService);
+
+  public errorLog: ErrorLogEntry[] = [];
 
   public actionsList: BuildLogChoice[] = [];
   public currentAction: BuildLogChoice | null = null;
-  public currentLogs: string = '';
-
-  constructor(
-    private errorHandler: ErrorHandlerService,
-
-  ) {}
+  public currentLogs = '';
 
   ngOnInit(): void {
     this.errorLog = this.errorHandler.getRecentErrorLog();
@@ -42,7 +39,7 @@ export default class ErrorLogs {
       {
         file: 'tag.yml',
         name: '🏷️ Tag new versions',
-        description: 'Create and push a new Git tag when the app\'s semantic version is updated.',
+        description: "Create and push a new Git tag when the app's semantic version is updated.",
       },
       {
         file: 'release.yml',
@@ -52,7 +49,7 @@ export default class ErrorLogs {
       {
         file: 'mirror.yml',
         name: '🪞 Mirror to Codeberg',
-        description: 'Mirrors the repository and it\'s contents to Codeberg, to provide a backup and alternative access.',
+        description: "Mirrors the repository and it's contents to Codeberg, to provide a backup and alternative access.",
       },
     ];
   }

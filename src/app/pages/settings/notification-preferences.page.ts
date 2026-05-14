@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '../../prime-ng.module';
@@ -15,7 +15,7 @@ interface NotificationChannelField {
   label: string;
   name: string;
   placeholder?: string;
-  validator?: any;
+  validator?: import('@angular/forms').ValidatorFn | import('@angular/forms').ValidatorFn[];
   defaultValue?: string;
 }
 
@@ -40,7 +40,14 @@ interface NotificationChannel {
   providers: [],
   styles: ['::ng-deep .p-card-content { padding: 0; } '],
 })
-export default class NotificationPreferencesPage implements OnInit {
+export default class NotificationPreferencesPage implements OnInit, AfterViewInit {
+  private fb = inject(FormBuilder);
+  private globalMessageService = inject(GlobalMessageService);
+  private databaseService = inject(DatabaseService);
+  private supabaseService = inject(SupabaseService);
+  private featureService = inject(FeatureService);
+  private errorHandler = inject(ErrorHandlerService);
+
   
   notificationFeatureEnabled$ = this.featureService.isFeatureEnabled('notificationChannels');
   
@@ -149,15 +156,6 @@ export default class NotificationPreferencesPage implements OnInit {
     }
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private globalMessageService: GlobalMessageService,
-    private databaseService: DatabaseService,
-    private supabaseService: SupabaseService,
-    private featureService: FeatureService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
-
   ngOnInit() {
     this.initializeForm();
     this.loadNotificationPreferences();
@@ -165,7 +163,7 @@ export default class NotificationPreferencesPage implements OnInit {
 
   private initializeForm() {
     const formGroupConfig: Record<string, FormGroup> = this.notificationChannels.reduce((config, channel) => {
-        const channelConfig: { [key: string]: any } = { enabled: [false] };
+        const channelConfig: Record<string, unknown> = { enabled: [false] };
         channel.requires.forEach(requirement => {
             channelConfig[requirement.name] = ['', requirement.validator || []];
         });
@@ -196,7 +194,7 @@ export default class NotificationPreferencesPage implements OnInit {
         // Set default: Email enabled with user's auth email if it exists
         this.notificationForm.get('email')?.patchValue({ enabled: true, address: userEmail });
       }
-    } catch (error) {
+    } catch {
       this.notificationForm.get('email')?.patchValue({ enabled: true, address: userEmail });
     }
   }

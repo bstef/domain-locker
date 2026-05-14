@@ -377,7 +377,7 @@ export const domainOsintTools: WebTool[] = [
   },
 ];
 
-const infoSitesAndArticles: WebTool[] = [
+const _infoSitesAndArticles: WebTool[] = [
   {
     title: 'DN.org',
     link: 'https://dn.org',
@@ -426,9 +426,9 @@ export const sections = [
   },
   {
     title: 'Domain Management Platforms',
-    description: `At Domain Locker, we don\'t lock you in. Managing your domains effectively is important,
+    description: `At Domain Locker, we don't lock you in. Managing your domains effectively is important,
     and we want you to land on the best platform for your needs.
-    We\'ve listed a detailed comparison of alternative domain management tools on
+    We've listed a detailed comparison of alternative domain management tools on
     our <a href="/about/alternatives">Comparison</a> page.
     But in short, below are the top domain management tools`,
     links: domainManagementPlatforms,
@@ -445,8 +445,8 @@ export const sections = [
   },
   {
     title: 'AS93 Apps',
-    description: `If you\'ve enjoyed Domain Locker, you might be interested in
-    checking out some of the other apps I\'ve developed. I\'m active on GitHub at
+    description: `If you've enjoyed Domain Locker, you might be interested in
+    checking out some of the other apps I've developed. I'm active on GitHub at
     <a href="https://github.com/lissy93">@Lissy93</a>, and my full catalog of 50+ apps
     is available at <a href="https://as93.net">as93.net</a>.`,
     links: as93Apps,

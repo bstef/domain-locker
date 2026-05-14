@@ -1,6 +1,8 @@
 import { callPgExecutor } from '../lib/pgExecutor';
 import { normalizeStr } from '../lib/utils';
 import { recordDomainUpdate } from '../lib/recordUpdate';
+import type { DomainRow } from '../index';
+import type { FreshDomainInfo } from '../lib/fetchInfo';
 
 interface WhoisField {
   label: string;
@@ -10,10 +12,21 @@ interface WhoisField {
   freshValue: string;
 }
 
+interface WhoisRow {
+  domain_id: string;
+  name?: string;
+  organization?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  street?: string;
+  postal_code?: string;
+}
+
 export async function updateWhois(
   pgExec: string,
-  domainRow: any,
-  freshInfo: any,
+  domainRow: DomainRow,
+  freshInfo: FreshDomainInfo,
   changes: string[]
 ): Promise<void> {
   const domainId = domainRow.id;
@@ -21,7 +34,7 @@ export async function updateWhois(
   if (!fresh) return;
 
   // Fetch existing row
-  const [existing] = await callPgExecutor<any>(
+  const [existing] = await callPgExecutor<WhoisRow>(
     pgExec,
     `SELECT * FROM whois_info WHERE domain_id = $1`,
     [domainId]
@@ -52,7 +65,7 @@ export async function updateWhois(
 
   // Otherwise, compare and update fields
   const setFragments: string[] = [];
-  const updateParams: any[] = [];
+  const updateParams: unknown[] = [];
 
   for (const field of fields) {
     const oldVal = normalizeStr(field.dbValue);

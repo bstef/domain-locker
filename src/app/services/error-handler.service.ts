@@ -1,24 +1,23 @@
-import { ErrorHandler, Injectable, isDevMode, PLATFORM_ID, Inject } from '@angular/core';
+import { ErrorHandler, Injectable, isDevMode, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import * as Sentry from '@sentry/angular';
 import { EnvService } from '~/app/services/environment.service';
 
 import { GlobalMessageService } from '~/app/services/messaging.service';
 
-// @ts-ignore
 declare const __APP_VERSION__: string;
 
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
   private printToConsole = printToConsole;
-  handleError(error: any): void {
+  handleError(error: unknown): void {
     this.printToConsole('Something unexpected happened', 'the core app', error);
     Sentry.captureException(error);
   }
 }
 
 /* Logs an error to the console (when in dev or debug mode) */
-const printToConsole = (message?: string, location?: string, error?: any): void => {
+const printToConsole = (message?: string, location?: string, error?: unknown): void => {
   console.groupCollapsed(
     `%cError: ${message} in ${location || 'unknown location'}`,
     'background:#f93939;color:#fff;padding:0.1rem 0.25rem;border-radius:4px'
@@ -36,8 +35,15 @@ const printToConsole = (message?: string, location?: string, error?: any): void 
 };
 
 
+export interface ErrorLogEntry {
+  date: string;
+  message: string;
+  location: string;
+  error: unknown;
+}
+
 interface ErrorParams {
-  error?: Error | any, // Should be error, but might be funny error type
+  error?: Error | unknown, // Should be error, but might be funny error type
   message?: string; // Friendly message to show to user (if needed)
   location?: string; // Location in code where error occurred
   showToast?: boolean; // Whether to show a toast to the user
@@ -55,17 +61,15 @@ interface ErrorParams {
   providedIn: 'root'
 })
 export class ErrorHandlerService {
+  private platformId = inject<object>(PLATFORM_ID);
+  private globalMessageService = inject(GlobalMessageService);
+  private envService = inject(EnvService);
+
 
   private glitchTipEnabled = false; // Don't log errors, unless enabled
 
   private lsKey = 'PRIVACY_disable-error-tracking';
   private printToConsole = printToConsole;
-
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private globalMessageService: GlobalMessageService,
-    private envService: EnvService,
-  ) {}
 
 
   /* Shows a popup toast message to the user (if user-triggered) */
@@ -91,7 +95,7 @@ export class ErrorHandlerService {
   public initializeGlitchTip(): void {
     this.glitchTipEnabled = this.shouldEnableGlitchTip();
     if (!this.glitchTipEnabled) return;
-    const glitchTipDsn = this.envService.getGlitchTipDsn();
+    const glitchTipDsn = this.envService.getGlitchTipDsn() || undefined;
     try {
       Sentry.init({
         dsn: glitchTipDsn,
@@ -127,7 +131,7 @@ export class ErrorHandlerService {
   }
 
   /* Logs an error to GlitchTip with user context */
-  private logToGlitchTip(message: string, location: string, error: any): void {
+  private logToGlitchTip(message: string, location: string, error: unknown): void {
     if (!this.glitchTipEnabled) return;
     const userId = this.getUserId();
       Sentry.setUser( userId ? { id: userId } : null);
@@ -137,7 +141,7 @@ export class ErrorHandlerService {
       });
   }
 
-  private saveToLocalStorage(message: string, location: string, error: any): void {
+  private saveToLocalStorage(message: string, location: string, error: unknown): void {
     if (!isPlatformBrowser(this.platformId) || !localStorage) return;
     const key = 'DL_error_log';
     const lsErrorLog = JSON.parse(localStorage.getItem(key) || '[]');
@@ -156,8 +160,9 @@ export class ErrorHandlerService {
 
     // Show error toast if showError is true
     if (showToast && message && error) {
-      if (error.message) {
-        this.showToast(message, error.message);
+      const errMessage = (error as { message?: string })?.message;
+      if (errMessage) {
+        this.showToast(message, errMessage);
       } else {
         this.showToast('Error', message);
       }
@@ -172,7 +177,7 @@ export class ErrorHandlerService {
     this.saveToLocalStorage(message || 'mystery error', location || '-', error);
   }
 
-  public getRecentErrorLog(): any[] {
+  public getRecentErrorLog(): ErrorLogEntry[] {
     if (!isPlatformBrowser(this.platformId) || !(typeof window !== 'undefined')) {
       return [];
     }

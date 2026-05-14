@@ -1,7 +1,7 @@
-import { Component, OnInit, ElementRef, ViewChild, HostListener, OnDestroy } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, HostListener, OnDestroy, inject } from '@angular/core';
 import * as d3 from 'd3';
 import cloud from 'd3-cloud';
-import { CommonModule } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { Router } from '@angular/router';
 import DatabaseService from '~/app/services/database.service';
@@ -22,7 +22,7 @@ interface CloudWord {
 @Component({
   standalone: true,
   selector: 'app-tag-cloud',
-  imports: [CommonModule, PrimeNgModule, TranslateModule],
+  imports: [PrimeNgModule, TranslateModule],
   templateUrl: './tag-cloud.component.html',
   styles: [`
     ::ng-deep svg g text {
@@ -35,20 +35,18 @@ interface CloudWord {
   `],
 })
 export class DomainTagCloudComponent implements OnInit, OnDestroy {
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private router = inject(Router);
+
   @ViewChild('wordCloudContainer', { static: true }) wordCloudContainer!: ElementRef;
-  private resizeTimeout: any;
+  private resizeTimeout: ReturnType<typeof setTimeout> | undefined;
   private subscription: Subscription = new Subscription();
 
   width = 400;
   height = 400;
   words: CloudWord[] = [];
   loading = true;
-
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-    private router: Router,
-  ) {}
 
   ngOnInit(): void {
     this.loadTagsWithCounts();
@@ -115,7 +113,7 @@ export class DomainTagCloudComponent implements OnInit, OnDestroy {
         .padding(5)
         .rotate(() => ~~(Math.random() * 2) * 90)
         .font('Impact')
-        .fontSize((d: any) => d.size)
+        .fontSize((d) => (d as { size: number }).size)
         .on('end', this.draw.bind(this))
         .start();
     } catch (err) {

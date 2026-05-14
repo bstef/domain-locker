@@ -100,7 +100,9 @@ export class ThemeService {
     },
   ];
 
-  constructor(rendererFactory: RendererFactory2) {
+  constructor() {
+    const rendererFactory = inject(RendererFactory2);
+
     this.renderer = rendererFactory.createRenderer(null, null);
     this.initializeTheme();
     this.initializeFont();

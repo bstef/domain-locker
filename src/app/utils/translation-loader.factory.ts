@@ -17,14 +17,14 @@ export class ServerSafeTranslateLoader implements TranslateLoader {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
 
-  getTranslation(lang: string): Observable<any> {
+  getTranslation(lang: string): Observable<Record<string, unknown>> {
     // Sanitize lang code: allow only valid formats, to prevents path traversal
     const sanitizedLang = /^[a-zA-Z0-9.-]+$/.test(lang) ? lang : 'en';
 
     // Client-Side: Use HttpClient to fetch translations from /i18n/
     if (isPlatformBrowser(this.platformId)) {
       const langRequestUrl = `/i18n/${sanitizedLang}.json`;
-      return this.http.get(langRequestUrl).pipe(catchError(() => of({})));
+      return this.http.get<Record<string, unknown>>(langRequestUrl).pipe(catchError(() => of({})));
     }
 
     // Server-Side: Use fs to read translation files directly
@@ -58,7 +58,7 @@ export class CustomMissingTranslationHandler implements MissingTranslationHandle
 }
 
 /** Initializes the language based on client or server environment */
-export function languageInitializerFactory(translate: TranslateService, platformId: Object) {
+export function languageInitializerFactory(translate: TranslateService, platformId: object) {
   return () => {
     const defaultLang = 'en';
     if (isPlatformBrowser(platformId)) {

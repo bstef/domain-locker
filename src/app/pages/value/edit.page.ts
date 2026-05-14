@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, ChangeDetectorRef, inject } from '@angular/core';
 import DatabaseService from '~/app/services/database.service';
 import { MessageService } from 'primeng/api';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import { localeToCurrency } from '~/app/constants/currencies';
 import { TableModule } from 'primeng/table';
+import { DbDomain } from '~/app/../types/Database';
 
 @Component({
   standalone: true,
@@ -15,17 +16,15 @@ import { TableModule } from 'primeng/table';
   imports: [PrimeNgModule, RouterModule, FormsModule, TableModule],
 })
 export default class EditDomainValuePage implements OnInit {
-  domains: any[] = [];
-  loading = true;
-  public locale: string = 'en-US';
-  public currency: string = 'USD';
+  private databaseService = inject(DatabaseService);
+  private messageService = inject(MessageService);
+  private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor(
-    private databaseService: DatabaseService,
-    private messageService: MessageService,
-    @Inject(PLATFORM_ID) private platformId: any,
-    private cdr: ChangeDetectorRef,
-  ) {}
+  domains: (DbDomain & { purchase_price: number; current_value: number; renewal_cost: number; auto_renew: boolean })[] = [];
+  loading = true;
+  public locale = 'en-US';
+  public currency = 'USD';
 
   ngOnInit() {
     this.loadDomains();
@@ -59,7 +58,7 @@ export default class EditDomainValuePage implements OnInit {
             this.loading = false;
             this.cdr.markForCheck();
           },
-          error: (error) => {
+          error: (_error) => {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
@@ -70,7 +69,7 @@ export default class EditDomainValuePage implements OnInit {
           },
         });
       },
-      error: (error) => {
+      error: (_error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -100,7 +99,7 @@ export default class EditDomainValuePage implements OnInit {
           detail: 'Domain costings updated successfully',
         });
       },
-      error: (error) => {
+      error: (_error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -118,7 +117,7 @@ export default class EditDomainValuePage implements OnInit {
         const currencyCode = localeToCurrency[userLocale] || 'USD';
         this.locale = userLocale;
         this.currency = currencyCode;
-      } catch (error) {
+      } catch {
         this.locale = 'en-US';
         this.currency = 'USD';
       }

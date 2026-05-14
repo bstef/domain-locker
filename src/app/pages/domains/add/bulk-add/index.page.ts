@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -22,7 +22,7 @@ import {
   Subscription
 } from 'rxjs';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { notificationTypes } from '~/app/constants/notification-types';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
@@ -40,11 +40,20 @@ import { HitCountingService } from '~/app/services/hit-counting.service';
 @Component({
   standalone: true,
   selector: 'app-bulk-add',
-  imports: [CommonModule, PrimeNgModule, ReactiveFormsModule],
+  imports: [PrimeNgModule, ReactiveFormsModule],
   templateUrl: './bulk-add.page.html',
   styleUrls: ['./bulk-add.page.scss']
 })
-export default class BulkAddComponent implements OnInit, OnDestroy {
+export default class BulkAddComponent implements OnDestroy {
+  private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
+  private messageService = inject(GlobalMessageService);
+  private errorHandler = inject(ErrorHandlerService);
+  private databaseService = inject(DatabaseService);
+  private router = inject(Router);
+  private envService = inject(EnvService);
+  private hitCountingService = inject(HitCountingService);
+
   step = 1;
 
   /** Our master form containing (domainList, domains[], notifications) */
@@ -77,16 +86,7 @@ export default class BulkAddComponent implements OnInit, OnDestroy {
   /** Subscription used for subdomain fetch so we can unsubscribe if needed. */
   private subdomainsFetchSub?: Subscription;
 
-  constructor(
-    private fb: FormBuilder,
-    private http: HttpClient,
-    private messageService: GlobalMessageService,
-    private errorHandler: ErrorHandlerService,
-    private databaseService: DatabaseService,
-    private router: Router,
-    private envService: EnvService,
-    private hitCountingService: HitCountingService,
-  ) {
+  constructor() {
     this.bulkAddForm = this.fb.group({
       domainList: ['', Validators.required],
       domains: this.fb.array([]),
@@ -97,8 +97,6 @@ export default class BulkAddComponent implements OnInit, OnDestroy {
       )
     });
   }
-
-  ngOnInit() {}
 
   ngOnDestroy(): void {
     // clean up if subdomain fetch is still ongoing
@@ -264,14 +262,14 @@ fetchSubdomainsInBackground(domainList: string[]): void {
           delay(500),
           switchMap((d) =>
             this.http
-              .get<Array<{
+              .get<{
                 subdomain: string;
                 tags: string[];
                 type: string;
                 ip: string;
                 asn: string;
-                [key: string]: any; // In case there are other fields
-              }>>(`${domainSubsEndpoint}?domain=${d}`)
+                [key: string]: unknown; // In case there are other fields
+              }[]>(`${domainSubsEndpoint}?domain=${d}`)
               .pipe(
                 catchError((err) => {
                   this.errorHandler.handleError({
@@ -279,7 +277,7 @@ fetchSubdomainsInBackground(domainList: string[]): void {
                     error: err,
                     showToast: true,
                   });
-                  return of([] as any[]);
+                  return of([] as { subdomain: string; tags: string[]; type: string; ip: string; asn: string; [key: string]: unknown }[]);
                 }),
                 map((subdomains) => ({ domain: d, subdomains }))
               )
@@ -300,7 +298,7 @@ fetchSubdomainsInBackground(domainList: string[]): void {
 
         // If you want to store them in the form so user can see/edit them:
         const idx = this.domains.value.findIndex(
-          (grp: any) => grp.domainName === domain
+          (grp: { domainName: string }) => grp.domainName === domain
         );
         if (idx !== -1) {
           this.domains.at(idx).patchValue({ subdomains: subdomainsForForm });
@@ -382,7 +380,7 @@ private extractSubdomainName(fullSubdomain: string, parentDomain: string): strin
             const expiry: Date = domainForm.get('expiryDate')?.value;
             const notes: string = domainForm.get('notes')?.value;
             const tags: string[] = domainForm.get('tags')?.value || [];
-            const subdomains: string[] = domainForm.get('subdomains')?.value || [];
+            const _subdomains: string[] = domainForm.get('subdomains')?.value || [];
 
             const domainInfo = this.domainsInfo[domainName];
             // Build the SaveDomainData object

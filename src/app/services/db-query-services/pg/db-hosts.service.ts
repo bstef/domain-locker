@@ -1,12 +1,12 @@
-import { catchError,  map, Observable, of } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { DbDomain, Host } from '~/app/../types/Database';
 import { PgApiUtilService } from '~/app/utils/pg-api.util';
 
 export class HostsQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
-    private formatDomainData: (domain: any) => DbDomain
+    private handleError: (error: unknown) => Observable<never>,
+    private formatDomainData: (domain: Record<string, unknown>) => DbDomain
   ) {}
 
   getHosts(): Observable<Host[]> {
@@ -57,7 +57,7 @@ export class HostsQueries {
                    WHERE h.isp = $1
                    GROUP BY d.id, r.name, r.url;`;
 
-    return this.pgApiUtil.postToPgExecutor(query, [hostIsp]).pipe(
+    return this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(query, [hostIsp]).pipe(
       map((response) => response.data.map(this.formatDomainData)),
       catchError((error) => this.handleError(error))
     );

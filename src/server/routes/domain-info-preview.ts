@@ -49,9 +49,10 @@ export default defineEventHandler(async (event) => {
     const data = await response.json();
     const result = data?.body || data;
     return result;
-  } catch (error: any) {
+  } catch (error) {
     // If the fetch itself fucked up, return a 500 error
-    return { statusCode: 500, body: { error: error.message || 'Failed to fetch domain info' } };
+    const msg = error instanceof Error ? error.message : 'Failed to fetch domain info'
+    return { statusCode: 500, body: { error: msg } };
   }
 
 });

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { FeatureService } from '~/app/services/features.service';
@@ -50,7 +50,13 @@ interface UptimeData {
   ],
   templateUrl: './index.page.html',
 })
-export default class MonitorPage {
+export default class MonitorPage implements OnInit {
+  private router = inject(Router);
+  private featureService = inject(FeatureService);
+  private databaseService = inject(DatabaseService);
+  private errorHandlerService = inject(ErrorHandlerService);
+  private envService = inject(EnvService);
+
   monitorEnabled$ = this.featureService.isFeatureEnabled('domainMonitor');
 
   domains: DbDomain[] = [];
@@ -62,29 +68,21 @@ export default class MonitorPage {
   getResponseCodeColor = getResponseCodeColor;
   getPerformanceColor = getPerformanceColor;
 
-  sparkLineConfig: ApexOptions | any = {
+  sparkLineConfig: ApexOptions = {
     chart: {
       type: 'line',
       height: 50,
       sparkline: { enabled: true },
     }
-  } as ApexOptions | any;
+  };
 
-  donutChartConfig: ApexOptions | any = {
+  donutChartConfig: ApexOptions = {
     chart: {
       type: 'donut',
       height: 50,
       width: 50,
     },
-  } as ApexOptions | any;
-
-  constructor(
-    private router: Router,
-    private featureService: FeatureService,
-    private databaseService: DatabaseService,
-    private errorHandlerService: ErrorHandlerService,
-    private envService: EnvService,
-  ) {}
+  };
 
 
   ngOnInit(): void {
@@ -114,8 +112,9 @@ export default class MonitorPage {
 
   loadDomainSummaries(): void {
     this.domains.forEach((domain) => {
-      this.databaseService.instance.getDomainUptime(domain.user_id, domain.id, 'day').then((data: any) => {
-        if (data && !data.data) data.data = data; // data be data with data has data if data not data and data is data. Got it?
+      this.databaseService.instance.getDomainUptime(domain.user_id, domain.id, 'day').then((rawData: unknown) => {
+        const data = rawData as { data?: UptimeData[] } & UptimeData[];
+        if (data && !data.data) data.data = data as unknown as UptimeData[]; // data be data with data has data if data not data and data is data. Got it?
         if (data.data) {
           const uptimeData: UptimeData[] = data.data;
   
@@ -184,7 +183,7 @@ export default class MonitorPage {
     }));
   }
 
-  public isNaN(value: any): boolean {
+  public isNaN(value: unknown): boolean {
     return typeof value === 'number' && isNaN(value);
   }
 }

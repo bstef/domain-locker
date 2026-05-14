@@ -10,40 +10,59 @@
             <p class="m-0">{{ fc.description }}</p>
           </div>
         </a>
-        <p-button
-          *ngFor="let cta of fc.ctas"
-          label="{{ cta.label }}"
-          class="mr-3"
-          styleClass="min-w-40"
-          icon="{{ cta.icon }}"
-          [routerLink]="cta.link"
-          [queryParams]="cta.queryParams || {}"
-          (click)="cta.click && cta.click()"
-          [outlined]="!cta.isPrimary"
-        />
+        @for (cta of fc.ctas; track cta) {
+          <p-button
+            label="{{ cta.label }}"
+            class="mr-3"
+            styleClass="min-w-40"
+            icon="{{ cta.icon }}"
+            [routerLink]="cta.link"
+            [queryParams]="cta.queryParams || {}"
+            (click)="cta.click && cta.click()"
+            [outlined]="!cta.isPrimary"
+            />
+        }
       </div>
       <div>
         <ul class="list-none pl-0">
-          <li *ngFor="let item of fc.left">
-            <a *ngIf="item.link" routerLink="{{ item.link }}" class="text-primary">{{ item.label }}</a>
-            <a *ngIf="item.href" href="{{ item.href }}" class="text-primary">{{ item.label }}</a>
-          </li>
+          @for (item of fc.left; track item) {
+            <li>
+              @if (item.link) {
+                <a routerLink="{{ item.link }}" class="text-primary">{{ item.label }}</a>
+              }
+              @if (item.href) {
+                <a href="{{ item.href }}" class="text-primary">{{ item.label }}</a>
+              }
+            </li>
+          }
         </ul>
       </div>
       <div>
         <ul class="list-none pl-0">
-          <li *ngFor="let item of fc.middle">
-            <a *ngIf="item.link" routerLink="{{ item.link }}" class="text-primary">{{ item.label }}</a>
-            <a *ngIf="item.href" href="{{ item.href }}" class="text-primary">{{ item.label }}</a>
-          </li>
+          @for (item of fc.middle; track item) {
+            <li>
+              @if (item.link) {
+                <a routerLink="{{ item.link }}" class="text-primary">{{ item.label }}</a>
+              }
+              @if (item.href) {
+                <a href="{{ item.href }}" class="text-primary">{{ item.label }}</a>
+              }
+            </li>
+          }
         </ul>
       </div>
       <div>
         <ul class="list-none pl-0">
-          <li *ngFor="let item of fc.right">
-            <a *ngIf="item.link" routerLink="{{ item.link }}" class="text-primary">{{ item.label }}</a>
-            <a *ngIf="item.href" href="{{ item.href }}" class="text-primary">{{ item.label }}</a>
-          </li>
+          @for (item of fc.right; track item) {
+            <li>
+              @if (item.link) {
+                <a routerLink="{{ item.link }}" class="text-primary">{{ item.label }}</a>
+              }
+              @if (item.href) {
+                <a href="{{ item.href }}" class="text-primary">{{ item.label }}</a>
+              }
+            </li>
+          }
         </ul>
       </div>
     </div>

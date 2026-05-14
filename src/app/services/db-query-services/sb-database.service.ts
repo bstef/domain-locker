@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '~/app/services/supabase.service';
-import { DatabaseService, DbDomain, IpAddress, SaveDomainData, DomainExpiration } from '~/app/../types/Database';
+import { DatabaseService, DbDomain, SaveDomainData, DomainExpiration } from '~/app/../types/Database';
 import { catchError, from, map, Observable, throwError, retry, switchMap, toArray, of, concatMap } from 'rxjs';
 import { makeEppArrayFromLabels } from '~/app/constants/security-categories';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
@@ -28,16 +28,17 @@ import { FeatureService } from '../features.service';
   providedIn: 'root',
 })
 export default class MainDatabaseService extends DatabaseService {
+  private supabase = inject(SupabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private globalMessagingService = inject(GlobalMessageService);
+  private featureService = inject(FeatureService);
 
-  constructor(
-    private supabase: SupabaseService,
-    private errorHandler: ErrorHandlerService,
-    private globalMessagingService: GlobalMessageService,
-    private featureService: FeatureService,
-  ) {
+
+  constructor() {
     super();
 
-    const subservices: Array<{property: string; cls: new (...args: any[]) => any; args: any[];}> = [
+    type SubserviceCtor = new (...args: never[]) => unknown;
+    const subservices: { property: string; cls: SubserviceCtor; args: readonly unknown[] }[] = [
       {
         property: 'tagQueries',
         cls: TagQueries,
@@ -160,13 +161,13 @@ export default class MainDatabaseService extends DatabaseService {
 
     // Instantiate each subservice, wrap it in write protection proxy
     subservices.forEach(({ property, cls, args }) => {
-      const real = new cls(...args);
-      const proxied = createDbProxy(real, this.featureService, this.globalMessagingService);
-      (this as any)[property] = proxied;
+      const real = new (cls as new (...a: unknown[]) => unknown)(...args);
+      const proxied = createDbProxy(real as object, this.featureService, this.globalMessagingService);
+      (this as unknown as Record<string, unknown>)[property] = proxied;
     });
   }
 
-  private handleError(error: any): Observable<never> {
+  private handleError(error: unknown): Observable<never> {
     this.errorHandler.handleError({
       error,
       message: 'Failed to execute DB query',
@@ -303,7 +304,7 @@ export default class MainDatabaseService extends DatabaseService {
 
     if (error) throw error;
     if (!data) throw new Error('Failed to fetch complete domain data');
-    return this.formatDomainData(data);
+    return this.formatDomainData(data as unknown as Record<string, unknown>);
   }
 
   private getFullDomainQuery(): string {
@@ -350,41 +351,44 @@ export default class MainDatabaseService extends DatabaseService {
       map(({ data, error }) => {
         if (error) throw error;
         if (!data) throw new Error('Domain not found');
-        return this.formatDomainData(data);
+        return this.formatDomainData(data as unknown as Record<string, unknown>);
       }),
       retry(3),
       catchError(error => this.handleError(error))
     );
   }
 
-  private extractTags(data: any): string[] {
-    if (Array.isArray(data.domain_tags)) {
-      // Handle the case for /domains page
-      return data.domain_tags
-        .filter((tagItem: any) => tagItem.tags && tagItem.tags.name)
-        .map((tagItem: any) => tagItem.tags.name);
-    } else if (data.tags) {
-      // Handle the case for /assets/tags/[tag-name] page
-      return [data.tags];
+  private extractTags(data: Record<string, unknown>): string[] {
+    const domainTags = data['domain_tags'];
+    if (Array.isArray(domainTags)) {
+      return (domainTags as { tags?: { name?: string } }[])
+        .filter((tagItem) => tagItem.tags && tagItem.tags.name)
+        .map((tagItem) => tagItem.tags!.name!);
+    } else if (data['tags']) {
+      return [String(data['tags'])];
     }
     return [];
   }
 
-  private formatDomainData(data: any): DbDomain {
+  private formatDomainData(data: Record<string, unknown>): DbDomain {
+    const sslCerts = (data['ssl_certificates'] as Record<string, unknown>[] | undefined) || [];
+    const dnsRecords = (data['dns_records'] as { record_type: string; record_value: string }[] | undefined) || [];
+    const domainHosts = (data['domain_hosts'] as { hosts: Record<string, unknown> }[] | undefined) || [];
+    const domainStatuses = (data['domain_statuses'] as { status_code: string }[] | undefined) || [];
     return {
       ...data,
       tags: this.extractTags(data),
-      ssl: (data.ssl_certificates && data.ssl_certificates.length) ? data.ssl_certificates[0] : null,
-      whois: data.whois_info,
-      registrar: data.registrars,
-      host: data.domain_hosts && data.domain_hosts.length > 0 ? data.domain_hosts[0].hosts : null,
+      ssl: sslCerts.length ? sslCerts[0] : null,
+      whois: data['whois_info'],
+      registrar: data['registrars'],
+      host: domainHosts.length > 0 ? domainHosts[0].hosts : null,
       dns: {
-        mxRecords: data.dns_records?.filter((record: any) => record.record_type === 'MX').map((record: any) => record.record_value) || [],
-        txtRecords: data.dns_records?.filter((record: any) => record.record_type === 'TXT').map((record: any) => record.record_value) || [],
-        nameServers: data.dns_records?.filter((record: any) => record.record_type === 'NS').map((record: any) => record.record_value) || []
+        mxRecords: dnsRecords.filter((r) => r.record_type === 'MX').map((r) => r.record_value),
+        txtRecords: dnsRecords.filter((r) => r.record_type === 'TXT').map((r) => r.record_value),
+        nameServers: dnsRecords.filter((r) => r.record_type === 'NS').map((r) => r.record_value),
       },
-      statuses: makeEppArrayFromLabels(data.domain_statuses?.map((status: any) => status.status_code) || []),
-    };
+      statuses: makeEppArrayFromLabels(domainStatuses.map((s) => s.status_code)),
+    } as unknown as DbDomain;
   }
 
   listDomainNames(): Observable<string[]> {
@@ -408,7 +412,7 @@ export default class MainDatabaseService extends DatabaseService {
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(domain => this.formatDomainData(domain));
+        return (data as unknown as Record<string, unknown>[]).map(domain => this.formatDomainData(domain));
       }),
       retry(3),
       catchError(error => this.handleError(error))
@@ -421,8 +425,11 @@ export default class MainDatabaseService extends DatabaseService {
     );
   }
   
-  private async updateDomainInternal(domainId: string, data: any): Promise<DbDomain> {
-    const { domain, tags, notifications, subdomains, links } = data; // Include subdomains in destructuring
+  private async updateDomainInternal(domainId: string, data: SaveDomainData): Promise<DbDomain> {
+    const { domain, tags, notifications, subdomains, links } = data;
+
+    const registrarValue = (domain as unknown as { registrar?: string | { name?: string } }).registrar;
+    const registrarName = typeof registrarValue === 'string' ? registrarValue : (registrarValue?.name || '');
 
     // Update domain's basic information
     const { data: updatedDomain, error: updateError } = await this.supabase.supabase
@@ -430,7 +437,7 @@ export default class MainDatabaseService extends DatabaseService {
       .update({
         expiry_date: domain.expiry_date,
         notes: domain.notes,
-        registrar_id: await this.registrarQueries.getOrInsertRegistrarId(domain.registrar)
+        registrar_id: await this.registrarQueries.getOrInsertRegistrarId(registrarName)
       })
       .eq('id', domainId)
       .select()
@@ -443,13 +450,17 @@ export default class MainDatabaseService extends DatabaseService {
     await this.tagQueries.updateTags(domainId, tags);
 
     // Handle notifications
-    await this.notificationQueries.updateNotificationTypes(domainId, notifications);
+    if (notifications) {
+      await this.notificationQueries.updateNotificationTypes(domainId, notifications);
+    }
 
     // Handle subdomains
     await this.subdomainsQueries.updateSubdomains(domainId, subdomains);
 
     // Handle links
-    await this.linkQueries.updateLinks(domainId, links);
+    if (links) {
+      await this.linkQueries.updateLinks(domainId, links);
+    }
 
     return this.getDomainById(domainId);
   }
@@ -492,9 +503,9 @@ export default class MainDatabaseService extends DatabaseService {
         if (error) throw error;
         const domainsByStatus: Record<string, { domainId: string, domainName: string }[]> = {};  
         statuses.forEach(status => {
-          domainsByStatus[status] = data
-            .filter((d: { status_code: string; }) => d.status_code === status)
-            .map((d: { domain_id: any; domain_name: any; }) => ({ domainId: d.domain_id, domainName: d.domain_name }));
+          domainsByStatus[status] = (data as { status_code: string; domain_id: string; domain_name: string }[])
+            .filter((d) => d.status_code === status)
+            .map((d) => ({ domainId: d.domain_id, domainName: d.domain_name }));
         });
         return domainsByStatus;
       })
@@ -618,8 +629,8 @@ export default class MainDatabaseService extends DatabaseService {
     );
   }
   
-  fetchAllForExport(domainName: string, includeFields: string[] | {label: string, value: string}[]): Observable<any[]> {
-    const fieldMap: { [key: string]: string } = {
+  fetchAllForExport(domainName: string, includeFields: string[] | {label: string, value: string}[]): Observable<Record<string, unknown>[]> {
+    const fieldMap: Record<string, string> = {
       domain_statuses: 'domain_statuses(status_code)',
       ip_addresses: 'ip_addresses(ip_address, is_ipv6)',
       whois_info: 'whois_info(name, organization, country, street, city, state, postal_code)',
@@ -668,16 +679,40 @@ export default class MainDatabaseService extends DatabaseService {
       map(({ data, error }) => {
         if (error) throw error;
   
+        interface ExportSbDomainRow {
+          registrars?: { name?: string; url?: string } | null;
+          ip_addresses?: { ip_address?: string }[];
+          ssl_certificates?: { issuer?: string }[];
+          whois_info?: {
+            name?: string;
+            organization?: string;
+            country?: string;
+            street?: string;
+            city?: string;
+            state?: string;
+            postal_code?: string;
+          } | null;
+          domain_tags?: { tags?: { name?: string } | null }[];
+          domain_hosts?: { hosts?: { isp?: string } | null }[];
+          dns_records?: { record_type: string; record_value: string }[];
+          domain_costings?: {
+            purchase_price?: number;
+            current_value?: number;
+            renewal_cost?: number;
+            auto_renew?: boolean;
+          } | null;
+          [k: string]: unknown;
+        }
         // Flatten the nested data for CSV export
-        const flattenedData = data.map((domain: any) => ({
+        const flattenedData = (data as unknown as ExportSbDomainRow[]).map((domain) => ({
           ...domain,
           registrar_name: domain.registrars?.name || '',
           registrar_url: domain.registrars?.url || '',
           ip_addresses: domain.ip_addresses
-            ? domain.ip_addresses.map((ip: any) => ip.ip_address).filter(Boolean).join(', ')
+            ? domain.ip_addresses.map((ip) => ip.ip_address).filter(Boolean).join(', ')
             : '',
           ssl_certificates: domain.ssl_certificates
-            ? domain.ssl_certificates.map((cert: any) => cert.issuer).filter(Boolean).join(', ')
+            ? domain.ssl_certificates.map((cert) => cert.issuer).filter(Boolean).join(', ')
             : '',
           whois_name: domain.whois_info?.name || '',
           whois_organization: domain.whois_info?.organization || '',
@@ -687,13 +722,13 @@ export default class MainDatabaseService extends DatabaseService {
           whois_state: domain.whois_info?.state || '',
           whois_postal_code: domain.whois_info?.postal_code || '',
           tags: domain.domain_tags
-            ? domain.domain_tags.map((tag: any) => tag.tags?.name).filter(Boolean).join(', ')
+            ? domain.domain_tags.map((tag) => tag.tags?.name).filter(Boolean).join(', ')
             : '',
           hosts: domain.domain_hosts
-            ? domain.domain_hosts.map((host: any) => host.hosts?.isp).filter(Boolean).join(', ')
+            ? domain.domain_hosts.map((host) => host.hosts?.isp).filter(Boolean).join(', ')
             : '',
           dns_records: domain.dns_records
-            ? domain.dns_records.map((record: any) => `${record.record_type}: ${record.record_value}`).filter(Boolean).join('; ')
+            ? domain.dns_records.map((record) => `${record.record_type}: ${record.record_value}`).filter(Boolean).join('; ')
             : '',
           purchase_price: domain.domain_costings?.purchase_price || 0,
           current_value: domain.domain_costings?.current_value || 0,

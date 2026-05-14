@@ -1,11 +1,13 @@
 import { callPgExecutor } from '../lib/pgExecutor';
 import { recordDomainUpdate } from '../lib/recordUpdate';
 import { toDateOnly, datesDifferBeyondThreshold } from '../lib/utils';
+import type { DomainRow } from '../index';
+import type { FreshDomainInfo } from '../lib/fetchInfo';
 
 export async function updateExpiryDate(
   pgExec: string,
-  domainRow: any,
-  freshInfo: any,
+  domainRow: DomainRow,
+  freshInfo: FreshDomainInfo,
   changes: string[]
 ): Promise<void> {
   const oldRaw = domainRow.expiry_date;

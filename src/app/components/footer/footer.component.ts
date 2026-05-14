@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, inject } from '@angular/core';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -7,21 +7,51 @@ import { LogoComponent} from '~/app/components/home-things/logo/logo.component';
 
 declare const __APP_VERSION__: string;
 
+interface FooterCta {
+  label: string;
+  link?: string;
+  href?: string;
+  queryParams?: Record<string, string>;
+  click?: () => void;
+  icon?: string;
+  isPrimary?: boolean;
+}
+
+interface FooterLink {
+  label: string;
+  link?: string;
+  href?: string;
+}
+
+interface FooterContent {
+  name: string;
+  description: string;
+  ctas: FooterCta[];
+  left: FooterLink[];
+  middle: FooterLink[];
+  right: FooterLink[];
+}
+
 @Component({
   standalone: true,
   selector: 'app-footer',
-  imports: [ CommonModule, PrimeNgModule, LogoComponent ],
+  imports: [PrimeNgModule, LogoComponent],
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss'],
   styles: []
 })
 export class FooterComponent {
-  @Input() public big: boolean = false;
+  private router = inject(Router);
+  private translate = inject(TranslateService);
+
+  @Input() public big = false;
   public year: number = new Date().getFullYear();
   public appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
-  public fc: any = {};
+  public fc: FooterContent = {
+    name: '', description: '', ctas: [], left: [], middle: [], right: [],
+  };
 
-  constructor(private router: Router, private translate: TranslateService) {
+  constructor() {
     this.translate.get([
       'FOOTER.NAME',
       'FOOTER.DESCRIPTION',

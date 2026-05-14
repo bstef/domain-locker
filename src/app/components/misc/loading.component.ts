@@ -1,19 +1,13 @@
-import {
-  Component,
-  Input,
-  OnDestroy,
-  AfterViewInit,
-  Inject,
-  PLATFORM_ID
-} from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, Input, OnDestroy, AfterViewInit, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 
 @Component({
   standalone: true,
-  selector: 'loading',
-  imports: [CommonModule, PrimeNgModule, TranslateModule],
+  selector: 'app-loading',
+  imports: [PrimeNgModule, TranslateModule],
   styles: `
     ::ng-deep .is-absolute {
       background: var(--surface-0);
@@ -26,12 +20,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   template: `
     <div
       class="flex justify-center flex-col items-center h-full min-h-80 gap-4 mx-auto scale-1 md:mt-[-3rem] lg:mt-[-5rem] md:scale-125 xl:scale-150 animate-fade-in overflow-hidden {{ isAbsolute ? 'is-absolute' : ''}}"
-    >
+      >
       <!-- Title -->
       <p class="m-0 text-4xl font-extrabold text-default tracking-widest">
         {{ loadingTitle || text.initTitle }}
       </p>
-
+    
       <!-- Animated bar loader -->
       <div class="w-28 flex gap-2">
         <div class="w-2 h-4 rounded-full bg-primary animate-fade-bounce"></div>
@@ -39,59 +33,72 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
         <div class="w-2 h-4 rounded-full bg-primary animate-fade-bounce [animation-delay:-0.5s]"></div>
         <div class="w-2 h-4 rounded-full bg-primary animate-fade-bounce [animation-delay:-0.8s]"></div>
       </div>
-
+    
       <!-- Description -->
-      <p *ngIf="loadingDescription; else defaultDesc" class="m-0 mt-4 text-lg text-surface-400 text-center">
-        {{ loadingDescription }}
-      </p>
+      @if (loadingDescription) {
+        <p class="m-0 mt-4 text-lg text-surface-400 text-center">
+          {{ loadingDescription }}
+        </p>
+      } @else {
+        <p class="m-0 mt-4 text-lg text-surface-400 text-center">
+          {{ text.defaultDesc }}
+        </p>
+      }
       <ng-template #defaultDesc>
         <p class="m-0 mt-4 text-lg text-surface-400 text-center">
           {{ text.defaultDesc }}
         </p>
       </ng-template>
-
+    
       <!-- Error display (appears after a timeout) -->
-      <div *ngIf="showError" class="text-center">
-        <p class="m-0 text-xs text-surface-400">
-          {{ text.errorShort }}
-        </p>
-        <p class="m-0 text-lg text-red-400">
-          {{ text.errorLong }}
-        </p>
-      </div>
-
-      <div *ngIf="showError" class="flex gap-2 flex-wrap justify-center">
-        <a routerLink="/">
+      @if (showError) {
+        <div class="text-center">
+          <p class="m-0 text-xs text-surface-400">
+            {{ text.errorShort }}
+          </p>
+          <p class="m-0 text-lg text-red-400">
+            {{ text.errorLong }}
+          </p>
+        </div>
+      }
+    
+      @if (showError) {
+        <div class="flex gap-2 flex-wrap justify-center">
+          <a routerLink="/">
+            <p-button
+              size="small"
+              [label]="text.buttonHome"
+              severity="primary"
+              icon="pi pi-home"
+            ></p-button>
+          </a>
           <p-button
             size="small"
-            [label]="text.buttonHome"
-            severity="primary"
-            icon="pi pi-home"
+            [label]="text.buttonDebug"
+            severity="info"
+            icon="pi pi-info-circle"
+            (click)="reloadPage()"
           ></p-button>
-        </a>
-        <p-button
-          size="small"
-          [label]="text.buttonDebug"
-          severity="info"
-          icon="pi pi-info-circle"
-          (click)="reloadPage()"
-        ></p-button>
-        <p-button
-          size="small"
-          [label]="text.buttonReload"
-          severity="secondary"
-          icon="pi pi-sync"
-          (click)="reloadPage()"
-        ></p-button>
-      </div>
+          <p-button
+            size="small"
+            [label]="text.buttonReload"
+            severity="secondary"
+            icon="pi pi-sync"
+            (click)="reloadPage()"
+          ></p-button>
+        </div>
+      }
     </div>
-  `,
+    `,
 })
 export class LoadingComponent implements AfterViewInit, OnDestroy {
+  private platformId = inject<object>(PLATFORM_ID);
+  private translate = inject(TranslateService);
+
   @Input() loadingTitle?: string;
   @Input() loadingDescription?: string;
   @Input() isAbsolute?: boolean = false;
-  public showError: boolean = false;
+  public showError = false;
 
   // Fallback strings
   public text = {
@@ -108,13 +115,10 @@ export class LoadingComponent implements AfterViewInit, OnDestroy {
     buttonReload: 'Reload',
   };
 
-  private errorTimeout: any;
-  private langSub: any; // unsub ref
+  private errorTimeout: number | undefined;
+  private langSub: Subscription | undefined; // unsub ref
 
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private translate: TranslateService
-  ) {
+  constructor() {
     // 1) Set initial text from fallback, or if translations are loaded
     this.updateTranslatedStrings();
 

@@ -9,7 +9,7 @@ import Logger from '../utils/logger';
 
 const log = new Logger('domain-subs');
 
-type Subdomain = {
+interface Subdomain {
   subdomain: string;
   tags?: string[];
   type: string;
@@ -20,10 +20,53 @@ type Subdomain = {
   asn_range: string;
   country?: string;
   country_code?: string;
-  banners?: Record<string, any>;
-};
+  banners?: Record<string, unknown>;
+}
 
-type ServiceResponse = { subdomains?: Subdomain[]; error?: string };
+interface ShodanEntry {
+  value?: string;
+  type?: string;
+  subdomain?: string;
+  tags?: string[];
+  ports?: number[];
+  asn?: string;
+  asn_name?: string;
+  asn_range?: string;
+  country?: string;
+  country_code?: string;
+  banners?: Record<string, unknown>;
+}
+
+interface ShodanResponse {
+  domain?: string;
+  data?: ShodanEntry[];
+}
+
+interface DnsDumpIp {
+  ip: string;
+  asn?: string;
+  asn_name?: string;
+  asn_range?: string;
+  country?: string;
+  country_code?: string;
+  banners?: {
+    http?: {
+      apps?: string[];
+      ports?: number[];
+    };
+  } & Record<string, unknown>;
+}
+
+interface DnsDumpEntry {
+  host?: string;
+  ips?: DnsDumpIp[];
+}
+
+interface DnsDumpResponse {
+  a?: DnsDumpEntry[];
+}
+
+interface ServiceResponse { subdomains?: Subdomain[]; error?: string }
 
 // API tokens from env vars if specified
 const SHODAN_TOKEN = import.meta.env['SHODAN_TOKEN'] || '';
@@ -92,7 +135,7 @@ async function fetchSubdomains(url: string): Promise<ServiceResponse> {
       return { error: errorMsg };
     }
 
-    const data = await response.json();
+    const data = await response.json() as { error?: string } & ShodanResponse & DnsDumpResponse;
     if (data.error) {
       log.error(`Error from ${url}: ${data.error}`);
       return { error: data.error };
@@ -114,12 +157,12 @@ async function fetchSubdomains(url: string): Promise<ServiceResponse> {
 }
 
 // Parses the response from Shodan into a common format
-function parseShodanResponse(data: any): Subdomain[] {
+function parseShodanResponse(data: ShodanResponse): Subdomain[] {
   return (
-    data.data?.map((entry: any) => {
+    data.data?.map((entry) => {
       if (!entry.value || !entry.type || !entry.subdomain) return null;
       return {
-        subdomain: entry.subdomain || data.domain,
+        subdomain: entry.subdomain || data.domain || '',
         tags: entry.tags,
         type: entry.type,
         ip: entry.value,
@@ -131,14 +174,14 @@ function parseShodanResponse(data: any): Subdomain[] {
         country_code: entry.country_code || '??',
         banners: entry.banners,
       };
-    })?.filter(Boolean) || []
+    }).filter((s): s is Subdomain => s !== null) || []
   );
 }
 
 // Parses the response from DNSDumpster into a common format
-function parseDnsDumpResponse(data: any): Subdomain[] {
+function parseDnsDumpResponse(data: DnsDumpResponse): Subdomain[] {
   return (
-    data.a?.map((entry: any) => {
+    data.a?.map((entry) => {
       const ipData = entry.ips?.[0];
       if (!ipData?.ip || !entry.host) return null;
       return {
@@ -147,14 +190,14 @@ function parseDnsDumpResponse(data: any): Subdomain[] {
         type: 'A',
         ip: ipData.ip,
         ports: ipData.banners?.http?.ports,
-        asn: ipData.asn,
-        asn_name: ipData.asn_name,
-        asn_range: ipData.asn_range,
+        asn: ipData.asn || '',
+        asn_name: ipData.asn_name || '',
+        asn_range: ipData.asn_range || '',
         country: ipData.country,
         country_code: ipData.country_code,
         banners: ipData.banners,
       };
-    })?.filter(Boolean) || []
+    }).filter((s): s is Subdomain => s !== null) || []
   );
 }
 

@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import DatabaseService from '~/app/services/database.service';
 import { Router } from '@angular/router';
@@ -11,9 +11,13 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   templateUrl: './domain-hierarchy.component.html',
   styleUrls: ['./domain-hierarchy.component.scss'],
   standalone: true,
-  imports: [PrimeNgModule, CommonModule],
+  imports: [PrimeNgModule],
 })
 export class TldOrganizationChartComponent implements OnInit {
+  private db = inject(DatabaseService);
+  router = inject(Router);
+  private errorHandler = inject(ErrorHandlerService);
+
   chartData: TreeNode[] = [];
   groupByOptions = [
     { label: 'By Level', value: 'level' },
@@ -21,12 +25,6 @@ export class TldOrganizationChartComponent implements OnInit {
     { label: 'By TLD', value: 'tld' },
   ];
   groupBy = this.groupByOptions[0];
-
-  constructor(
-    private db: DatabaseService,
-    public router: Router,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnInit() {
     this.prepareChartData();

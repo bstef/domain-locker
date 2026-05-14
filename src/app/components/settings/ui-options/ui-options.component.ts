@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, Input, OnInit, inject } from '@angular/core';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { ThemeService, Theme, FontOption } from '~/app/services/theme.service';
 import { SupabaseService } from '~/app/services/supabase.service';
@@ -10,11 +10,17 @@ import { AccessibilityService, defaultAccessibilityOptions, accessibilityOptions
 @Component({
   standalone: true,
   selector: 'app-ui-settings',
-  imports: [CommonModule, PrimeNgModule],
+  imports: [PrimeNgModule],
   templateUrl: './ui-options.component.html',
   styleUrls: ['./ui-options.component.scss']
 })
 export class UiSettingsComponent implements OnInit {
+  supabaseService = inject(SupabaseService);
+  private themeService = inject(ThemeService);
+  private languageService = inject(TranslationService);
+  private accessibilityService = inject(AccessibilityService);
+  private cdr = inject(ChangeDetectorRef);
+
   @Input() isAuthenticated?: boolean = false; // Is user logged in
   @Input() standAlone?: boolean = false; // Is running in dialog or settings page
 
@@ -22,7 +28,7 @@ export class UiSettingsComponent implements OnInit {
   private subscriptions: Subscription = new Subscription();
 
   // Selected light/dark mode, and options
-  isDarkTheme: boolean = false;
+  isDarkTheme = false;
   darkModeOptions = [
     { label: 'Light', value: false, icon: 'pi pi-sun' },
     { label: 'Dark', value: true, icon: 'pi pi-moon' }
@@ -45,20 +51,14 @@ export class UiSettingsComponent implements OnInit {
   fonts: FontOption[] = [];
   
   // Selected language, and language options
-  selectedLanguage: string = 'en';
-  languages: any[] = [];
+  selectedLanguage = 'en';
+  languages: { code: string; name: string; flag: string }[] = [];
   
   // Set accessibility preferences, and all accessibility options
   accessibility = defaultAccessibilityOptions;
   public accessibilityFields = accessibilityOptionsInfo;
 
-  constructor(
-    public supabaseService: SupabaseService,
-    private themeService: ThemeService,
-    private languageService: TranslationService,
-    private accessibilityService: AccessibilityService,
-    private cdr: ChangeDetectorRef,
-  ) {
+  constructor() {
     this.themes = this.themeService.getThemes();
     this.selectedTheme = this.themes[0];
 

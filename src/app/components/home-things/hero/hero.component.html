@@ -6,10 +6,12 @@
     <h3 class="m-0 text-xl font-normal italic opacity-80">{{ 'HOME.HERO.SUBHEADLINE' | translate }}</h3>
 
     <ul class="m-0 my-3 list-inside pl-0 list-none">
-      <li *ngFor="let feature of features">
-        <i class="mr-2 pi {{ feature.icon }}"></i>
-        {{ feature.text | translate }}
-      </li>
+      @for (feature of features; track feature) {
+        <li>
+          <i class="mr-2 pi {{ feature.icon }}"></i>
+          {{ feature.text | translate }}
+        </li>
+      }
     </ul>
 
     <div class="flex flex-wrap gap-4 items-center justify-center md:justify-end">
@@ -21,7 +23,7 @@
           class="min-w-48"
           [outlined]="true"
           styleClass="w-full"
-        />
+          />
       </a>
       <p-button
         routerLink="/login"
@@ -30,7 +32,7 @@
         class="min-w-48"
         icon="pi pi-arrow-circle-right"
         styleClass="w-full"
-      />
+        />
     </div>
 
   </div>
@@ -42,6 +44,6 @@
       title="Domain Locker Homepage"
       imageClass="rounded p-card w-full border-primary border-2"
       width="420"
-    />
+      />
   </a>
 </div>

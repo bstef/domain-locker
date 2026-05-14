@@ -1,44 +1,59 @@
-import { Component, OnInit, ViewChild, AfterViewInit, PLATFORM_ID, Inject, ElementRef, Input, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ViewChild, AfterViewInit, PLATFORM_ID, ElementRef, Input, ChangeDetectorRef, inject } from "@angular/core";
 import { ChartComponent, NgApexchartsModule } from "ng-apexcharts";
 import { ApexNonAxisChartSeries, ApexChart, ApexResponsive, ApexTheme, ApexLegend, ApexStroke } from "ng-apexcharts";
 import DatabaseService from '~/app/services/database.service';
 import { Observable, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { NgIf } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { ErrorHandlerService } from "~/app/services/error-handler.service";
 
-export type ChartOptions = {
+interface ChartDataItem {
+  registrar_name?: string;
+  name?: string;
+  domain_count?: number | string;
+  count?: number | string;
+  issuer?: string;
+  isp?: string;
+  host_name?: string;
+}
+
+export interface ChartOptions {
   series: ApexNonAxisChartSeries;
   chart: ApexChart;
   responsive: ApexResponsive[];
-  labels: any;
+  labels: string[];
   theme: ApexTheme;
   legend: ApexLegend;
   stroke: ApexStroke;
   colors: string[];
-};
+}
 
 @Component({
   selector: 'app-domain-pie-charts',
   templateUrl: './domain-pie.component.html',
   styleUrl: './domain-pie.component.scss',
   standalone: true,
-  imports: [NgApexchartsModule, NgIf, PrimeNgModule, TranslateModule]
+  imports: [NgApexchartsModule, PrimeNgModule, TranslateModule]
 })
 export class DomainPieChartsComponent implements OnInit, AfterViewInit {
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private platformId = inject<object>(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
+
   @ViewChild("registrarChart") registrarChart!: ChartComponent;
   @ViewChild("sslIssuerChart") sslIssuerChart!: ChartComponent;
   @ViewChild("hostChart") hostChart!: ChartComponent;
   @ViewChild('chartContainer', { static: true }) chartContainer!: ElementRef;
 
-  @Input() listMode: boolean = false;
+  @Input() listMode = false;
 
-  public registrarChartOptions: Partial<ChartOptions> | any = {};
-  public sslIssuerChartOptions: Partial<ChartOptions> | any = {};
-  public hostChartOptions: Partial<ChartOptions> | any = {};
+  public registrarChartOptions: Partial<ChartOptions> = {};
+  public sslIssuerChartOptions: Partial<ChartOptions> = {};
+  public hostChartOptions: Partial<ChartOptions> = {};
 
   public registrarDataLoaded = false;
   public sslIssuerDataLoaded = false;
@@ -51,13 +66,6 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
   public activeTabIndex = 0; // Track the active tab
 
   private colors: string[] = [];
-  
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef,
-  ) {}
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -76,7 +84,7 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onTabChange(event: any) {
+  onTabChange(event: { index: number }) {
     this.activeTabIndex = event.index;
     if (event.index === 0) {
       this.loadRegistrarData();
@@ -132,7 +140,7 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
   }
 
   initChartOptions(chartType: 'registrar' | 'sslIssuer' | 'host', data: {name: string, count: number}[]) {
-    const baseOptions: Partial<ChartOptions> | any = {
+    const baseOptions: Partial<ChartOptions> = {
       series: data.map(item => item.count),
       labels: data.map(item => item.name || 'No Data'),
       chart: {
@@ -162,7 +170,7 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
         colors: ['var(--surface-100)']
       },
       colors: this.colors
-    } as ApexNonAxisChartSeries | ApexChart | ApexResponsive | ApexTheme | ApexLegend | ApexStroke;
+    };
 
     if (chartType === 'registrar') {
       this.registrarChartOptions = baseOptions;
@@ -180,8 +188,8 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
    * Handles both direct arrays and wrapped { data: [...] } responses.
    * Ensures domain_count is converted to a number.
    */
-  private normalizeChartData(response: any): any[] {
-    const data = response?.data ?? response;
+  private normalizeChartData(response: unknown): ChartDataItem[] {
+    const data = (response as { data?: unknown })?.data ?? response;
     return Array.isArray(data) ? data : [];
   }
 
@@ -275,7 +283,7 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
 
   setChartSize() {
     if (this.chartContainer) {
-      const { width, height } = this.chartContainer.nativeElement.getBoundingClientRect();
+      const { width: _width, height } = this.chartContainer.nativeElement.getBoundingClientRect();
       const chartSize = {
         width: '90%',
         height: height,

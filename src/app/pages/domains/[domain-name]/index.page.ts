@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PrimeNgModule } from '../../../prime-ng.module';
@@ -45,6 +45,16 @@ import { SubdomainListComponent } from '~/app/pages/assets/subdomains/subdomain-
   styleUrl: './domain-name.page.scss',
 })
 export default class DomainDetailsPage implements OnInit {
+  private route = inject(ActivatedRoute);
+  private databaseService = inject(DatabaseService);
+  domainUtils = inject(DomainUtils);
+  private confirmationService = inject(ConfirmationService);
+  private router = inject(Router);
+  private globalMessageService = inject(GlobalMessageService);
+  private errorHandler = inject(ErrorHandlerService);
+  private featureService = inject(FeatureService);
+  private cdr = inject(ChangeDetectorRef);
+
   domain: DbDomain | null = null;
   name: string | null = null;
   domainNotFound = false;
@@ -52,18 +62,6 @@ export default class DomainDetailsPage implements OnInit {
 
   shouldMountMonitor = false;
   shouldMountHistory = false;
-
-  constructor(
-    private route: ActivatedRoute,
-    private databaseService: DatabaseService,
-    public domainUtils: DomainUtils,
-    private confirmationService: ConfirmationService,
-    private router: Router,
-    private globalMessageService: GlobalMessageService,
-    private errorHandler: ErrorHandlerService,
-    private featureService: FeatureService,
-    private cdr: ChangeDetectorRef,
-  ) {}
 
   ngOnInit() {
     this.route.params.pipe(
@@ -94,7 +92,7 @@ export default class DomainDetailsPage implements OnInit {
                 this.domain = refreshed;
                 this.cdr.markForCheck();
               },
-              () => {}
+              () => { /* no-op */ }
             );
             this.router.navigate([], {
               relativeTo: this.route,
@@ -116,7 +114,7 @@ export default class DomainDetailsPage implements OnInit {
     this.shouldMountHistory = true;
   }
 
-  public filterIpAddresses(ipAddresses: { ip_address: string, is_ipv6: boolean }[] | undefined, isIpv6: boolean): any[] {
+  public filterIpAddresses(ipAddresses: { ip_address: string, is_ipv6: boolean }[] | undefined, isIpv6: boolean): { ip_address: string, is_ipv6: boolean }[] {
     if (!ipAddresses) return [];
     return ipAddresses.filter(ip => ip.is_ipv6 === isIpv6);
   }

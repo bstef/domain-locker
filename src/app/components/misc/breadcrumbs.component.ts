@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { MenuItem } from 'primeng/api';
@@ -17,35 +17,42 @@ import {
 
 @Component({
   standalone: true,
-  selector: 'breadcrumbs',
+  selector: 'app-breadcrumbs',
   imports: [CommonModule, PrimeNgModule, DomainFaviconComponent, DlIconComponent],
   template: `
-  <p-breadcrumb styleClass="ml-2 mb-2" *ngIf="shouldShowBreadcrumbs" [model]="breadcrumbs">
-    <ng-template pTemplate="item" let-item>
-      <ng-container *ngIf="item.route; else elseBlock">
-        <a [routerLink]="item.route" class="p-menuitem-link">
-          <span *ngIf="item.icon" [ngClass]="['mr-2 text-primary', item.icon]"></span>
-          <app-domain-favicon *ngIf="isDomainPage(item.label)" [domain]="item.label" [size]="20" class="mr-1" />
-          <dl-icon *ngIf="item.svgIcon"
-            [icon]="item.svgIcon"
-            class="w-[1.25rem] h-5 mr-1"
-            classNames="w-full h-full text-primary"
-            color="var(--primary-color)"
-          />
-          <dl-icon
-            icon="webHook"
-            classNames="w-full h-full text-primary"
-          />
-          <span class="text-primary font-semibold">{{ item.label }}</span>
-        </a>
-      </ng-container>
-      <ng-template #elseBlock>
-        <a [href]="item.url">
-          <span class="text-color">{{ item.label }}</span>
-        </a>
+  @if (shouldShowBreadcrumbs) {
+    <p-breadcrumb styleClass="ml-2 mb-2" [model]="breadcrumbs">
+      <ng-template pTemplate="item" let-item>
+        @if (item.route) {
+          <a [routerLink]="item.route" class="p-menuitem-link">
+            @if (item.icon) {
+              <span [ngClass]="['mr-2 text-primary', item.icon]"></span>
+            }
+            @if (isDomainPage(item.label)) {
+              <app-domain-favicon [domain]="item.label" [size]="20" class="mr-1" />
+            }
+            @if (item.svgIcon) {
+              <app-dl-icon
+                [icon]="item.svgIcon"
+                class="w-[1.25rem] h-5 mr-1"
+                classNames="w-full h-full text-primary"
+                color="var(--primary-color)"
+                />
+            }
+            <app-dl-icon
+              icon="webHook"
+              classNames="w-full h-full text-primary"
+              />
+            <span class="text-primary font-semibold">{{ item.label }}</span>
+          </a>
+        } @else {
+          <a [href]="item.url">
+            <span class="text-color">{{ item.label }}</span>
+          </a>
+        }
       </ng-template>
-    </ng-template>
-  </p-breadcrumb>
+    </p-breadcrumb>
+  }
   `,
   styles: [`
     ::ng-deep nav.p-breadcrumb {
@@ -56,12 +63,12 @@ import {
   `]
 })
 export class BreadcrumbsComponent implements OnInit, OnChanges {
+  private metaTagsService = inject(MetaTagsService);
+
   @Input() breadcrumbs?: MenuItem[];
   @Input() pagePath?: string;
-  public shouldShowBreadcrumbs: boolean = true;
-  private navLinksMap: { [key: string]: ExtendedMenuItem } = {};
-
-  constructor(private metaTagsService: MetaTagsService) {}
+  public shouldShowBreadcrumbs = true;
+  private navLinksMap: Record<string, ExtendedMenuItem> = {};
 
   ngOnInit(): void {
     this.flattenNavLinks();
@@ -127,7 +134,7 @@ export class BreadcrumbsComponent implements OnInit, OnChanges {
     if (this.navLinksMap[path] && this.navLinksMap[path].icon) {
       return this.navLinksMap[path].icon;
     }
-    const icons: { [key: string]: string } = {
+    const icons: Record<string, string> = {
       'settings': 'cog',
       'about': 'lightbulb',
       'contact': 'headphones',
@@ -166,13 +173,13 @@ export class BreadcrumbsComponent implements OnInit, OnChanges {
     if (this.navLinksMap[path] && this.navLinksMap[path].svgIcon) {
       return this.navLinksMap[path].svgIcon;
     }
-    const icons: { [key: string]: string } = {};
+    const icons: Record<string, string> = {};
     if (!icons[path]) return;
     return icons[path];
   }
 
   private getLabelForPath(path: string) {
-    const labels: { [key: string]: string } = {
+    const labels: Record<string, string> = {
       'certs': 'Certificates',
       'dns': 'DNS Records',
       'ips': 'IP Addresses',
@@ -197,7 +204,7 @@ export class BreadcrumbsComponent implements OnInit, OnChanges {
   }
 
   private flattenNavLinks(): void {
-    const addLinksToMap = (links: any[]) => {
+    const addLinksToMap = (links: { routerLink?: string; label?: string; icon?: string; svgIcon?: string; items?: unknown[] }[]) => {
       for (const link of links) {
         if (link.routerLink) {
           const path = link.routerLink.split('/').pop();
@@ -206,7 +213,7 @@ export class BreadcrumbsComponent implements OnInit, OnChanges {
           }
         }
         if (link.items) {
-          addLinksToMap(link.items);
+          addLinksToMap(link.items as Parameters<typeof addLinksToMap>[0]);
         }
       }
     };

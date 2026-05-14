@@ -92,8 +92,8 @@ export default class PageListComponent implements OnInit {
 
     rawRoutes.forEach(route => {
       let rel = route.replace('src/app/pages/', '');
-      rel = rel.replace(/^\([^\/]+\)\//, '');
-      rel = rel.replace(/^\([^\/]+\)\.page\.ts$/, '');
+      rel = rel.replace(/^\([^/]+\)\//, '');
+      rel = rel.replace(/^\([^/]+\)\.page\.ts$/, '');
       let routePath = rel.replace('.page.ts', '');
       if (routePath.endsWith('/index')) {
         routePath = routePath.replace(/\/index$/, '');
@@ -142,8 +142,8 @@ export default class PageListComponent implements OnInit {
       return override;
     }
     return name
-      .replace(/[\[\]\/]/g, '')
-      .split(/[\.\-\_]/)
+      .replace(/[[\]/]/g, '')
+      .split(/[.\-_]/)
       .filter(Boolean)
       .map(s => s.charAt(0).toUpperCase() + s.slice(1))
       .join(' ');

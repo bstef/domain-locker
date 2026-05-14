@@ -1,4 +1,4 @@
-import { Component, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, PLATFORM_ID, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -25,15 +25,13 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
   }
   `,
 })
-export default class AdvancedIndexPage {
+export default class AdvancedIndexPage implements OnInit {
+  private featureService = inject(FeatureService);
+  private metaTagsService = inject(MetaTagsService);
+  private platformId = inject<object>(PLATFORM_ID);
+
   isBrowser = isPlatformBrowser(this.platformId);
   enableAdvancedInfo$ = this.featureService.isFeatureEnabled('enableAdvancedInfo');
-
-  constructor(
-    private featureService: FeatureService,
-    private metaTagsService: MetaTagsService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-  ) {}
 
   ngOnInit() {
     this.metaTagsService.allowRobots(false);

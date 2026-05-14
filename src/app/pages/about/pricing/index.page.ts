@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { billingFaq } from '~/app/constants/pricing-features';
 
@@ -10,7 +10,7 @@ import { CtaComponent } from '~/app/components/home-things/cta/cta.component';
   standalone: true,
   selector: 'app-pricing-page',
   templateUrl: './index.page.html',
-  imports: [CommonModule, PrimeNgModule, PricingCardsComponent, CtaComponent],
+  imports: [PrimeNgModule, PricingCardsComponent, CtaComponent],
 })
 export default class PricingPage {
   billingFaq = billingFaq;

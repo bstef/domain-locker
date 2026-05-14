@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { SupabaseService } from '~/app/services/supabase.service';
-import { CommonModule } from '@angular/common';
+import { User } from '@supabase/supabase-js';
+
 import { GlobalMessageService } from '~/app/services/messaging.service';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 import { FeatureService } from '~/app/services/features.service';
@@ -14,10 +15,18 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
   selector: 'app-settings',
   templateUrl: './account.page.html',
   styleUrls: ['./index.page.scss'],
-  imports: [PrimeNgModule, ReactiveFormsModule, CommonModule, FeatureNotEnabledComponent],
+  imports: [PrimeNgModule, ReactiveFormsModule, FeatureNotEnabledComponent],
   providers: [MessageService, ConfirmationService]
 })
 export default class UserSettingsComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private supabaseService = inject(SupabaseService);
+  private messageService = inject(GlobalMessageService);
+  private errorHandler = inject(ErrorHandlerService);
+  private confirmationService = inject(ConfirmationService);
+  private cdr = inject(ChangeDetectorRef);
+  private featureService = inject(FeatureService);
+
   // Forms
   profileForm!: FormGroup;
   emailForm!: FormGroup;
@@ -26,17 +35,17 @@ export default class UserSettingsComponent implements OnInit {
   sessionForm!: FormGroup;
 
   // User data
-  user: any;
+  user: User | null = null;
 
   // Password data
   hasPassword = false;
 
   // MFA data
-  mfaEnabled: boolean = false;
+  mfaEnabled = false;
   qrCode: string | null = null;
   secret: string | null = null;
-  verified: boolean = false;
-  showResetMfaButton: boolean = false;
+  verified = false;
+  showResetMfaButton = false;
   factorId: string | null = null;
   challengeId: string | null = null;
   
@@ -54,16 +63,6 @@ export default class UserSettingsComponent implements OnInit {
   
   isEnabled = true;
   writePermissions = true;
-
-  constructor(
-    private fb: FormBuilder,
-    private supabaseService: SupabaseService,
-    private messageService: GlobalMessageService,
-    private errorHandler: ErrorHandlerService,
-    private confirmationService: ConfirmationService,
-    private cdr: ChangeDetectorRef,
-    private featureService: FeatureService,
-  ) {}
 
   ngOnInit() {
     this.initializeForms();
@@ -115,10 +114,12 @@ export default class UserSettingsComponent implements OnInit {
     this.loading.profile = true;
     try {
       this.user = await this.supabaseService.getCurrentUser();
+      if (!this.user) return;
       this.emailForm.patchValue({ email: this.user.email });
+      const meta = this.user.user_metadata || {};
       this.profileForm.patchValue({
-        name: this.user.user_metadata.name || this.user.user_metadata.full_name || '',
-        avatar_url: this.user.user_metadata.avatar_url || ''
+        name: meta['name'] || meta['full_name'] || '',
+        avatar_url: meta['avatar_url'] || ''
       });
     } catch (error) {
       this.errorHandler.handleError({ error, message: 'Unable to fetch user metadata', location: 'settings/account', showToast: true });
@@ -137,11 +138,11 @@ export default class UserSettingsComponent implements OnInit {
 
   /* Returns true if user has email + password (aka not social login) */
   async checkIfUserHasPassword(): Promise<boolean> {
-    const sessionData = await this.supabaseService.getSessionData() as any;
+    const sessionData = await this.supabaseService.getSessionData() as { session?: { user?: User } };
     const identities = sessionData?.session?.user?.identities || [];
-  
+
     // If the user has an email identity, they definitely have a password
-    const emailIdentity = identities.find((identity: any) => identity.provider === 'email');
+    const emailIdentity = identities.find((identity) => identity.provider === 'email');
     if (emailIdentity) {
       return true;
     }
@@ -211,7 +212,7 @@ export default class UserSettingsComponent implements OnInit {
       } catch (error) {
         this.errorHandler.handleError({
           error,
-          message: (error as any)?.message || 'Failed to set/update password',
+          message: (error as Error)?.message || 'Failed to set/update password',
           location: 'settings/account',
           showToast: true,
         });
@@ -334,7 +335,7 @@ export default class UserSettingsComponent implements OnInit {
   async downloadBackupCodes() {
     this.loading.backupCodes = true;
     try {
-      const codes = await this.supabaseService.getBackupCodes();
+      await this.supabaseService.getBackupCodes();
       // Implement logic to download codes as a file
       this.messageService.showSuccess('Backup codes downloaded', 'Be sure to store them in a safe place');
     } catch (error) {
@@ -355,7 +356,7 @@ export default class UserSettingsComponent implements OnInit {
   async exportData() {
     this.loading.exportData = true;
     try {
-      const data = await this.supabaseService.exportUserData();
+      await this.supabaseService.exportUserData();
       // Implement logic to download data as a file
       this.messageService.showSuccess('Data exported', 'Your data has been downloaded');
     } catch (error) {

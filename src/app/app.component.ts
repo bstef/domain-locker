@@ -1,5 +1,5 @@
 // Angular
-import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy, ChangeDetectorRef, ErrorHandler } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, OnDestroy, ChangeDetectorRef, ErrorHandler, inject } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -51,9 +51,13 @@ import { MetaTagsService } from '~/app/services/meta-tags.service';
       <!-- Main content container -->
       <div class="content-container" [ngClass]="{ 'full': isFullWidth }">
         <!-- Create router outlet -->
-        <breadcrumbs *ngIf="pagePath" [pagePath]="pagePath" />
+        @if (pagePath) {
+          <app-breadcrumbs [pagePath]="pagePath" />
+        }
         <!-- Router outlet for main content -->
-        <router-outlet *ngIf="!loading || publicPath" />
+        @if (!loading || publicPath) {
+          <router-outlet />
+        }
         <!-- Global components -->
         <p-scrollTop />
         <p-toast />
@@ -62,9 +66,11 @@ import { MetaTagsService } from '~/app/services/meta-tags.service';
       <!-- Footer -->
       <app-footer [big]="isBigFooter" />
       <!-- While initializing, show loading spinner -->
-      <loading *ngIf="loading" [isAbsolute]="true" />
+      @if (loading) {
+        <app-loading [isAbsolute]="true" />
+      }
     </div>
-  `,
+    `,
   styles: [`
     :host {
       display: flex;
@@ -75,6 +81,21 @@ import { MetaTagsService } from '~/app/services/meta-tags.service';
   `],
 })
 export class AppComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private supabaseService = inject(SupabaseService);
+  private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
+  private globalMessageService = inject(GlobalMessageService);
+  private errorHandler = inject(ErrorHandlerService);
+  _themeService = inject(ThemeService);
+  hitCountingService = inject(HitCountingService);
+  private accessibilityService = inject(AccessibilityService);
+  private environmentService = inject(EnvService);
+  private featureService = inject(FeatureService);
+  private metaTagsService = inject(MetaTagsService);
+  private platformId = inject<object>(PLATFORM_ID);
+
   private subscription: Subscription | undefined;
   private publicRoutes =  new Set([
     '/home', '/about', '/login', '/advanced', '/preview',
@@ -82,27 +103,10 @@ export class AppComponent implements OnInit, OnDestroy {
   ]);
   private fullWidthRoutes: string[] = ['/settings', '/stats'];
 
-  public loading: boolean = true;
-  public pagePath: string = '';
-  public isFullWidth: boolean = false;
-  public isBigFooter: boolean = false;
-
-  constructor(
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private supabaseService: SupabaseService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService,
-    private globalMessageService: GlobalMessageService,
-    private errorHandler: ErrorHandlerService,
-    public _themeService: ThemeService,
-    public hitCountingService: HitCountingService,
-    private accessibilityService: AccessibilityService,
-    private environmentService: EnvService,
-    private featureService: FeatureService,
-    private metaTagsService: MetaTagsService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-  ) {}
+  public loading = true;
+  public pagePath = '';
+  public isFullWidth = false;
+  public isBigFooter = false;
 
   ngOnInit() {
     // Setup error handling, and pretty console
@@ -197,7 +201,7 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.isPublicRoute(this.pagePath, true);
   }
 
-  private isPublicRoute(route: string, allowHome: boolean = false): boolean {
+  private isPublicRoute(route: string, allowHome = false): boolean {
     if (!route) return true;
     if (route === '/' && allowHome) return true;
     if (this.publicRoutes.has(route)) return true;

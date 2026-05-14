@@ -1,23 +1,23 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 
-type LinkItem = {
+interface LinkItem {
   title: string;
   description?: string;
   icon: string;
   link: string;
   external?: boolean;
-};
+}
 
-type Section = {
+interface Section {
   heading: string;
   items: LinkItem[];
-};
+}
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule],
+  imports: [PrimeNgModule],
   templateUrl: './index.page.html',
   styles: [`
   :host ::ng-deep {

@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, Inject, OnInit, OnDestroy, PLATFORM_ID, NgZone } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, PLATFORM_ID, NgZone, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { PrimeNgModule } from '../prime-ng.module';
 import DatabaseService from '~/app/services/database.service';
@@ -35,7 +35,6 @@ import { Router } from '@angular/router';
 @Component({
   standalone: true,
   imports: [
-    CommonModule,
     PrimeNgModule,
     AssetListComponent,
     DomainCollectionComponent,
@@ -57,8 +56,8 @@ import { Router } from '@angular/router';
     HeroComponent,
     DemoComponent,
     DemoWelcomeComponent,
-    AboutLinks,
-  ],
+    AboutLinks
+],
   templateUrl: './home.page.html',
   styles: [`
   ::ng-deep .p-divider-content { border-radius: 4px; }
@@ -66,26 +65,24 @@ import { Router } from '@angular/router';
   `],
 })
 export default class HomePageComponent implements OnInit, OnDestroy {
+  private databaseService = inject(DatabaseService);
+  supabaseService = inject(SupabaseService);
+  private environmentService = inject(EnvService);
+  private errorHandlerService = inject(ErrorHandlerService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
+  private http = inject(HttpClient);
+  private platformId = inject<object>(PLATFORM_ID);
+
   domains: DbDomain[] = [];
-  loading: boolean = true;
-  isAuthenticated: boolean = false;
-  isDemoInstance: boolean = false;
-  isDevInstance: boolean = false;
-  showInsights: boolean = false;
+  loading = true;
+  isAuthenticated = false;
+  isDemoInstance = false;
+  isDevInstance = false;
+  showInsights = false;
 
   private subscriptions: Subscription = new Subscription();
-
-  constructor(
-    private databaseService: DatabaseService,
-    public supabaseService: SupabaseService,
-    private environmentService: EnvService,
-    private errorHandlerService: ErrorHandlerService,
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone,
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object,
-  ) {}
 
   ngOnInit() {
     this.setAuthState(); // Set auth state, and listen for changes

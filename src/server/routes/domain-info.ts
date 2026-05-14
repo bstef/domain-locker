@@ -72,7 +72,7 @@ const getSslCertificateDetails = (domain: string): Promise<Partial<PeerCertifica
     const socket = tls.connect(443, domain, { servername: domain }, () => {
       const cert = socket.getPeerCertificate();
       socket.end();
-      cert ? resolve(cert) : reject(new Error('No certificate found'));
+      if (cert) resolve(cert); else reject(new Error('No certificate found'));
     });
     socket.on('error', reject);
   });

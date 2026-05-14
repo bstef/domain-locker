@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import DatabaseService from '~/app/services/database.service';
@@ -19,23 +19,21 @@ interface Domain {
   imports: [PrimeNgModule, CommonModule]
 })
 export class DomainGanttChartComponent implements OnInit, AfterViewInit {
-  @Input() groupDates: boolean = false;
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private cdr = inject(ChangeDetectorRef);
+
+  @Input() groupDates = false;
 
   domains: Domain[] = [];
   yearRange: string[] = [];
-  todayPosition: string = '';
+  todayPosition = '';
   loading = true;
 
   private readonly colors = [
     'var(--red-400)', 'var(--blue-400)', 'var(--green-400)',
     'var(--purple-400)', 'var(--yellow-400)', 'var(--orange-400)'
   ];
-
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-    private cdr: ChangeDetectorRef
-  ) {}
 
   ngOnInit() {
     this.loadDomains();

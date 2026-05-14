@@ -18,9 +18,22 @@ interface HistoryItem {
 type Severity = 'operational' | 'info' | 'minor' | 'critical' | 'unknown';
 type SeverityIcon = '✅' | 'ℹ️' | '⚠️' | '❌' | '❔';
 
+interface FeedItem {
+  title: string;
+  pubDate: string;
+  link: string;
+  description: string;
+}
+
+interface StatusResults {
+  summary: { service: string; status: Severity; details: string }[];
+  history: HistoryItem[];
+  scheduled: HistoryItem[];
+}
+
 
 // Cache to store the last fetched data, and TTL
-const cache: { timestamp: number, data: any } = { timestamp: 0, data: null };
+const cache: { timestamp: number, data: StatusResults | null } = { timestamp: 0, data: null };
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 // List of services to monitor
@@ -71,28 +84,28 @@ const services: Service[] = [
  * Uses native fetch with an AbortController and rss-parser to retrieve and parse the RSS feed.
  * Returns an array of normalized items.
  */
-async function fetchRSS(rssUrl: string): Promise<any[]> {
+async function fetchRSS(rssUrl: string): Promise<FeedItem[]> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     const response = await fetch(rssUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch RSS: ${response.statusText}`);
     }
-    
+
     const xml = await response.text();
     const parser = new Parser();
     const feed = await parser.parseString(xml);
 
-    return (feed.items || []).map((item: any) => ({
-      title: item.title,
-      pubDate: item.isoDate || item.pubDate,
-      link: item.link,
+    return (feed.items || []).map((item) => ({
+      title: item.title ?? '',
+      pubDate: item.isoDate || item.pubDate || '',
+      link: item.link ?? '',
       description: item.contentSnippet || item.content || ''
     }));
-  } catch (error) {
+  } catch {
     // On any error, return an empty array.
     return [];
   }
@@ -139,7 +152,7 @@ function mapSeverity(severityType: Severity): SeverityIcon {
  * Items older than 24h (if critical) or 12h (if minor/unknown) are considered resolved.
  * If no unresolved items remain, returns All good (✅).
  */
-function getServiceSummary(pastItems: any[]): { status: Severity; details: string, link?: string } {
+function getServiceSummary(pastItems: FeedItem[]): { status: Severity; details: string, link?: string } {
   if (pastItems.length === 0) {
     return { status: 'operational', details: 'Operational' };
   }

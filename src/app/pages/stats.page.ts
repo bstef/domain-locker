@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, PLATFORM_ID, inject, AfterViewInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -9,7 +9,7 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
 @Component({
   standalone: true,
   imports: [CommonModule, PrimeNgModule, FeatureNotEnabledComponent],
-  selector: 'stats-index-page',
+  selector: 'app-stats-page',
   templateUrl: './stats/index.page.html',
   styles: [`
     ::ng-deep .content-container {
@@ -17,7 +17,12 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
     }
   `],
 })
-export default class StatsIndexPage implements OnInit, OnDestroy {
+export default class StatsIndexPage implements OnInit, OnDestroy, AfterViewInit {
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private featureService = inject(FeatureService);
+  private platformId = inject(PLATFORM_ID);
+
   @ViewChild('sidebarNav', { static: false }) sidebarNav!: ElementRef;
 
   items: ExtendedMenuItem[] | undefined;
@@ -28,12 +33,9 @@ export default class StatsIndexPage implements OnInit, OnDestroy {
   private resizeObserver!: ResizeObserver;
   private isBrowser = false;   // Keep track if we’re in the browser
 
-  constructor(
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-    private featureService: FeatureService,
-    @Inject(PLATFORM_ID) private platformId: object,
-  ) {
+  constructor() {
+    const platformId = this.platformId;
+
     this.isBrowser = isPlatformBrowser(platformId);
   }
 

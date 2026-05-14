@@ -8,7 +8,7 @@ export interface UptimeData {
   ssl_handshake_time_ms: number;
 }
 
-export function getUptimeColor(percentage: number, prefix: string = 'text-'): string {
+export function getUptimeColor(percentage: number, prefix = 'text-'): string {
   if (isNaN(percentage)) return `${prefix}bluegray-400`;
   if (percentage > 99) return `${prefix}green-400`;
   if (percentage > 95) return `${prefix}yellow-400`;
@@ -29,8 +29,8 @@ export function getResponseCodeColor(code: number): string {
 export function getPerformanceColor(
   value: number,
   type: 'ssl' | 'dns' | 'response',
-  prefix: string = 'text-',
-  postfix: string = '-400'): string {
+  prefix = 'text-',
+  postfix = '-400'): string {
   if (typeof value !== 'number' || value < 0 || !type) {
     return 'grey';
   }

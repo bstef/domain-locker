@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PrimeNgModule } from '../../prime-ng.module';
@@ -19,7 +19,22 @@ import { lastValueFrom } from 'rxjs';
 import { makeEppArrayFromLabels } from '~/app/constants/security-categories';
 import { CtaComponent } from '~/app/components/home-things/cta/cta.component';
 import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-enabled.component';
+import { Ssl, Contact, Registrar } from '~/app/../types/common';
 
+interface PreviewDomainInfo {
+  domainName?: string;
+  ip_addresses?: { ipv4?: string[]; ipv6?: string[] };
+  ssl?: Ssl;
+  whois?: Contact;
+  host?: {
+    query?: string; country?: string; region?: string; city?: string; lat?: number; lon?: number;
+    timezone?: string; isp?: string; org?: string; as?: string; asNumber?: string;
+  };
+  registrar?: Registrar;
+  dns?: { dnssec?: string; nameServers?: string[]; mxRecords?: string[]; txtRecords?: string[] };
+  status?: string[];
+  dates?: { expiry_date?: string; creation_date?: string; updated_date?: string };
+}
 
 @Component({
   standalone: true,
@@ -41,24 +56,22 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
   // styleUrl: './domain-name.page.scss',
 })
 export default class DomainDetailsPage implements OnInit {
+  private route = inject(ActivatedRoute);
+  domainUtils = inject(DomainUtils);
+  private router = inject(Router);
+  private globalMessageService = inject(GlobalMessageService);
+  private errorHandler = inject(ErrorHandlerService);
+  private featureService = inject(FeatureService);
+  private http = inject(HttpClient);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
+
   domain: DbDomain | null = null;
   name: string | null = null;
   domainNotFound = false;
   loading = true;
   attempts = 0;
   enablePreviewDomain$ = this.featureService.isFeatureEnabled('enablePreviewDomain');
-
-  constructor(
-    private route: ActivatedRoute,
-    public domainUtils: DomainUtils,
-    private router: Router,
-    private globalMessageService: GlobalMessageService,
-    private errorHandler: ErrorHandlerService,
-    private featureService: FeatureService,
-    private http: HttpClient,
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
-  ) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {
@@ -70,7 +83,7 @@ export default class DomainDetailsPage implements OnInit {
     if (!this.name) return;
     try {
       const domainInfo = (await lastValueFrom(
-        this.http.get<any>(`/api/domain-info-preview?domain=${this.name}`)
+        this.http.get<{ domainInfo?: PreviewDomainInfo }>(`/api/domain-info-preview?domain=${this.name}`)
       ))?.domainInfo;
       this.ngZone.run(() => {
         if (domainInfo) {
@@ -82,7 +95,7 @@ export default class DomainDetailsPage implements OnInit {
             this.fetchDomainInfo();
           }
           this.errorHandler.handleError({
-            message: `Sorry, we weren\'t able to fetch info for "${this.name}"`,
+            message: `Sorry, we weren't able to fetch info for "${this.name}"`,
             showToast: true,
           });
           this.domain = null;
@@ -104,7 +117,7 @@ export default class DomainDetailsPage implements OnInit {
   }
 
 
-  formatDomainInfo(domain: any): DbDomain {
+  formatDomainInfo(domain: PreviewDomainInfo): DbDomain {
     const now = new Date().toISOString();
     const domainName = domain.domainName || '';
 
@@ -126,7 +139,7 @@ export default class DomainDetailsPage implements OnInit {
         ? {
             ...domain.host,
             asNumber: domain.host.as || '', // normalize `as` to `asNumber`
-          }
+          } as DbDomain['host']
         : undefined,
       registrar: domain.registrar || undefined,
       dns: {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { ActivatedRoute } from '@angular/router';
@@ -13,13 +13,13 @@ interface DiagnosticEndpoint {
   url: string;
   loading: boolean;
   success: boolean | null;
-  response?: any;
+  response?: unknown;
   errorMsg?: string;
   statusCode?: number;
   timeTaken?: number;
   bytesReceived?: number;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  params?: Record<string, any>;
+  params?: Record<string, string | number | boolean | readonly (string | number | boolean)[]>;
 }
 
 interface EndpointGroup {
@@ -38,6 +38,11 @@ declare const __APP_VERSION__: string;
   styles: [``],
 })
 export default class ErrorPage implements OnInit {
+  private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private envService = inject(EnvService);
+  private databaseService = inject(DatabaseService);
+
   errorMessage?: string;
 
   endpointGroup: EndpointGroup[] = [];
@@ -55,16 +60,9 @@ export default class ErrorPage implements OnInit {
 
   sbBase = '';
 
-  constructor(
-    private http: HttpClient,
-    private route: ActivatedRoute,
-    private envService: EnvService,
-    private databaseService: DatabaseService,
-  ) {}
-
   ngOnInit(): void {
     this.errorMessage = this.route.snapshot.queryParamMap.get('errorMessage') || undefined;
-    this.sbBase = this.envService.getEnvVar('SUPABASE_URL');
+    this.sbBase = this.envService.getEnvVar('SUPABASE_URL') || '';
 
     this.resolutionEndpoints = [
       {
@@ -276,8 +274,9 @@ export default class ErrorPage implements OnInit {
         this.databaseSuccess = 'errored';
       },
     });
-    } catch (err: any) {
-      this.databaseResults = `Error checking tables: ${err.message || err}`;
+    } catch (err) {
+      const message = (err as Error)?.message || err;
+      this.databaseResults = `Error checking tables: ${message}`;
       this.databaseSuccess = 'errored';
     }
   }
@@ -388,10 +387,10 @@ export default class ErrorPage implements OnInit {
 
       const raw = res.body || '';
       const ct = res.headers.get('Content-Type') || '';
-      let parsed: any = raw;
+      let parsed: unknown = raw;
 
       if (ct.includes('application/json')) {
-        try { parsed = JSON.parse(raw) } catch {}
+        try { parsed = JSON.parse(raw) } catch { /* ignore */ }
       }
 
       ep.response = parsed;
@@ -401,27 +400,28 @@ export default class ErrorPage implements OnInit {
         ep.success = ep.statusCode >= 200 && ep.statusCode < 300;
         ep.errorMsg = ep.success ? undefined : parsed;
       } else {
-        if (parsed && parsed.error) {
+        const parsedObj = parsed as { error?: string } | null;
+        if (parsedObj && parsedObj.error) {
           ep.success = false;
-          ep.errorMsg = parsed.error;
+          ep.errorMsg = parsedObj.error;
         } else {
           ep.success = true;
         }
       }
     })
-    .catch(err => {
+    .catch((err: { message?: string; error?: unknown; status?: number }) => {
       ep.timeTaken = Math.round(performance.now() - start);
       ep.success = false;
-      let parsed = '';
+      let parsed: unknown = '';
       ep.errorMsg = err.message || JSON.stringify(err.error);
       if (err.error !== null && err.error !== undefined) {
         parsed = err.error;
         try {
-          parsed = JSON.parse(parsed)
-          if (typeof parsed === 'object' && (parsed as any).message) {
-            ep.errorMsg = (parsed as any).message;
+          parsed = JSON.parse(parsed as string);
+          if (typeof parsed === 'object' && (parsed as { message?: string }).message) {
+            ep.errorMsg = (parsed as { message?: string }).message;
           }
-        } catch {}
+        } catch { /* ignore */ }
         ep.response = parsed;
       }
       ep.statusCode = err.status;

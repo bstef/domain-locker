@@ -1,14 +1,36 @@
 import { catchError, map, Observable, of } from 'rxjs';
 import { PgApiUtilService } from '~/app/utils/pg-api.util';
 
+export interface DomainCosting {
+  domain_id: string;
+  domain_name?: string;
+  expiry_date?: string;
+  registrar?: string;
+  purchase_price: number;
+  current_value: number;
+  renewal_cost: number;
+  auto_renew: boolean;
+}
+
+interface DomainCostingRow {
+  domain_id: string;
+  domain_name?: string;
+  expiry_date?: string;
+  registrar?: string;
+  purchase_price: string | number;
+  current_value: string | number;
+  renewal_cost: string | number;
+  auto_renew: boolean;
+}
+
 export class ValuationQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
   ) {}
 
   // Get all domains with costings info
-  getDomainCostings(): Observable<any[]> {
+  getDomainCostings(): Observable<DomainCosting[]> {
     const query = `
       SELECT
         dc.domain_id,
@@ -24,18 +46,16 @@ export class ValuationQueries {
       LEFT JOIN registrars r ON d.registrar_id = r.id
     `;
 
-    return this.pgApiUtil.postToPgExecutor(query).pipe(
+    return this.pgApiUtil.postToPgExecutor<DomainCostingRow>(query).pipe(
       map((response) => {
-        const data = response.data;
-
-        return data.map((item: any) => ({
+        return response.data.map((item) => ({
           domain_id: item.domain_id,
           domain_name: item.domain_name,
           expiry_date: item.expiry_date,
           registrar: item.registrar,
-          purchase_price: parseFloat(item.purchase_price) || 0,
-          current_value: parseFloat(item.current_value) || 0,
-          renewal_cost: parseFloat(item.renewal_cost) || 0,
+          purchase_price: parseFloat(String(item.purchase_price)) || 0,
+          current_value: parseFloat(String(item.current_value)) || 0,
+          renewal_cost: parseFloat(String(item.renewal_cost)) || 0,
           auto_renew: item.auto_renew
         }));
       }),
@@ -44,7 +64,7 @@ export class ValuationQueries {
   }
 
   // Update costings for all edited domains
-  updateDomainCostings(updates: any[]): Observable<void> {
+  updateDomainCostings(updates: DomainCosting[]): Observable<void> {
     const query = `
       INSERT INTO domain_costings (domain_id, purchase_price, current_value, renewal_cost, auto_renew)
       VALUES ${updates.map((_, i) => `($${i * 5 + 1}, $${i * 5 + 2}, $${i * 5 + 3}, $${i * 5 + 4}, $${i * 5 + 5})`).join(', ')}

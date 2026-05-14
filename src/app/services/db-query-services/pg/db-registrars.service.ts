@@ -1,12 +1,12 @@
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { PgApiUtilService } from '~/app/utils/pg-api.util';
 import { DbDomain, Registrar } from '~/app/../types/Database';
 
 export class RegistrarQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
-    private formatDomainData: (data: any) => DbDomain
+    private handleError: (error: unknown) => Observable<never>,
+    private formatDomainData: (data: Record<string, unknown>) => DbDomain
   ) {}
 
   // Get all registrars
@@ -21,24 +21,20 @@ export class RegistrarQueries {
 
   // Get or insert a registrar by name
   async getOrInsertRegistrarId(registrarName: string): Promise<string> {
-    const sanitizedName = (registrarName || '').trim().replace(/[\/\\?#%]/g, '');
+    const sanitizedName = (registrarName || '').trim().replace(/[/\\?#%]/g, '');
     const selectQuery = 'SELECT id FROM registrars WHERE name = $1 LIMIT 1';
     const insertQuery = 'INSERT INTO registrars (name) VALUES ($1) RETURNING id';
 
-    try {
-      const selectResponse = await this.pgApiUtil.postToPgExecutor<{ id: string }>(selectQuery, [sanitizedName]).toPromise();
-      if (selectResponse && selectResponse.data.length > 0) {
-        return selectResponse.data[0].id;
-      }
-
-      const insertResponse = await this.pgApiUtil.postToPgExecutor<{ id: string }>(insertQuery, [sanitizedName]).toPromise();
-      if (insertResponse && insertResponse.data.length > 0) {
-        return insertResponse.data[0].id;
-      }
-      throw new Error('Failed to insert registrar');
-    } catch (error) {
-      throw error;
+    const selectResponse = await this.pgApiUtil.postToPgExecutor<{ id: string }>(selectQuery, [sanitizedName]).toPromise();
+    if (selectResponse && selectResponse.data.length > 0) {
+      return selectResponse.data[0].id;
     }
+
+    const insertResponse = await this.pgApiUtil.postToPgExecutor<{ id: string }>(insertQuery, [sanitizedName]).toPromise();
+    if (insertResponse && insertResponse.data.length > 0) {
+      return insertResponse.data[0].id;
+    }
+    throw new Error('Failed to insert registrar');
   }
 
   // Get domain counts by registrar
@@ -156,7 +152,7 @@ getDomainsByRegistrar(registrarName: string): Observable<DbDomain[]> {
       wi.name, wi.organization, wi.country, wi.street, wi.city, wi.state, wi.postal_code
   `;
 
-  return this.pgApiUtil.postToPgExecutor(query, [registrarName]).pipe(
+  return this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(query, [registrarName]).pipe(
     map((response) => response.data.map(this.formatDomainData)),
     catchError((error) => this.handleError(error))
   );
@@ -164,16 +160,12 @@ getDomainsByRegistrar(registrarName: string): Observable<DbDomain[]> {
 
 
   // Save registrar for a domain
-  async saveRegistrar(domainId: string, registrar: Omit<Registrar, 'id'>): Promise<void> {
+  async saveRegistrar(domainId: string, registrar?: Omit<Registrar, 'id'>): Promise<void> {
     if (!registrar?.name) return;
 
-    try {
-      const registrarId = await this.getOrInsertRegistrarId(registrar.name);
+    const registrarId = await this.getOrInsertRegistrarId(registrar.name);
 
-      const updateQuery = 'UPDATE domains SET registrar_id = $1 WHERE id = $2';
-      await this.pgApiUtil.postToPgExecutor(updateQuery, [registrarId, domainId]).toPromise();
-    } catch (error) {
-      throw error;
-    }
+    const updateQuery = 'UPDATE domains SET registrar_id = $1 WHERE id = $2';
+    await this.pgApiUtil.postToPgExecutor(updateQuery, [registrarId, domainId]).toPromise();
   }
 }

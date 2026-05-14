@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { pricingFeatures, selfHostedFeatures, enterpriseFeatures, billingFaq } from '~/app/constants/pricing-features';
@@ -8,7 +8,7 @@ import { pricingFeatures, selfHostedFeatures, enterpriseFeatures, billingFaq } f
   standalone: true,
   selector: 'app-pricing-cards',
   templateUrl: './pricing-cards.component.html',
-  imports: [CommonModule, PrimeNgModule],
+  imports: [PrimeNgModule],
   animations: [
     trigger('slideDown', [
       transition(':enter', [
@@ -42,7 +42,7 @@ export class PricingCardsComponent {
     this.isAnnual = !this.isAnnual;
   }
 
-  getPrice(plan: any) {
+  getPrice(plan: { priceAnnual?: string; priceMonth?: string }) {
     return this.isAnnual ? plan.priceAnnual : plan.priceMonth;
   }
 }

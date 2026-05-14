@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from "@angular/common";
-import { Inject, Injectable, PLATFORM_ID, inject } from "@angular/core";
+import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { REQUEST } from "@angular/core";
 import { environment } from "~/app/environments/environment";
 
@@ -34,9 +34,10 @@ export type EnvVar =
   providedIn: "root",
 })
 export class EnvService {
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  private platformId = inject<object>(PLATFORM_ID);
 
-  private environmentFile = (environment || {}) as Record<string, any>;
+
+  private environmentFile = (environment || {}) as Record<string, string | undefined>;
 
   mapKeyToVarName(key: EnvVar): string {
     return key.startsWith("DL_") ? key.substring(3) : key;
@@ -49,13 +50,13 @@ export class EnvService {
    * @param key Environment variable key
    * @param fallback Fallback value
    */
-  getEnvVar(key: EnvVar, fallback: string | null = null, throwError: boolean = false): any {
+  getEnvVar(key: EnvVar, fallback: string | null = null, throwError = false): string | null {
     // Build-time environmental variable (e.g. from .env)
     const buildtimeValue = import.meta.env[key] || this.environmentFile[this.mapKeyToVarName(key)];
     // Runtime variable (e.g. passed at runtime, on self-hosted instances)
     const runtimeValue =
       isPlatformBrowser(this.platformId) && typeof window !== "undefined"
-        ? (window as any).__env?.[key]
+        ? (window as unknown as { __env?: Record<string, string> }).__env?.[key]
         : null;
     // Local value (only if not managed instance)
     const localStorageValue =
@@ -92,7 +93,7 @@ export class EnvService {
    */
   getEnvironmentType(): EnvironmentType {
     const env = this.getEnvVar("DL_ENV_TYPE", "selfHosted");
-    if (["dev", "managed", "selfHosted", "demo"].includes(env)) {
+    if (env && ["dev", "managed", "selfHosted", "demo"].includes(env)) {
       return env as EnvironmentType;
     }
     return "selfHosted";
@@ -102,31 +103,31 @@ export class EnvService {
    * Returns the Supabase URL from the environment.
    */
   getSupabaseUrl(): string {
-    return this.getEnvVar("SUPABASE_URL", null, true);
+    return this.getEnvVar("SUPABASE_URL", null, true) as string;
   }
 
   /**
    * Returns the Supabase public key from the environment.
    */
   getSupabasePublicKey(): string {
-    return this.getEnvVar("SUPABASE_ANON_KEY", null, true);
+    return this.getEnvVar("SUPABASE_ANON_KEY", null, true) as string;
   }
 
-  getProjectId(): string {
+  getProjectId(): string | null {
     return this.getEnvVar("DL_SUPABASE_PROJECT");
   }
 
-  getGlitchTipDsn(): string {
+  getGlitchTipDsn(): string | null {
     return this.getEnvVar("DL_GLITCHTIP_DSN");
   }
 
   /* Returns config object for Postgres */
   getPostgresConfig(): {
-    host: string;
+    host: string | null;
     port: number;
-    user: string;
-    password: string;
-    database: string;
+    user: string | null;
+    password: string | null;
+    database: string | null;
   } {
     return {
       host: this.getEnvVar("DL_PG_HOST"),
@@ -153,7 +154,7 @@ export class EnvService {
 
     // For SSR (server-side rendering), detect from HTTP request context
     try {
-      const request = inject(REQUEST, { optional: true }) as any;
+      const request = inject(REQUEST, { optional: true }) as { headers?: Record<string, string> } | null;
 
       if (request?.headers) {
         // Check for reverse proxy headers first
@@ -167,7 +168,7 @@ export class EnvService {
           return `${protocol}://${forwardedHost}`;
         }
       }
-    } catch (e) {
+    } catch {
       // REQUEST token not available (not in SSR context)
     }
 
@@ -182,8 +183,8 @@ export class EnvService {
   }
 
   getPlausibleConfig(): { site: string; url: string; isConfigured: boolean } {
-    const site = this.getEnvVar("DL_PLAUSIBLE_SITE", "");
-    const url = this.getEnvVar("DL_PLAUSIBLE_URL", "");
+    const site = this.getEnvVar("DL_PLAUSIBLE_SITE", "") || "";
+    const url = this.getEnvVar("DL_PLAUSIBLE_URL", "") || "";
     const isConfigured = Boolean(site && url);
     return { site, url, isConfigured };
   }

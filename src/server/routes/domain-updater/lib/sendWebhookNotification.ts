@@ -15,7 +15,7 @@ export async function sendWebhookNotification(
   }
 
   try {
-    const res = await fetch(`${base.replace(/\/$/, '')}/${topic}`, {
+    const res = await fetch(`${base.replace(/[/]$/, '')}/${topic}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
@@ -31,7 +31,8 @@ export async function sendWebhookNotification(
     }
 
     console.info(`📨 Webhook sent: ${title} - ${message}`);
-  } catch (err: any) {
-    console.error(`❌ Webhook failed: ${err.message}`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`❌ Webhook failed: ${msg}`);
   }
 }

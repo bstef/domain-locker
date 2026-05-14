@@ -1,8 +1,7 @@
-import { Component, Inject, OnInit, Pipe, PipeTransform, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, ChangeDetectorRef, inject } from '@angular/core';
 import DatabaseService from '~/app/services/database.service';
 import { MessageService } from 'primeng/api';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { isPlatformBrowser } from '@angular/common';
 import { CurrencyService } from '~/app/services/currency.service';
 
 import { TableModule } from 'primeng/table';
@@ -17,24 +16,25 @@ import { DbDomain } from '~/app/../types/Database';
   imports: [PrimeNgModule, CommonModule, RouterModule, TableModule],
 })
 export default class ValuationPageComponent implements OnInit {
-  domains: any[] = [];
+  private databaseService = inject(DatabaseService);
+  private messageService = inject(MessageService);
+  currencyService = inject(CurrencyService);
+  private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
+
+  domains: (DbDomain & {
+    purchase_price: number; current_value: number; renewal_cost: number; auto_renew: boolean;
+    purchasePriceClass?: string; currentValueClass?: string; renewalCostClass?: string;
+  })[] = [];
   loading = true;
   public currencySymbol = '$';
   public currencyCode = 'USD';
 
-  public totalRenewalCost: number = 0;
-  public portfolioWorth: number = 0;
-  public totalPurchaseCost: number = 0;
-  public totalValue: number = 0;
+  public totalRenewalCost = 0;
+  public portfolioWorth = 0;
+  public totalPurchaseCost = 0;
+  public totalValue = 0;
   public upcomingPayments: { domainName: string, expiryDate: string, renewalCost: number, autoRenew: boolean }[] = [];
-
-  constructor(
-    private databaseService: DatabaseService,
-    private messageService: MessageService,
-    public currencyService: CurrencyService,
-    @Inject(PLATFORM_ID) private platformId: any,
-    private cdr: ChangeDetectorRef,
-  ) {}
 
   ngOnInit() {
     this.currencySymbol = this.currencyService.getCurrencySymbol();
@@ -71,7 +71,7 @@ export default class ValuationPageComponent implements OnInit {
             this.loading = false;
             this.cdr.markForCheck();
           },
-          error: (error) => {
+          error: (_error) => {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
@@ -82,7 +82,7 @@ export default class ValuationPageComponent implements OnInit {
           },
         });
       },
-      error: (error: Error) => {
+      error: (_error: Error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -144,12 +144,12 @@ export default class ValuationPageComponent implements OnInit {
     const today = new Date();
     const upcomingDomains = this.domains
       .filter(domain => domain.expiry_date && new Date(domain.expiry_date) > today)
-      .sort((a, b) => new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime())
+      .sort((a, b) => new Date(a.expiry_date as Date).getTime() - new Date(b.expiry_date as Date).getTime())
       .slice(0, 5);
 
     this.upcomingPayments = upcomingDomains.map(domain => ({
       domainName: domain.domain_name,
-      expiryDate: this.transformDate(new Date(domain.expiry_date)),
+      expiryDate: this.transformDate(new Date(domain.expiry_date as Date)),
       renewalCost: domain.renewal_cost,
       autoRenew: domain.auto_renew,
     }));

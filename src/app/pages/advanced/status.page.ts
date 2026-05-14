@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { HttpClient } from '@angular/common/http';
@@ -32,11 +32,27 @@ export interface StatusData {
   scheduled: StatusLog[];
 }
 
+export interface ScheduledCron {
+  name: string;
+  desc?: string;
+  status: string;
+  last_ping?: string;
+  last_duration?: number;
+  next_ping?: string | null;
+  n_pings?: number;
+}
+
+export interface DatabaseHealth {
+  up?: boolean;
+  db?: boolean;
+  env?: boolean;
+}
+
 export interface InternalStatus {
-  scheduled: any[];
+  scheduled: ScheduledCron[];
   supabase: { healthy: boolean, undetermined?: boolean };
-  uptime: any;
-  database: any;
+  uptime: Record<string, unknown>;
+  database: DatabaseHealth;
   ghActions?: {
     id: number;
     name: string;
@@ -83,14 +99,17 @@ interface StatusMetrics {
   `],
 })
 export default class StatusPage {
+  private http = inject(HttpClient);
+  private errorHandler = inject(ErrorHandlerService);
+
   readonly statusInfo$: Observable<StatusData> = this.fetchStatusData();
   readonly internalStatusInfo$: Observable<InternalStatus> = this.fetchInternalStatusData();
-  public historyChartUrl: string = '';
-  public pieChartUrl: string = '';
+  public historyChartUrl = '';
+  public pieChartUrl = '';
 
   // Toggle flags for showing more/less incidents.
-  public showAllHistory: boolean = false;
-  public showAllScheduled: boolean = false;
+  public showAllHistory = false;
+  public showAllScheduled = false;
 
   public dlServicesToSetup: string[] = ['App', 'API', 'Database', 'Auth', 'Scheduler'];
 
@@ -102,13 +121,10 @@ export default class StatusPage {
 
   // public uptimeExtraInfo
 
-  public uptimeChartUrl: string = '';
-  public currentStatuses: { id: string; name: string; status: boolean; latestPing?: number, extraInfo?: any }[] = [];
+  public uptimeChartUrl = '';
+  public currentStatuses: { id: string; name: string; status: boolean; latestPing?: number, extraInfo?: StatusMetrics | null }[] = [];
 
-  constructor(
-    private http: HttpClient,
-    private errorHandler: ErrorHandlerService,
-  ) {
+  constructor() {
     // Generate the chart once we have API data.
     this.statusInfo$.subscribe(data => {
       const chartConfig = this.generateChartConfig(data, { daysBefore: 7, daysAfter: 7, title: 'Incident History' });
@@ -120,8 +136,14 @@ export default class StatusPage {
     this.internalStatusInfo$.subscribe(this.uptimeDataProcess.bind(this));
   }
 
-  private fetchInternalStatusData(): Observable<any> {
-    return this.http.get<any>('/api/internal-status-info').pipe(
+  private fetchInternalStatusData(): Observable<InternalStatus> {
+    return this.http.get<{
+      scheduledCrons?: ScheduledCron[];
+      supabaseStatus?: { healthy: boolean; undetermined?: boolean };
+      uptimeStatus?: Record<string, unknown>;
+      databaseStatus?: DatabaseHealth;
+      ghActions?: InternalStatus['ghActions'];
+    }>('/api/internal-status-info').pipe(
       map(data => ({
         scheduled: data.scheduledCrons || [],
         supabase: data.supabaseStatus || { healthy: false, undetermined: true },
@@ -136,7 +158,7 @@ export default class StatusPage {
           location: 'internal-status-info',
           showToast: true,
         });
-        return of({ scheduled: [], supabase: { healthy: false }, uptime: {} });
+        return of<InternalStatus>({ scheduled: [], supabase: { healthy: false }, uptime: {}, database: {}, ghActions: [] });
       })
     )
   }
@@ -169,7 +191,7 @@ export default class StatusPage {
     }));
   }
 
-  private getCssVariableColor = (cssVarName: string, fallback: string = '#cccccc'): string => {
+  private getCssVariableColor = (cssVarName: string, fallback = '#cccccc'): string => {
     if (typeof window === 'undefined' || !window?.getComputedStyle) {
       return fallback;
     }
@@ -207,7 +229,7 @@ export default class StatusPage {
   private generateChartConfig(
     statusData: StatusData,
     options?: { daysBefore?: number; daysAfter?: number; title?: string; }
-  ): any {
+  ): Record<string, unknown> {
     // Configurable options.
     const DAYS_BEFORE = options?.daysBefore ?? 7;
     const DAYS_AFTER = options?.daysAfter ?? 7;
@@ -368,10 +390,10 @@ export default class StatusPage {
     statusData: StatusData,
     breakdownType: 'service' | 'severity',
     options?: { title?: string }
-  ): any {
+  ): Record<string, unknown> {
     // Combine both history and scheduled items.
     const allItems = [...statusData.history, ...statusData.scheduled];
-    const counts: { [key: string]: number } = {};
+    const counts: Record<string, number> = {};
 
     if (breakdownType === 'service') {
       // Count total issues per service.
@@ -424,7 +446,7 @@ export default class StatusPage {
       const labels = Object.keys(counts);
       const data = labels.map(label => counts[label]);
       // Map severity keys to fixed colors.
-      const severityColors: { [key: string]: string } = {
+      const severityColors: Record<string, string> = {
         'critical': '#E92546',
         'minor': '#EF9126',
         'info': '#36A2EB',
@@ -456,7 +478,7 @@ export default class StatusPage {
   }
 
 private uptimeDataProcess(internal: InternalStatus): void {
-  const rawHeartbeats = internal.uptime?.heartbeatList || {};
+  const rawHeartbeats = ((internal.uptime as { heartbeatList?: Record<string, HeartBeat[]> })?.heartbeatList) || {};
   const statusData: typeof this.currentStatuses = [];
 
   const chartColors = [
@@ -492,7 +514,7 @@ private uptimeDataProcess(internal: InternalStatus): void {
 
   // Just using the first dataset's timestamps to generate HH:mm labels
   const firstDataset = datasets[0]?.data || [];
-  const labels = firstDataset.map((point: any) => {
+  const labels = firstDataset.map((point: { x: string }) => {
     const date = new Date(point.x);
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   });

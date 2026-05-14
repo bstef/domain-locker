@@ -5,11 +5,11 @@ import { IpAddress } from '~/app/../types/Database';
 export class IpQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
   ) {}
 
-  async saveIpAddresses(domainId: string, ipAddresses: Omit<IpAddress, 'id' | 'domainId' | 'created_at' | 'updated_at'>[]): Promise<void> {
-    if (ipAddresses.length === 0) return;
+  async saveIpAddresses(domainId: string, ipAddresses?: Omit<IpAddress, 'id' | 'domainId' | 'created_at' | 'updated_at'>[]): Promise<void> {
+    if (!ipAddresses || ipAddresses.length === 0) return;
 
     const dbIpAddresses = ipAddresses.map(ip => ({
       domain_id: domainId,

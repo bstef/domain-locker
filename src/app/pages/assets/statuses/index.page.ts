@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import DatabaseService from '~/app/services/database.service';
@@ -10,20 +10,18 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 @Component({
   standalone: true,
   selector: 'app-statuses-index',
-  imports: [CommonModule, RouterModule, LoadingComponent, PrimeNgModule],
+  imports: [RouterModule, LoadingComponent, PrimeNgModule],
   templateUrl: './statuses.page.html',
   styleUrls: ['./statuses.page.scss'],
 })
 export default class StatusesIndexPageComponent implements OnInit {
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+
   statuses: { eppCode: string; description: string; domainCount: number }[] = [];
-  loading: boolean = true;
+  loading = true;
   detailedStatuses: { statusCount: number, statusInfo?: SecurityCategory }[] = [];
   public securityCategories: SecurityCategory[] = securityCategories
-
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnInit() {
     this.loadStatuses();

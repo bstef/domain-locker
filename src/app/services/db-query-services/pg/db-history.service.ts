@@ -1,13 +1,32 @@
-import { catchError, from, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { PgApiUtilService } from '~/app/utils/pg-api.util';
+
+export interface DomainUpdateRow {
+  id?: string;
+  domain_id?: string;
+  domain_name?: string;
+  change_type: string;
+  change?: string;
+  date: string;
+  old_value?: string;
+  new_value?: string;
+  domains?: { domain_name?: string };
+}
+
+export interface HistoryEntry {
+  date: string;
+  added: number;
+  removed: number;
+  updated: number;
+}
 
 export class HistoryQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
   ) {}
 
-  getChangeHistory(domainName?: string, days: number = 7): Observable<any[]> {
+  getChangeHistory(domainName?: string, days = 7): Observable<HistoryEntry[]> {
     const daysAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
     const query = domainName
@@ -69,18 +88,18 @@ export class HistoryQueries {
 
   getDomainUpdates(
     domainName?: string,
-    start: number = 0,
-    end: number = 24,
+    start = 0,
+    end = 24,
     category?: string,
     changeType?: string,
     filterDomain?: string
-  ): Observable<any[]> {
+  ): Observable<DomainUpdateRow[]> {
     let query = `SELECT domain_updates.*, domains.domain_name 
                  FROM domain_updates 
                  INNER JOIN domains ON domain_updates.domain_id = domains.id 
                  WHERE 1=1`;
 
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     if (domainName) {
       query += ` AND domains.domain_name = $${params.length + 1}`;
@@ -105,7 +124,7 @@ export class HistoryQueries {
     query += ` ORDER BY domain_updates.date DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(end - start, start);
 
-    return this.pgApiUtil.postToPgExecutor(query, params).pipe(
+    return this.pgApiUtil.postToPgExecutor<DomainUpdateRow>(query, params).pipe(
       map((response) => response.data),
       catchError((error) => {
         this.handleError(error);

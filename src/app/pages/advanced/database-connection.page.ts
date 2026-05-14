@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -17,6 +17,13 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
   styles: [``],
 })
 export default class DatabaseConnectionPage implements OnInit {
+  private fb = inject(FormBuilder);
+  private envService = inject(EnvService);
+  private errorHandler = inject(ErrorHandlerService);
+  private featureService = inject(FeatureService);
+  private messagingService = inject(GlobalMessageService);
+  private databaseService = inject(DatabaseService);
+
   dbForm!: FormGroup;
   initialServiceType = 'none'
   dbConfigEnabled$ = this.featureService.isFeatureEnabled('allowLocalDbConfig');
@@ -25,15 +32,6 @@ export default class DatabaseConnectionPage implements OnInit {
     { label: 'Postgres', value: 'postgres' },
     { label: 'Supabase', value: 'supabase' },
   ];
-
-  constructor(
-    private fb: FormBuilder,
-    private envService: EnvService,
-    private errorHandler: ErrorHandlerService,
-    private featureService: FeatureService,
-    private messagingService: GlobalMessageService,
-    private databaseService: DatabaseService,
-  ) {}
 
   ngOnInit(): void {
     this.initForm();

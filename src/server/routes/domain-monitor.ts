@@ -15,7 +15,7 @@ function getEnvVar(name: string, fallback?: string): string {
 async function callPgExecutor<T>(
   endpoint: string,
   query: string,
-  params: any[] = [],
+  params: unknown[] = [],
 ): Promise<T[]> {
   const res = await fetch(endpoint, {
     method: "POST",

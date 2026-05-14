@@ -2,7 +2,7 @@
 <div class="w-full flex justify-between flex-wrap">
   <h1>Domain Valuation: Edit</h1>
   @if (!loading) {
-    <button pButton label="Save" icon="pi pi-check" (click)="saveChanges()"></button>
+    <button pButton label="Save" aria-label="Save" icon="pi pi-check" (click)="saveChanges()"></button>
   }
 </div>
 
@@ -69,5 +69,5 @@
 </p-table>
 
 <div class="w-full flex justify-end">
-  <button pButton label="Save" icon="pi pi-check" (click)="saveChanges()" class="mt-4"></button>
+  <button pButton label="Save" aria-label="Save" icon="pi pi-check" (click)="saveChanges()" class="mt-4"></button>
 </div>

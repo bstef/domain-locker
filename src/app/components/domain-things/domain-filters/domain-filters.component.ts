@@ -1,5 +1,5 @@
-import { Component, Output, EventEmitter, Input, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Output, EventEmitter, Input, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { Router } from '@angular/router';
@@ -13,11 +13,14 @@ export interface FieldOption {
 @Component({
   selector: 'app-field-visibility-filter',
   standalone: true,
-  imports: [CommonModule, FormsModule, PrimeNgModule, QuickAddDomain],
+  imports: [FormsModule, PrimeNgModule, QuickAddDomain],
   templateUrl: 'domain-filters.component.html',
   styleUrls: ['domain-filters.component.scss'],
 })
 export class FieldVisibilityFilterComponent implements OnInit {
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+
   @Input() fieldOptions: FieldOption[] = [
     { label: 'Domain Name', value: 'domainName' },
     { label: 'Registrar', value: 'registrar' },
@@ -40,20 +43,20 @@ export class FieldVisibilityFilterComponent implements OnInit {
   ];
 
   @Input() defaultSelectedFields: string[] = ['domainName', 'registrar', 'expiryDate'];
-  @Input() showAddButton: boolean = true;
+  @Input() showAddButton = true;
   @Output() visibilityChange = new EventEmitter<FieldOption[]>();
   @Output() searchChange = new EventEmitter<string>();
   @Output() layoutChange = new EventEmitter<boolean>();
   @Output() sortChange = new EventEmitter<FieldOption>();
   
-  @Input() triggerReload: () => void = () => {};
+  @Input() triggerReload: () => void = () => { /* no-op */ };
   @Output() $triggerReload = new EventEmitter();
 
   selectedFields: FieldOption[] = [];
   selectedFieldsList: string[] = [];
   sortOrder: FieldOption = this.sortOptions[0];
-  selectedLayout: boolean = true;
-  quickAddDialogOpen: boolean = false;
+  selectedLayout = true;
+  quickAddDialogOpen = false;
 
   layoutOptions = [
     { label: 'Grid', value: true, icon: 'pi pi-th-large' },
@@ -83,11 +86,6 @@ export class FieldVisibilityFilterComponent implements OnInit {
     },
   ];
 
-  constructor(
-    private router: Router,
-    private cdr: ChangeDetectorRef,
-  ){}
-
   ngOnInit() {
     this.initializeSelectedFields();
   }
@@ -110,7 +108,7 @@ export class FieldVisibilityFilterComponent implements OnInit {
     this.visibilityChange.emit(this.selectedFields);
   }
 
-  onSortChange(event: any) {
+  onSortChange(event: { value: FieldOption }) {
     this.sortChange.emit(event.value);
   }
 

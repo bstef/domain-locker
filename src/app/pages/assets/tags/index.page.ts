@@ -1,5 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { Tag } from '~/app/../types/Database';
@@ -12,22 +12,20 @@ import { TableModule } from 'primeng/table';
 @Component({
   standalone: true,
   selector: 'app-tags-index',
-  imports: [CommonModule, RouterModule, PrimeNgModule, TagEditorComponent, TableModule],
+  imports: [RouterModule, PrimeNgModule, TagEditorComponent, TableModule],
   templateUrl: './index.page.html',
   styleUrl: './tags.scss'
 })
 export default class TagsIndexPageComponent implements OnInit {
-  tags: (Tag & { domainCount: number })[] = [];
-  loading: boolean = true;
-  addTagDialogOpen: boolean = false;
+  private databaseService = inject(DatabaseService);
+  private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
+  private errorHandler = inject(ErrorHandlerService);
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor(
-    private databaseService: DatabaseService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService,
-    private errorHandler: ErrorHandlerService,
-    private cdr: ChangeDetectorRef,
-  ) {}
+  tags: (Tag & { domainCount: number })[] = [];
+  loading = true;
+  addTagDialogOpen = false;
 
   ngOnInit() {
     this.loadTags();

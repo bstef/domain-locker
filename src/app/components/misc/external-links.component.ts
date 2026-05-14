@@ -1,56 +1,58 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 
 @Component({
   standalone: true,
   selector: 'app-additional-resources',
-  imports: [CommonModule, PrimeNgModule],
+  imports: [PrimeNgModule],
   template: `
     <p class="text-lg text-surface-500 italic mt-0 mb-4">
       The following free online tools can give you greater insight into your domain and website.
     </p>
     <ul class="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-0">
-      <li *ngFor="let resource of resourcesToShow"
-        class="flex flex-col justify-between border-2 border-surface-100 rounded">
-        <a
-          [href]="makeLink(resource, url)"
-          target="_blank"
-          class="flex flex-col gap-2 no-underline p-2 transition-all"
-        >
-          <div class="flex items-center gap-2">
-            <img [src]="resource.icon" alt="" class="w-[2rem] h-8 rounded-md" />
-            <p class="text-base font-semibold flex-1 m-0">{{ resource.title }}</p>
-          </div>
-          <p class="text-sm text-surface-400 m-0">{{ resource.description }}</p>
-        </a>
-        <a
-          [href]="resource.link"
-          target="_blank"
-          class="text-sm text-primary hover:underline mt-0 mb-2 mx-2"
-          title="Open {{ resource.link }}"
-        >
-          {{ extractHostname(resource.link) }}
-        </a>
-      </li>
+      @for (resource of resourcesToShow; track resource) {
+        <li
+          class="flex flex-col justify-between border-2 border-surface-100 rounded">
+          <a
+            [href]="makeLink(resource, url)"
+            target="_blank"
+            class="flex flex-col gap-2 no-underline p-2 transition-all"
+            >
+            <div class="flex items-center gap-2">
+              <img [src]="resource.icon" alt="" class="w-[2rem] h-8 rounded-md" />
+              <p class="text-base font-semibold flex-1 m-0">{{ resource.title }}</p>
+            </div>
+            <p class="text-sm text-surface-400 m-0">{{ resource.description }}</p>
+          </a>
+          <a
+            [href]="resource.link"
+            target="_blank"
+            class="text-sm text-primary hover:underline mt-0 mb-2 mx-2"
+            title="Open {{ resource.link }}"
+            >
+            {{ extractHostname(resource.link) }}
+          </a>
+        </li>
+      }
     </ul>
-
+    
     <p-divider align="center" (click)="toggleResourceShowFull()">
-    @if (!showFullList) {
-      <div class="flex gap-2 items-center px-3 py-2 cursor-pointer hover:text-primary bg-highlight rounded">
-        <i class="pi pi-angle-double-down"></i>
-        <span>Expand List</span>
-        <i class="pi pi-angle-double-down"></i>
-      </div>
-    } @else {
-      <div class="flex gap-2 items-center px-1 py-1 cursor-pointer hover:text-primary text-xs opacity-70 bg-highlight rounded-sm">
-        <i class="pi pi-angle-double-up"></i>
-        <span>Show Less</span>
-        <i class="pi pi-angle-double-up"></i>
-      </div>
-    }
-  </p-divider>
-
+      @if (!showFullList) {
+        <div class="flex gap-2 items-center px-3 py-2 cursor-pointer hover:text-primary bg-highlight rounded">
+          <i class="pi pi-angle-double-down"></i>
+          <span>Expand List</span>
+          <i class="pi pi-angle-double-down"></i>
+        </div>
+      } @else {
+        <div class="flex gap-2 items-center px-1 py-1 cursor-pointer hover:text-primary text-xs opacity-70 bg-highlight rounded-sm">
+          <i class="pi pi-angle-double-up"></i>
+          <span>Show Less</span>
+          <i class="pi pi-angle-double-up"></i>
+        </div>
+      }
+    </p-divider>
+    
     <small class="text-xs mt-4 block text-gray-500">
       These tools are not affiliated with Domain Locker.
       Please use them at your own risk.
@@ -59,7 +61,7 @@ import { PrimeNgModule } from '~/app/prime-ng.module';
         GitHub (lissy93/domain-locker)
       </a>.
     </small>
-  `,
+    `,
   styles: [``],
 })
 export class AdditionalResourcesComponent {
@@ -242,7 +244,7 @@ export class AdditionalResourcesComponent {
   showFullList = false;
   resourcesToShow = this.resourceShortList;
 
-  makeLink(resource: any, scanUrl: string | undefined): string {
+  makeLink(resource: { link: string; searchLink?: string }, scanUrl: string | undefined): string {
     if (!scanUrl || !resource.searchLink) {
       return resource.link;
     }

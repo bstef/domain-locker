@@ -1,11 +1,13 @@
 import { callPgExecutor } from '../lib/pgExecutor';
 import { normalizeStr } from '../lib/utils';
 import { recordDomainUpdate } from '../lib/recordUpdate';
+import type { DomainRow } from '../index';
+import type { FreshDomainInfo } from '../lib/fetchInfo';
 
 export async function updateDomainStatuses(
   pgExec: string,
-  domainRow: any,
-  freshInfo: any,
+  domainRow: DomainRow,
+  freshInfo: FreshDomainInfo,
   changes: string[]
 ): Promise<void> {
   const domainId = domainRow.id;

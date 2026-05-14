@@ -1,10 +1,10 @@
-import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, Input, inject } from '@angular/core';
+
 
 @Component({
   standalone: true,
   selector: 'app-logo',
-  imports: [CommonModule],
+  imports: [],
   template: `
 <svg
   #logoSvg
@@ -48,9 +48,9 @@ import { CommonModule } from '@angular/common';
   `],
 })
 export class LogoComponent implements AfterViewInit {
-  @Input() size: string = '2rem';
+  private el = inject(ElementRef);
 
-  constructor(private el: ElementRef) {}
+  @Input() size = '2rem';
 
   ngAfterViewInit(): void {
     // Wait a tick, then add the anim-active class to the <svg> 

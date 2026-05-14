@@ -74,7 +74,7 @@ export function createDbProxy<T extends object>(
       // }
 
       // It's a "write" method => wrap it so we do the check before the actual DB call.
-      return function(...args: any[]): Observable<any> {
+      return function(...args: unknown[]): Observable<unknown> {
         return defer(() =>
           from(featureService.isFeatureEnabledPromise('writePermissions')).pipe(
             switchMap((canWrite) => {

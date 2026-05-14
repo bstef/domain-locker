@@ -1,12 +1,28 @@
-import { SupabaseClient, User } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { catchError, from, map, Observable, switchMap } from 'rxjs';
 import { Link } from '~/app/../types/Database';
 import { LinkResponse, ModifiedLink } from '~/app/pages/assets/links/index.page';
 
+interface LinkRow {
+  id: string;
+  link_name: string;
+  link_url: string;
+  link_description?: string;
+  domains?: { domain_name?: string } | null;
+}
+
+interface LinkDomainAggregate {
+  link_name: string;
+  link_url: string;
+  link_description?: string;
+  link_ids: Set<string>;
+  domains: Set<string>;
+}
+
 export class LinkQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private listDomainNames: () => Observable<string[]>,
   ) {}
 
@@ -87,7 +103,7 @@ export class LinkQueries {
           if (error) throw error;
   
           // Group links by domain
-          const groupedByDomain = data.reduce((acc: Record<string, Link[]>, link: any) => {
+          const groupedByDomain = (data as unknown as LinkRow[]).reduce((acc: Record<string, Link[]>, link) => {
             const domainName = link.domains?.domain_name || 'Unknown Domain';
             if (!acc[domainName]) acc[domainName] = [];
             acc[domainName].push({
@@ -100,20 +116,8 @@ export class LinkQueries {
           }, {});
   
           // Aggregate domains and link IDs for each unique link grouped by link_url
-          const linkDomains = data.reduce(
-            (
-              acc: Record<
-                string,
-                {
-                  link_name: string;
-                  link_url: string;
-                  link_description?: string;
-                  link_ids: Set<string>;
-                  domains: Set<string>;
-                }
-              >,
-              link: any
-            ) => {
+          const linkDomains = (data as unknown as LinkRow[]).reduce(
+            (acc: Record<string, LinkDomainAggregate>, link) => {
               const key = link.link_url; // Group by link_url
               if (!acc[key]) {
                 acc[key] = {
@@ -234,7 +238,7 @@ export class LinkQueries {
         const domainsToUpdate = domainData.filter((d) => existingDomainIds.includes(d.domainId));
         const domainsToRemove = existingDomainIds.filter((id) => !domainData.some((d) => d.domainId === id));
   
-        const tasks: PromiseLike<any>[] = [];
+        const tasks: PromiseLike<unknown>[] = [];
   
         // Add new links
         if (domainsToAdd.length > 0) {

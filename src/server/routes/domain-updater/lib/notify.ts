@@ -12,7 +12,7 @@ export async function notifyUser(
   message?: string
 ): Promise<void> {
   try {
-    const prefs = await callPgExecutor<any>(
+    const prefs = await callPgExecutor<{ notification_type: string }>(
       pgExec,
       `SELECT notification_type FROM notification_preferences WHERE domain_id = $1 AND is_enabled = true`,
       [domainId]
@@ -20,7 +20,7 @@ export async function notifyUser(
 
     if (!prefs || prefs.length === 0) return;
 
-    const enabledTypes = prefs.map((p: any) => p.notification_type);
+    const enabledTypes = prefs.map((p) => p.notification_type);
 
     const isEnabled = enabledTypes.some((prefix: string) =>
       changeType.startsWith(prefix)
@@ -32,7 +32,7 @@ export async function notifyUser(
     }
 
     // Get domain name from domain ID, to include in notification
-    const domainResult = await callPgExecutor<any>(
+    const domainResult = await callPgExecutor<{ domain_name: string }>(
       pgExec,
       `SELECT domain_name FROM domains WHERE id = $1`,
       [domainId]
@@ -56,7 +56,8 @@ export async function notifyUser(
       [changeType]
     );
 
-  } catch (err: any) {
-    console.error(`Failed to insert notification for ${changeType}: ${err.message}`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`Failed to insert notification for ${changeType}: ${msg}`);
   }
 }

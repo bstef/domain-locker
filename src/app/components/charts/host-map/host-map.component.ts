@@ -1,5 +1,5 @@
-import { Component, OnInit, AfterViewInit, PLATFORM_ID, Inject, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, AfterViewInit, PLATFORM_ID, ViewEncapsulation, ChangeDetectorRef, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import DatabaseService from '~/app/services/database.service';
 import { Host } from '~/app/../types/Database';
 import { ThemeService } from '~/app/services/theme.service';
@@ -11,25 +11,23 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 @Component({
   selector: 'app-host-map',
   standalone: true,
-  imports: [CommonModule, PrimeNgModule, TranslateModule],
+  imports: [PrimeNgModule, TranslateModule],
   templateUrl: './host-map.component.html',
   styleUrl: './host-map.component.scss',
   encapsulation: ViewEncapsulation.None, // So I can load Leaflet styles
 })
 export class HostMapComponent implements OnInit, AfterViewInit {
-  private map: any;
-  private hosts: (Host & { domainCount: number })[] = [];
-  private L: any;
-  private isDarkTheme: boolean = false;
-  private subscriptions: Subscription = new Subscription();
+  private databaseService = inject(DatabaseService);
+  private platformId = inject<object>(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
+  private themeService = inject(ThemeService);
+  private errorHandler = inject(ErrorHandlerService);
 
-  constructor(
-    private databaseService: DatabaseService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef,
-    private themeService: ThemeService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
+  private map!: import('leaflet').Map;
+  private hosts: (Host & { domainCount: number })[] = [];
+  private L!: typeof import('leaflet');
+  private isDarkTheme = false;
+  private subscriptions: Subscription = new Subscription();
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -118,7 +116,7 @@ export class HostMapComponent implements OnInit, AfterViewInit {
     });
 
     // Adjust the map bounds to fit all markers
-    const markerBounds = this.hosts.map(host => [host.lat, host.lon]);
+    const markerBounds: [number, number][] = this.hosts.map(host => [host.lat, host.lon]);
     if (markerBounds.length > 0) {
       const bounds = this.L.latLngBounds(markerBounds);
       this.map.fitBounds(bounds, { padding: [10, 10] });

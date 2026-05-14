@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, inject } from '@angular/core';
 import DatabaseService from '~/app/services/database.service';
 import { Notification } from '~/app/../types/Database';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -15,17 +15,15 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   styleUrls: ['./notifications-list.component.scss'],
 })
 export class NotificationsListComponent implements OnInit {
+  private databaseService = inject(DatabaseService);
+  private cdr = inject(ChangeDetectorRef);
+  private errorHandler = inject(ErrorHandlerService);
+
   notifications: (Notification & { domain_name: string })[] = [];
   totalNotifications = 0;
   @Input() isInModal = false;
   rowsPerPage = 25;
   unreadNotificationsCount = 0;
-
-  constructor(
-    private databaseService: DatabaseService,
-    private cdr: ChangeDetectorRef,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnInit() {
     this.loadNotifications();

@@ -1,12 +1,13 @@
-import { Component, Inject, Input, OnChanges, PLATFORM_ID } from '@angular/core';
+import { Component, Input, OnChanges, PLATFORM_ID, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Pipe, PipeTransform } from '@angular/core';
-import { isPlatformBrowser, NgStyle, CommonModule, NgOptimizedImage } from '@angular/common';
+import { Pipe, PipeTransform, OnInit } from '@angular/core';
+import { isPlatformBrowser, NgStyle, CommonModule } from '@angular/common';
 
 // SafeHtml pipe to bypass Angular's sanitization
 @Pipe({ name: 'safeHtml', standalone: true })
 export class SafeHtmlPipe implements PipeTransform {
-  constructor(private sanitizer: DomSanitizer) {}
+  private sanitizer = inject(DomSanitizer);
+
 
   transform(value: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(value);
@@ -14,7 +15,7 @@ export class SafeHtmlPipe implements PipeTransform {
 }
 
 @Component({
-  selector: 'dl-icon',
+  selector: 'app-dl-icon',
   standalone: true,
   imports: [NgStyle, SafeHtmlPipe, CommonModule],
   template: `
@@ -26,26 +27,26 @@ export class SafeHtmlPipe implements PipeTransform {
       aria-hidden="true"
       role="img"
       focusable="false"
-    >
-      <g *ngIf="isBrowser" [innerHTML]="iconSvg | safeHtml"></g>
+      >
+      @if (isBrowser) {
+        <g [innerHTML]="iconSvg | safeHtml"></g>
+      }
     </svg>
-  `,
+    `,
 })
-export class DlIconComponent implements OnChanges {
+export class DlIconComponent implements OnChanges, OnInit {
+  private platformId = inject<object>(PLATFORM_ID);
 
-  @Input() icon: string = '';
-  @Input() classNames: string = '';  // Additional classes for styling
-  @Input() styles: any = {};         // Inline styles
-  @Input() color: string = '';       // Fill color (defaults to currentColor if not set)
-  @Input() viewBox: string = '0 0 512 512'; // Default viewBox
 
-  mergedStyles: any = {};
+  @Input() icon = '';
+  @Input() classNames = '';  // Additional classes for styling
+  @Input() styles: Record<string, string> = {};         // Inline styles
+  @Input() color = '';       // Fill color (defaults to currentColor if not set)
+  @Input() viewBox = '0 0 512 512'; // Default viewBox
 
-  isBrowser: boolean = false;
+  mergedStyles: Record<string, string> = {};
 
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
-  ) {}
+  isBrowser = false;
 
   ngOnInit(): void {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -64,7 +65,7 @@ export class DlIconComponent implements OnChanges {
    */
 
   // Define our SVG <path> elements here (no <svg> tag needed)
-  icons: { [key: string]: string | { svg: string; viewbox: string; } } = {
+  icons: Record<string, string | { svg: string; viewbox: string; }> = {
     // Domain info page
     ssl: `<path d="M128 64c0-35.3 28.7-64 64-64L352 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64l-226.7 0c1.8-5.1 2.7-10.5 2.7-16l0-80c1.3-.5 2.5-1 3.8-1.5c6.8-3 14.3-7.8 20.6-15.5c6.4-7.9 10.1-17.2 11.4-27.1c.5-3.6 .8-5.7 1.1-7.1c1.1-.9 2.8-2.3 5.6-4.5c19.9-15.4 27.1-42.2 17.5-65.5c-1.4-3.3-2.1-5.4-2.6-6.7c.5-1.4 1.2-3.4 2.6-6.7c9.5-23.3 2.4-50.1-17.5-65.5c-2.8-2.2-4.5-3.6-5.6-4.5c-.3-1.4-.6-3.6-1.1-7.1c-3.4-24.9-23-44.6-47.9-47.9c-3.6-.5-5.7-.8-7.1-1.1c-.9-1.1-2.3-2.8-4.5-5.6c-15.4-19.9-42.2-27.1-65.5-17.5c-2.6 1.1-5.1 2.3-6.6 3l-.1 .1L128 64zm384 64l-128 0L384 0 512 128zM109.2 161.6L125 168c1.9 .8 4.1 .8 6.1 0l15.8-6.5c10-4.1 21.5-1 28.1 7.5l10.5 13.5c1.3 1.7 3.2 2.7 5.2 3l16.9 2.3c10.7 1.5 19.1 9.9 20.5 20.5l2.3 16.9c.3 2.1 1.4 4 3 5.2l13.5 10.5c8.5 6.6 11.6 18.1 7.5 28.1L248 285c-.8 1.9-.8 4.1 0 6.1l6.5 15.8c4.1 10 1 21.5-7.5 28.1l-13.5 10.5c-1.7 1.3-2.7 3.2-3 5.2l-2.3 16.9c-1.5 10.7-9.9 19.1-20.5 20.6L192 390.2 192 496c0 5.9-3.2 11.3-8.5 14.1s-11.5 2.5-16.4-.8L128 483.2 88.9 509.3c-4.9 3.3-11.2 3.6-16.4 .8s-8.5-8.2-8.5-14.1l0-105.8-15.5-2.1c-10.7-1.5-19.1-9.9-20.5-20.6l-2.3-16.9c-.3-2.1-1.4-4-3-5.2L9.1 334.9c-8.5-6.6-11.6-18.1-7.5-28.1L8 291c.8-1.9 .8-4.1 0-6.1L1.6 269.2c-4.1-10-1-21.5 7.5-28.1l13.5-10.5c1.7-1.3 2.7-3.2 3-5.2l2.3-16.9c1.5-10.7 9.9-19.1 20.5-20.5l16.9-2.3c2.1-.3 4-1.4 5.2-3l10.5-13.5c6.6-8.5 18.1-11.6 28.1-7.5z"/>`,
     registrar: `<path d="M0 128C0 92.7 28.7 64 64 64l512 0c35.3 0 64 28.7 64 64l0 48c0 8.8-7.3 15.8-15.8 18c-27.7 7-48.2 32.1-48.2 62s20.5 55 48.2 62c8.6 2.2 15.8 9.1 15.8 18l0 48c0 35.3-28.7 64-64 64L64 448c-35.3 0-64-28.7-64-64L0 128zm432 16a16 16 0 1 0 0-32 16 16 0 1 0 0 32zm0 64a16 16 0 1 0 0-32 16 16 0 1 0 0 32zm16 48a16 16 0 1 0 -32 0 16 16 0 1 0 32 0zm-16 80a16 16 0 1 0 0-32 16 16 0 1 0 0 32zm16 48a16 16 0 1 0 -32 0 16 16 0 1 0 32 0z"/>`,

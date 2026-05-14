@@ -1,7 +1,6 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { Subdomain } from '~/app/../types/Database';
 import DatabaseService from '~/app/services/database.service';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DomainFaviconComponent } from '~/app/components/misc/favicon.component';
@@ -13,6 +12,15 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 import { GlobalMessageService } from '~/app/services/messaging.service';
 import { FeatureService } from '~/app/services/features.service';
 
+export interface SubdomainView {
+  id?: string;
+  name: string;
+  sd_info?: string | null | unknown;
+  domain_name?: string;
+}
+
+type SubdomainRow = SubdomainView & { kvList: { key: string; value: string }[] };
+
 @Component({
   standalone: true,
   selector: 'app-subdomain-list',
@@ -22,84 +30,85 @@ import { FeatureService } from '~/app/services/features.service';
       [class]="' list-none p-0 m-0 grid grid-cols-1 '
         + (embeddedView ? 'xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-3 '
         : ' md:grid-cols-2 lg:grid-cols-3 gap-4 ')"
-    >
-      <li
-        *ngFor="let subdomain of subdomainsToShow"
+      >
+      @for (subdomain of subdomainsToShow; track subdomain) {
+        <li
         [ngClass]="{
           'px-4 py-3 rounded shadow relative': true,
           'border-2 border-surface-100': embeddedView,
           'p-card': !embeddedView
         }"
-        (contextmenu)="onRightClick($event, subdomain)"
-      >
-        <a
-          [routerLink]="['/assets/subdomains', domain, subdomain.name]"
-          class="text-primary no-underline hover:underline"
-        >
-          <h3 class="text-lg font-bold text-default truncate">
-            <app-domain-favicon [domain]="subdomain.name + '.' + domain" [size]="24" class="mr-2" />
-            <span class="text-primary">{{ subdomain.name }}</span>
-            <span>.</span>
-            <span>{{ domain }}</span>
-          </h3>
-        </a>
-        <ul *ngFor="let item of makeKVList(subdomain.sd_info)"
-          class="m-0 p-0 list-none text-sm text-surface-500 opacity-90">
-          <li class="truncate">
-            <strong class="font-semibold">{{ item.key }}</strong>: {{ item.value }}
-          </li>
-        </ul>
-      </li>
-    </ul>
-
-    <p-divider *ngIf="embeddedView" align="center" (click)="toggleShowAll()">
-      @if (!showFullList) {
-        <div class="flex gap-2 items-center px-3 py-2 cursor-pointer hover:text-primary bg-highlight rounded">
-          <i class="pi pi-angle-double-down"></i>
-          <span>Expand List</span>
-          <i class="pi pi-angle-double-down"></i>
-        </div>
-      } @else {
-        <div class="flex gap-2 items-center px-1 py-1 cursor-pointer hover:text-primary text-xs opacity-70 bg-highlight rounded-sm">
-          <i class="pi pi-angle-double-up"></i>
-          <span>Show Less</span>
-          <i class="pi pi-angle-double-up"></i>
-        </div>
+          (contextmenu)="onRightClick($event, subdomain)"
+          >
+          <a
+            [routerLink]="['/assets/subdomains', domain, subdomain.name]"
+            class="text-primary no-underline hover:underline"
+            >
+            <h3 class="text-lg font-bold text-default truncate">
+              <app-domain-favicon [domain]="subdomain.name + '.' + domain" [size]="24" class="mr-2" />
+              <span class="text-primary">{{ subdomain.name }}</span>
+              <span>.</span>
+              <span>{{ domain }}</span>
+            </h3>
+          </a>
+          @for (item of subdomain.kvList; track item.key) {
+            <ul
+              class="m-0 p-0 list-none text-sm text-surface-500 opacity-90">
+              <li class="truncate">
+                <strong class="font-semibold">{{ item.key }}</strong>: {{ item.value }}
+              </li>
+            </ul>
+          }
+        </li>
       }
-    </p-divider>
+    </ul>
+    
+    @if (embeddedView) {
+      <p-divider align="center" (click)="toggleShowAll()">
+        @if (!showFullList) {
+          <div class="flex gap-2 items-center px-3 py-2 cursor-pointer hover:text-primary bg-highlight rounded">
+            <i class="pi pi-angle-double-down"></i>
+            <span>Expand List</span>
+            <i class="pi pi-angle-double-down"></i>
+          </div>
+        } @else {
+          <div class="flex gap-2 items-center px-1 py-1 cursor-pointer hover:text-primary text-xs opacity-70 bg-highlight rounded-sm">
+            <i class="pi pi-angle-double-up"></i>
+            <span>Show Less</span>
+            <i class="pi pi-angle-double-up"></i>
+          </div>
+        }
+      </p-divider>
+    }
     <p-confirmDialog />
     <p-contextMenu #contextMenu [model]="menuItems"></p-contextMenu>
-  `,
+    `,
   providers: [ConfirmationService],
 })
-export class SubdomainListComponent implements OnInit {
-  @Input() domain: string = '';
-  @Input() subdomains: Subdomain[] = [];
-  @Input() embeddedView: boolean = false;
+export class SubdomainListComponent implements OnChanges {
+  private confirmationService = inject(ConfirmationService);
+  private messagingService = inject(GlobalMessageService);
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private featureService = inject(FeatureService);
+  private router = inject(Router);
+
+  @Input() domain = '';
+  @Input() subdomains: SubdomainView[] = [];
+  @Input() embeddedView = false;
   @ViewChild('contextMenu') menu: ContextMenu | undefined;
-  subdomainsToShow: Subdomain[] = [];
-  makeKVList = makeKVList;
-  showFullList: boolean = false;
+  subdomainsToShow: SubdomainRow[] = [];
+  showFullList = false;
 
   menuItems: MenuItem[] = [];
-  selectedSubdomain: Subdomain | null = null;
+  selectedSubdomain: SubdomainView | null = null;
 
-  constructor(
-    private confirmationService: ConfirmationService,
-    private messagingService: GlobalMessageService,
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-    private featureService: FeatureService,
-    private router: Router,
-) {}
-  ngOnInit(): void {
-    this.subdomainsToShow = this.subdomains;
-    if (this.embeddedView && !this.showFullList) {
-      this.subdomainsToShow = this.subdomains.slice(0, 8);
-    }
+  ngOnChanges(): void {
+    const rows = this.subdomains.map((s) => ({ ...s, kvList: makeKVList(s.sd_info) }));
+    this.subdomainsToShow = this.embeddedView && !this.showFullList ? rows.slice(0, 8) : rows;
   }
 
-  onRightClick(event: MouseEvent, subdomain: Subdomain) {
+  onRightClick(event: MouseEvent, subdomain: SubdomainView) {
     this.selectedSubdomain = subdomain;
     this.menuItems = this.createMenuItems();
     if (this.menu) this.menu.show(event);
@@ -108,11 +117,8 @@ export class SubdomainListComponent implements OnInit {
 
   toggleShowAll() {
     this.showFullList = !this.showFullList;
-    if (this.showFullList) {
-      this.subdomainsToShow = this.subdomains;
-    } else {
-      this.subdomainsToShow = this.subdomains.slice(0, 8);
-    }
+    const rows = this.subdomains.map((s) => ({ ...s, kvList: makeKVList(s.sd_info) }));
+    this.subdomainsToShow = this.showFullList ? rows : rows.slice(0, 8);
   }
 
   createMenuItems(): MenuItem[] {
@@ -160,11 +166,11 @@ export class SubdomainListComponent implements OnInit {
     this.router.navigate([route]);
   }
 
-  private editSubdomain(subdomain: Subdomain): void {
+  private editSubdomain(_subdomain: SubdomainView): void {
     // TODO: Implement edit subdomain, and open dialog
   }
 
-  async deleteSubdomain(subdomain: Subdomain): Promise<void> {
+  async deleteSubdomain(subdomain: SubdomainView): Promise<void> {
     if (!(await this.featureService.isFeatureEnabledPromise('writePermissions'))) {
       this.messagingService.showWarn(
         'Write Permissions Disabled',

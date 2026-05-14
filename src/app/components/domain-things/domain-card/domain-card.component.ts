@@ -1,10 +1,10 @@
-import { Component, ElementRef, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { DbDomain } from '~/app/../types/Database';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { NgFor, DatePipe, CommonModule } from '@angular/common';
+import { DatePipe, CommonModule } from '@angular/common';
 import { DomainUtils } from '~/app/services/domain-utils.service';
 import { DomainFaviconComponent } from '~/app/components/misc/favicon.component';
 import { type FieldOption } from '~/app/components/domain-things/domain-filters/domain-filters.component';
@@ -20,7 +20,7 @@ import { CurrencyService } from '~/app/services/currency.service';
   selector: 'app-domain-card',
   templateUrl: './domain-card.component.html',
   styleUrls: ['./domain-card.component.scss'],
-  imports: [PrimeNgModule, NgFor, DatePipe, CommonModule, DomainFaviconComponent, TranslateModule],
+  imports: [PrimeNgModule, DatePipe, CommonModule, DomainFaviconComponent, TranslateModule],
   providers: [ConfirmationService, MessageService],
   animations: [
     trigger('cardAnimation', [
@@ -37,22 +37,20 @@ import { CurrencyService } from '~/app/services/currency.service';
   ]
 })
 export class DomainCardComponent implements OnInit {
+  domainUtils = inject(DomainUtils);
+  private router = inject(Router);
+  private confirmationService = inject(ConfirmationService);
+  private databaseService = inject(DatabaseService);
+  private globalMessageService = inject(GlobalMessageService);
+  private elRef = inject(ElementRef);
+  private errorHandler = inject(ErrorHandlerService);
+  private translate = inject(TranslateService);
+  currencyService = inject(CurrencyService);
+
   @Input() domain!: DbDomain;
   @Input() visibleFields: FieldOption[] = [];
   contextMenuItems: MenuItem[] | undefined;
   cardVisible = true;
-
-  constructor(
-    public domainUtils: DomainUtils,
-    private router: Router,
-    private confirmationService: ConfirmationService,
-    private databaseService: DatabaseService,
-    private globalMessageService: GlobalMessageService,
-    private elRef: ElementRef,
-    private errorHandler: ErrorHandlerService,
-    private translate: TranslateService,
-    public currencyService: CurrencyService,
-  ) {}
 
   isVisible(field: string): boolean {
     return this.visibleFields.some(option => option.value === field);
@@ -96,9 +94,9 @@ export class DomainCardComponent implements OnInit {
     this.router.navigate(['/domains', this.domain.domain_name, 'edit']);
   }
 
-  deleteDomain(event: any) {
+  deleteDomain(event: import('primeng/api').MenuItemCommandEvent) {
     this.confirmationService.confirm({
-      target: event.originalEvent.target as EventTarget,
+      target: event.originalEvent?.target as EventTarget,
       header: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_HEADER'),
       message: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_MESSAGE'),
       icon: 'pi pi-exclamation-triangle',
@@ -171,5 +169,11 @@ export class DomainCardComponent implements OnInit {
     if (!this.clickedOnLink(event.target as HTMLElement)) {
       this.viewDomain();
     }
+  }
+
+  onCardKeydown(event: Event) {
+    if (event.target !== event.currentTarget) return;
+    event.preventDefault();
+    this.viewDomain();
   }
 }

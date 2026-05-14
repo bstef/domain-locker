@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   HttpRequest,
   HttpHandler,
@@ -20,12 +20,11 @@ import { SupabaseService } from '~/app/services/supabase.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(
-    private envService: EnvService,
-    private supabaseService: SupabaseService,
-  ) {}
+  private envService = inject(EnvService);
+  private supabaseService = inject(SupabaseService);
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
 
     const environment = this.envService.getEnvironmentType();
     const isSupabaseEnabled = this.supabaseService.isSupabaseEnabled();

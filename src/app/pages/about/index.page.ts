@@ -1,22 +1,22 @@
 import { Component } from '@angular/core';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { CommonModule } from '@angular/common';
+
 import { aboutPages } from '~/app/pages/about/data/about-page-list';
-import { injectContentFiles } from '@analogjs/content';
+import { injectContentFiles, ContentFile } from '@analogjs/content';
 import { DocAttributes } from '~/app/components/about-things/doc-viewer.component';
 import { DlIconComponent } from '~/app/components/misc/svg-icon.component';
 import { CtaComponent } from '~/app/components/home-things/cta/cta.component';
 
 @Component({
   standalone: true,
-  selector: 'about-index-page',
+  selector: 'app-about-index-page',
   templateUrl: './about.page.html',
-  imports: [CommonModule, PrimeNgModule, DlIconComponent, CtaComponent],
+  imports: [PrimeNgModule, DlIconComponent, CtaComponent],
 })
 export default class AboutPageComponent {
   sections = aboutPages;
 
-  readonly autoLinks: { [key: string]: any } = {
+  readonly autoLinks: Record<string, ContentFile<DocAttributes>[]> = {
     legal: this.createSortedContentFiles((contentFile) =>
       contentFile.filename.includes('/legal')
     ),
@@ -50,7 +50,7 @@ export default class AboutPageComponent {
   }
 
   private createSortedContentFiles(
-    predicate: (contentFile: any) => boolean
+    predicate: (contentFile: ContentFile<DocAttributes>) => boolean
   ) {
     const files = injectContentFiles<DocAttributes>(predicate);
     return this.sortDocs(files);

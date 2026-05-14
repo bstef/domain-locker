@@ -1,12 +1,12 @@
 import { SaveDomainData } from '~/app/../types/Database';
 import { SupabaseClient, User } from '@supabase/supabase-js';
-import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 // import {  } from '~/app/../types/Database';
 
 export class WhoisQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
   ) {}
   

@@ -1,11 +1,20 @@
-import { catchError, concatMap, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, concatMap, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { Tag } from '~/app/../types/Database';
 import { PgApiUtilService } from '~/app/utils/pg-api.util';
+
+interface TagRow {
+  id: string;
+  name: string;
+  color?: string;
+  icon?: string;
+  description?: string;
+  user_id?: string;
+}
 
 export class TagQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<{ id: string } | null>,
   ) {}
 
@@ -58,40 +67,39 @@ export class TagQueries {
     const tagParams = tags.flatMap(tag => [tag, userId]);
   
     // Insert tags and get their IDs
-    const { data: insertedTags, error: tagError } = await this.pgApiUtil.postToPgExecutor(insertTagsQuery, tagParams).toPromise() as any;
-    if (tagError) throw tagError;
-  
+    const insertResult = await this.pgApiUtil.postToPgExecutor<{ id: string; name: string }>(insertTagsQuery, tagParams).toPromise();
+    const insertedTags = insertResult?.data || [];
+
     // Fetch missing tags
-    const missingTags = tags.filter(tag => !insertedTags.some((t: any) => t.name === tag));
+    const missingTags = tags.filter(tag => !insertedTags.some((t) => t.name === tag));
     const selectTagsQuery = `SELECT id, name FROM tags WHERE name = ANY($1) AND user_id = $2`;
-    const { data: selectedTags, error: selectError } = await this.pgApiUtil
-      .postToPgExecutor(selectTagsQuery, [missingTags, userId])
-      .toPromise() as any;
-    if (selectError) throw selectError;
-  
+    const selectResult = await this.pgApiUtil
+      .postToPgExecutor<{ id: string; name: string }>(selectTagsQuery, [missingTags, userId])
+      .toPromise();
+    const selectedTags = selectResult?.data || [];
+
     // Combine all tag IDs
     const allTags = [...insertedTags, ...selectedTags];
-  
+
     // Link tags to domain
     const linkTagsQuery = `
       INSERT INTO domain_tags (domain_id, tag_id)
       VALUES ${allTags.map((_, i) => `($1, $${i + 2})`).join(', ')}
       ON CONFLICT DO NOTHING
     `;
-    const linkParams = [domainId, ...allTags.map((t: any) => t.id)];
-    const { error: linkError } = await this.pgApiUtil.postToPgExecutor(linkTagsQuery, linkParams).toPromise() as any;
-    if (linkError) throw linkError;
+    const linkParams = [domainId, ...allTags.map((t) => t.id)];
+    await this.pgApiUtil.postToPgExecutor(linkTagsQuery, linkParams).toPromise();
   }
-  
 
-  getTagsWithDomainCounts(): Observable<any[]> {
+
+  getTagsWithDomainCounts(): Observable<(TagRow & { domain_count: number })[]> {
     const query = `
       SELECT tags.*, COUNT(domain_tags.domain_id) AS domain_count
       FROM tags
       LEFT JOIN domain_tags ON tags.id = domain_tags.tag_id
       GROUP BY tags.id
     `;
-    return this.pgApiUtil.postToPgExecutor(query).pipe(
+    return this.pgApiUtil.postToPgExecutor<TagRow & { domain_count: number }>(query).pipe(
       map(response => response.data),
       catchError(error => this.handleError(error))
     );
@@ -104,7 +112,7 @@ export class TagQueries {
     await this.saveTags(domainId, tags);
   }
 
-  createTag(tag: Tag): Observable<any> {
+  createTag(tag: Tag): Observable<{ data: TagRow[] } | unknown> {
     const query = `
       INSERT INTO tags (name, color, icon, description, user_id)
       VALUES ($1, $2, $3, $4, $5)
@@ -133,7 +141,7 @@ export class TagQueries {
     );
   }
 
-  updateTag(tag: any): Observable<void> {
+  updateTag(tag: Tag): Observable<void> {
     const query = `
       UPDATE tags
       SET name = $1, color = $2, description = $3, icon = $4
@@ -145,7 +153,7 @@ export class TagQueries {
     );
   }
 
-  getDomainsForTag(tagId: string): Observable<{ available: any[]; selected: any[] }> {
+  getDomainsForTag(tagId: string): Observable<{ available: Record<string, unknown>[]; selected: Record<string, unknown>[] }> {
     const availableQuery = `SELECT * FROM domains`;
     const selectedQuery = `
       SELECT d.domain_name, d.id
@@ -154,8 +162,8 @@ export class TagQueries {
       WHERE dt.tag_id = $1
     `;
     return forkJoin({
-      available: this.pgApiUtil.postToPgExecutor(availableQuery).pipe(map(response => response.data || [])),
-      selected: this.pgApiUtil.postToPgExecutor(selectedQuery, [tagId]).pipe(map(response => response.data || [])),
+      available: this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(availableQuery).pipe(map(response => response.data || [])),
+      selected: this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(selectedQuery, [tagId]).pipe(map(response => response.data || [])),
     });
   }
 
@@ -169,10 +177,10 @@ export class TagQueries {
     );
   }
 
-  saveDomainsForTag(tagId: string, selectedDomains: any[]): Observable<void> {
+  saveDomainsForTag(tagId: string, selectedDomains: { id: string }[]): Observable<void> {
     const fetchExistingQuery = `SELECT domain_id FROM domain_tags WHERE tag_id = $1`;
-    return this.pgApiUtil.postToPgExecutor(fetchExistingQuery, [tagId]).pipe(
-      map(response => response.data.map((item: any) => item.domain_id)),
+    return this.pgApiUtil.postToPgExecutor<{ domain_id: string }>(fetchExistingQuery, [tagId]).pipe(
+      map(response => response.data.map((item) => item.domain_id)),
       switchMap(existingDomains => {
         const domainsToAdd = selectedDomains.filter(domain => !existingDomains.includes(domain.id));
         const domainsToRemove = existingDomains.filter(domainId => !selectedDomains.some(domain => domain.id === domainId));
@@ -197,10 +205,10 @@ export class TagQueries {
       LEFT JOIN domain_tags dt ON t.id = dt.tag_id
       GROUP BY t.name
     `;
-    return this.pgApiUtil.postToPgExecutor(query).pipe(
+    return this.pgApiUtil.postToPgExecutor<{ name: string; domain_count: number }>(query).pipe(
       map(response => {
         const counts: Record<string, number> = {};
-        response.data.forEach((item: any) => {
+        response.data.forEach((item) => {
           counts[item.name] = item.domain_count;
         });
         return counts;

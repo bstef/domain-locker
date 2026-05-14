@@ -57,7 +57,8 @@ export default defineEventHandler(async (event) => {
     }
 
     return { info: 'Support request sent successfully.' };
-  } catch (err: any) {
-    return { error: `Unexpected error: ${err?.message}` };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { error: `Unexpected error: ${msg}` };
   }
 });

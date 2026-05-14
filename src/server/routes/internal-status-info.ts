@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   return { scheduledCrons, databaseStatus, supabaseStatus, uptimeStatus, ghActions };
 });
 
-async function fetchHealthchecks(): Promise<any[]> {
+async function fetchHealthchecks(): Promise<unknown[]> {
   const apiKey = import.meta.env['HEALTHCHECKS_API_KEY'];
   if (!apiKey) return [];
   try {
@@ -29,14 +29,16 @@ async function fetchHealthchecks(): Promise<any[]> {
       headers: { 'X-Api-Key': apiKey },
       signal: AbortSignal.timeout(timeout),
     });
-    return res.ok ? (await res.json()).checks || [] : [];
+    if (!res.ok) return [];
+    const body = await res.json() as { checks?: unknown[] };
+    return body.checks || [];
   } catch (err) {
     console.error('[external-checks] Healthchecks error:', err);
     return [];
   }
 }
 
-async function fetchDatabaseHealth(authHeader?: string): Promise<any> {
+async function fetchDatabaseHealth(authHeader?: string): Promise<unknown> {
   try {
     const url = `${import.meta.env['SUPABASE_URL']}/functions/v1/health`;
     const res = await fetch(url, {
@@ -72,7 +74,7 @@ async function fetchSupabaseHealth(): Promise<{ healthy?: boolean } | undefined>
   }
 }
 
-async function fetchUptimeStatus(): Promise<any | undefined> {
+async function fetchUptimeStatus(): Promise<unknown | undefined> {
   const url = import.meta.env['UPTIME_KUMA_URL'];
   try {
     if (!url) throw new Error('UPTIME_KUMA_URL is not set');
@@ -87,7 +89,7 @@ async function fetchUptimeStatus(): Promise<any | undefined> {
   }
 }
 
-async function fetchGitHubCIStatus(): Promise<any | undefined> {
+async function fetchGitHubCIStatus(): Promise<unknown | undefined> {
   const url = 'https://gh-workflows.as93.workers.dev/?user=lissy93&repo=domain-locker';
   try {
     const res = await fetch(url, {

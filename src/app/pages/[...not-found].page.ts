@@ -1,6 +1,6 @@
 import { RouteMeta } from '@analogjs/router';
 import { injectResponse } from '@analogjs/router/tokens';
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, PLATFORM_ID, inject, OnInit } from '@angular/core';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 import { isPlatformBrowser } from '@angular/common';
@@ -59,11 +59,10 @@ export const routeMeta: RouteMeta = {
 
   `,
 })
-export default class NotFoundPage {
-  constructor(
-    private errorHandler: ErrorHandlerService,
-    @Inject(PLATFORM_ID) public platformId: Object,
-  ) {}
+export default class NotFoundPage implements OnInit {
+  private errorHandler = inject(ErrorHandlerService);
+  platformId = inject<object>(PLATFORM_ID);
+
   ngOnInit() {
 
     const pathName = (isPlatformBrowser(this.platformId) && window) ?

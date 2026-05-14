@@ -1,10 +1,9 @@
-import { Component, Inject, OnInit, PLATFORM_ID, NgZone } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, NgZone, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { BillingService } from '~/app/services/billing.service';
 import { pricingFeatures } from '~/app/constants/pricing-features';
-import { Observable, of, throwError } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -14,6 +13,12 @@ import { EnvService } from '~/app/services/environment.service';
 import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-enabled.component';
 import { FeatureService } from '~/app/services/features.service';
 import { SupabaseService } from '~/app/services/supabase.service';
+
+interface BillingInfo {
+  next_payment_due?: string;
+  meta?: { invoice_pdf?: string };
+  [key: string]: unknown;
+}
 
 interface SubscriptionData {
   customer_id: string;
@@ -29,7 +34,7 @@ interface SubscriptionData {
     name: string;
     duration: string;
   };
-  invoices: Array<{
+  invoices: {
     amount_paid: number;
     currency: string;
     status: string;
@@ -37,7 +42,7 @@ interface SubscriptionData {
     hosted_invoice_url: string;
     invoice_pdf: string;
     date: string; // ISO 8601 Date string
-  }>;
+  }[];
   payment_method: {
     brand: string;
     last4: string;
@@ -58,9 +63,22 @@ interface SubscriptionData {
   `],
 })
 export default class UpgradePage implements OnInit {
+  private billingService = inject(BillingService);
+  private errorHandler = inject(ErrorHandlerService);
+  private route = inject(ActivatedRoute);
+  private confirmationService = inject(ConfirmationService);
+  private messagingService = inject(GlobalMessageService);
+  private featureService = inject(FeatureService);
+  private router = inject(Router);
+  private supabaseService = inject(SupabaseService);
+  private envService = inject(EnvService);
+  private http = inject(HttpClient);
+  private platformId = inject<object>(PLATFORM_ID);
+  private ngZone = inject(NgZone);
+
   currentPlan$: Observable<string | null>;
   public availablePlans = pricingFeatures;
-  public billingInfo: any;
+  public billingInfo: BillingInfo | null = null;
 
   public subscriptionData: SubscriptionData | null = null;
 
@@ -74,20 +92,7 @@ export default class UpgradePage implements OnInit {
 
   enableBilling$ = this.featureService.isFeatureEnabled('enableBilling');
 
-  constructor(
-    private billingService: BillingService,
-    private errorHandler: ErrorHandlerService,
-    private route: ActivatedRoute,
-    private confirmationService: ConfirmationService,
-    private messagingService: GlobalMessageService,
-    private featureService: FeatureService,
-    private router: Router,
-    private supabaseService: SupabaseService,
-    private envService: EnvService,
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private ngZone: NgZone,
-  ) {
+  constructor() {
     this.currentPlan$ = this.billingService.getUserPlan();
   }
 
@@ -131,7 +136,7 @@ export default class UpgradePage implements OnInit {
   }
 
   getStripePlanId(planId: string): string {
-    const planMap: { [key: string]: { annual: string; monthly: string } } = {
+    const planMap: Record<string, { annual: string; monthly: string }> = {
       free: { annual: '', monthly: '' },
       hobby: { annual: 'dl_hobby_annual', monthly: 'dl_hobby_monthly' },
       pro: { annual: 'dl_pro_annual', monthly: 'dl_pro_monthly' },
@@ -155,7 +160,7 @@ export default class UpgradePage implements OnInit {
     }
   }
 
-  getPrice(plan: any) {
+  getPrice(plan: { priceAnnual?: string; priceMonth?: string }) {
     return this.isAnnual ? plan.priceAnnual : plan.priceMonth;
   }
 

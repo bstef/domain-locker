@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable } from 'rxjs';
 import { BillingService, type BillingPlans, type SpecialPlans } from '~/app/services/billing.service';
 import { EnvService, type EnvironmentType } from '~/app/services/environment.service';
@@ -9,17 +9,17 @@ import { ErrorHandlerService } from './error-handler.service';
   providedIn: 'root',
 })
 export class FeatureService {
+  private billingService = inject(BillingService);
+  private environmentService = inject(EnvService);
+  private errorHandler = inject(ErrorHandlerService);
+
   private environment: EnvironmentType;
   private userPlan$: Observable<string | null>;
   private features: FeatureDefinitions = features;
 
-  private activeFeatures$: BehaviorSubject<Record<keyof FeatureDefinitions, any>> = new BehaviorSubject({} as Record<keyof FeatureDefinitions, any>);
+  private activeFeatures$ = new BehaviorSubject<Record<keyof FeatureDefinitions, boolean | number>>({} as Record<keyof FeatureDefinitions, boolean | number>);
 
-  constructor(
-    private billingService: BillingService,
-    private environmentService: EnvService,
-    private errorHandler: ErrorHandlerService,
-  ) {
+  constructor() {
     this.environment = this.environmentService.getEnvironmentType();
     this.userPlan$ = this.billingService.getUserPlan();
 
@@ -50,28 +50,30 @@ export class FeatureService {
   /**
    * Resolves features based on user plan, environment, and feature configuration.
    */
-  private resolveFeatures(userPlan: string): Record<keyof FeatureDefinitions, any> {
-    const features: Record<keyof FeatureDefinitions, any> = {} as Record<
-      keyof FeatureDefinitions,
-      any
-    >;
-    for (const [feature, config] of Object.entries(this.features) as [
-      keyof FeatureDefinitions,
-      any
-    ][]) {
+  private resolveFeatures(userPlan: string): Record<keyof FeatureDefinitions, boolean | number> {
+    const features = {} as Record<keyof FeatureDefinitions, boolean | number>;
+    interface AnyConfig {
+      default: boolean | number;
+      managed?: boolean | number | Record<string, boolean | number>;
+      selfHosted?: boolean | number;
+      dev?: boolean | number;
+      demo?: boolean | number;
+    }
+    for (const [feature, rawConfig] of Object.entries(this.features) as [keyof FeatureDefinitions, AnyConfig][]) {
+      const config = rawConfig;
       if (this.environment === 'managed') {
         // If `managed` is a single value, use it directly
         if (typeof config.managed === 'boolean' || typeof config.managed === 'number') {
           features[feature] = config.managed;
         } else if (typeof config.managed === 'object') {
           // Otherwise, check for userPlan-specific value
-          features[feature] = config.managed[userPlan] ?? config.default;
+          features[feature] = (config.managed as Record<string, boolean | number>)[userPlan] ?? config.default;
         } else {
           features[feature] = config.default;
         }
       } else if (config[this.environment] !== undefined) {
         // If there's an environment-specific value (e.g., selfHosted, demo)
-        features[feature] = config[this.environment];
+        features[feature] = config[this.environment] as boolean | number;
       } else {
         // Default value
         features[feature] = config.default;

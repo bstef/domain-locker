@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { PrimeNgModule } from '../../prime-ng.module';
-import { CommonModule } from '@angular/common';
+
 import { ExtendedMenuItem, statsLinks } from '~/app/constants/navigation-links';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule],
-  selector: 'stats-index-page',
+  imports: [PrimeNgModule],
+  selector: 'app-stats-index-page',
   // templateUrl: './index.page.html',
   template: `
   <div class="mx-auto mt-6 w-4/5">
@@ -39,6 +39,5 @@ import { ExtendedMenuItem, statsLinks } from '~/app/constants/navigation-links';
 })
 export default class StatsIndexPage  {
   items: ExtendedMenuItem[] = statsLinks as ExtendedMenuItem[];
-  constructor() {}
 }
 

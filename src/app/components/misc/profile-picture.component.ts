@@ -1,5 +1,5 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Input, inject } from '@angular/core';
+
 import { SupabaseService } from '~/app/services/supabase.service';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
@@ -7,29 +7,28 @@ interface UserThingys {
   user_metadata?: { avatar_url?: string; name?: string };
   email?: string;
   id?: string;
-  identities?: Array<{ provider?: string; identity_data?: { avatar_url?: string } }>;
+  identities?: { provider?: string; identity_data?: { avatar_url?: string } }[];
 }
 
 @Component({
   selector: 'app-profile-picture',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
   <div class="profile-picture" [style.width.px]="size" [style.height.px]="size">
-    <ng-container *ngIf="!loading; else loadingTemplate">
+    @if (!loading) {
       <img
         [src]="profileImageUrl"
         [alt]="'User profile picture'"
         [style.width.px]="size"
         [style.height.px]="size"
         class="rounded-full border"
-      />
-    </ng-container>
-    <ng-template #loadingTemplate>
+        />
+    } @else {
       <div class="loading-placeholder rounded-full border" [style.width.px]="size" [style.height.px]="size"></div>
-    </ng-template>
+    }
   </div>
-`,
+  `,
   styles: [`
   .profile-picture {
     display: inline-block;
@@ -49,14 +48,12 @@ interface UserThingys {
   `]
 })
 export class ProfilePictureComponent implements OnInit {
-  @Input() size: number = 64; // Default size in pixels
-  profileImageUrl: string = '';
-  loading: boolean = true;
+  private supabaseService = inject(SupabaseService);
+  private errorHandler = inject(ErrorHandlerService);
 
-  constructor(
-    private supabaseService: SupabaseService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
+  @Input() size = 64; // Default size in pixels
+  profileImageUrl = '';
+  loading = true;
 
   async hashString(input: string): Promise<string> {
     const encoder = new TextEncoder();
@@ -69,7 +66,7 @@ export class ProfilePictureComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       const sessionData = await this.supabaseService.getSessionData();
-      const user: UserThingys = (sessionData as any)?.session?.user || {};
+      const user: UserThingys = (sessionData as { session?: { user?: UserThingys } })?.session?.user || ({} as UserThingys);
       const { user_metadata, email, identities } = user;
 
       if (user_metadata?.avatar_url) {

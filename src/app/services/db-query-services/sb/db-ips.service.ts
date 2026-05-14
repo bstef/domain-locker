@@ -1,17 +1,17 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
-import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
+import { catchError, from, map, Observable } from 'rxjs';
 import { IpAddress } from '~/app/../types/Database';
 
 export class IpQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
   ) {}
 
   
-  async saveIpAddresses(domainId: string, ipAddresses: Omit<IpAddress, 'id' | 'domainId' | 'created_at' | 'updated_at'>[]): Promise<void> {
-    if (ipAddresses.length === 0) return;
+  async saveIpAddresses(domainId: string, ipAddresses?: Omit<IpAddress, 'id' | 'domainId' | 'created_at' | 'updated_at'>[]): Promise<void> {
+    if (!ipAddresses || ipAddresses.length === 0) return;
 
     const dbIpAddresses = ipAddresses.map(ip => ({
       domain_id: domainId,

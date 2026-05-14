@@ -1,6 +1,8 @@
 import { callPgExecutor } from '../lib/pgExecutor';
 import { recordDomainUpdate } from '../lib/recordUpdate';
 import { normalizeStr, removeUrlChars } from '../lib/utils';
+import type { DomainRow } from '../index';
+import type { FreshDomainInfo } from '../lib/fetchInfo';
 
 async function upsertRegistrar(pgExec: string, name: string, url: string | null, userId: string): Promise<string> {
   const sanitizedName = removeUrlChars(name);
@@ -18,8 +20,8 @@ async function upsertRegistrar(pgExec: string, name: string, url: string | null,
 
 export async function updateRegistrar(
   pgExec: string,
-  domainRow: any,
-  freshInfo: any,
+  domainRow: DomainRow,
+  freshInfo: FreshDomainInfo,
   changes: string[]
 ): Promise<void> {
   const oldName = normalizeStr(removeUrlChars(domainRow.registrar?.name));

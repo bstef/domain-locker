@@ -2,10 +2,20 @@
 import { catchError, concatMap, forkJoin, from, map, Observable, switchMap } from 'rxjs';
 import { Tag } from '~/app/../types/Database';
 
+interface TagRow {
+  id: string;
+  name: string;
+  color?: string;
+  icon?: string;
+  description?: string;
+  user_id?: string;
+  domain_tags?: { domain_id: string }[];
+}
+
 export class TagQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
   ) {}
 
@@ -100,7 +110,7 @@ export class TagQueries {
     }
   }
 
-  getTagsWithDomainCounts(): Observable<any[]> {
+  getTagsWithDomainCounts(): Observable<(TagRow & { domain_count: number })[]> {
     return from(
       this.supabase
         .from('tags')
@@ -140,7 +150,7 @@ export class TagQueries {
   
     // Insert or update tags
     for (const tagName of tags) {
-      const { data: tag, error: tagError } = await this.supabase
+      const { data: tag, error: _tagError } = await this.supabase
         .from('tags')
         .select('id')
         .eq('name', tagName)
@@ -168,7 +178,7 @@ export class TagQueries {
     }
   }
 
-  createTag(tag: Tag): Observable<any> {
+  createTag(tag: Tag): Observable<unknown> {
     return from(
       this.getCurrentUser().then((user) => {
         if (!user) throw new Error('User must be authenticated to create a tag.');
@@ -186,7 +196,7 @@ export class TagQueries {
     );
   }  
   
-  updateTag(tag: any): Observable<void> {
+  updateTag(tag: Tag): Observable<void> {
     return from(
       this.supabase
         .from('tags')
@@ -212,13 +222,13 @@ export class TagQueries {
 
   
    // Fetch all available domains and the selected domains for a given tag
-   getDomainsForTag(tagId: string): Observable<{ available: any[]; selected: any[] }> {
+   getDomainsForTag(tagId: string): Observable<{ available: Record<string, unknown>[]; selected: unknown[] }> {
     return forkJoin({
       available: from(
         this.supabase
           .from('domains')
           .select('*')
-      ).pipe(map(({ data }) => data || [])),
+      ).pipe(map(({ data }) => (data || []) as Record<string, unknown>[])),
 
       selected: from(
         this.supabase
@@ -250,7 +260,7 @@ export class TagQueries {
 
 
   // Save domains associated with a tag
-  saveDomainsForTag(tagId: string, selectedDomains: any[]): Observable<void> {
+  saveDomainsForTag(tagId: string, selectedDomains: { id: string }[]): Observable<void> {
     // Fetch existing associations first
     return from(
       this.supabase
@@ -258,7 +268,7 @@ export class TagQueries {
         .select('domain_id')
         .eq('tag_id', tagId)
     ).pipe(
-      map(({ data }) => data?.map((item: any) => item.domain_id) || []),
+      map(({ data }) => (data || []).map((item: { domain_id: string }) => item.domain_id)),
       switchMap((existingDomains: string[]) => {
         // Identify domains to add and remove
         const domainIdsToAdd = selectedDomains
@@ -277,7 +287,7 @@ export class TagQueries {
           ? this.supabase.from('domain_tags').delete().in('domain_id', domainIdsToRemove).eq('tag_id', tagId)
           : Promise.resolve();
 
-        return forkJoin([from(addDomains), from(removeDomains)]).pipe(map(() => {}));
+        return forkJoin([from(addDomains), from(removeDomains)]).pipe(map(() => undefined as void));
       })
     );
   }
@@ -293,9 +303,10 @@ export class TagQueries {
       map(({ data, error }) => {
         if (error) throw error;
         const counts: Record<string, number> = {};
-        data.forEach((item: any) => {
+        const rows = (data || []) as unknown as { tags?: { name?: string } | null }[];
+        rows.forEach((item) => {
           const tagName = item.tags?.name;
-          counts[tagName] = (counts[tagName] || 0) + 1;
+          if (tagName) counts[tagName] = (counts[tagName] || 0) + 1;
         });
         return counts;
       }),

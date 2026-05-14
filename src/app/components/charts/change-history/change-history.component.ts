@@ -1,40 +1,38 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { ApexChart, ApexXAxis, ApexDataLabels, ApexPlotOptions, ApexYAxis, ApexTooltip, ApexStroke, ApexFill, NgApexchartsModule } from 'ng-apexcharts';
+import { Component, OnInit, Input, inject } from '@angular/core';
+import { ApexChart, ApexXAxis, ApexDataLabels, ApexPlotOptions, ApexYAxis, ApexTooltip, ApexStroke, ApexFill, ApexAxisChartSeries, NgApexchartsModule } from 'ng-apexcharts';
 import DatabaseService from '~/app/services/database.service';
-import { NgIf } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
-export type ChartOptions = {
-  series: any;
-  chart: ApexChart | any;
-  xaxis: ApexXAxis | any;
-  yaxis: ApexYAxis | any;
-  plotOptions: ApexPlotOptions | any;
-  dataLabels: ApexDataLabels | any;
-  tooltip: ApexTooltip | any;
-  stroke: ApexStroke | any;
-  fill: ApexFill | any;
-};
+export interface ChartOptions {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  yaxis: ApexYAxis;
+  plotOptions: ApexPlotOptions;
+  dataLabels: ApexDataLabels;
+  tooltip: ApexTooltip;
+  stroke: ApexStroke;
+  fill: ApexFill;
+}
 
 @Component({
   standalone: true,
   selector: 'app-change-history-chart',
   templateUrl: './change-history.component.html',
   styleUrls: ['./change-history.component.scss'],
-  imports: [NgApexchartsModule, NgIf, PrimeNgModule],
+  imports: [NgApexchartsModule, PrimeNgModule],
 })
 export class ChangeHistoryChartComponent implements OnInit {
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+
   @Input() domainName?: string;
-  @Input() days: number = 14;
+  @Input() days = 14;
 
-  public chartOptions: Partial<ChartOptions> | any;
+  public chartOptions: Partial<ChartOptions> = {};
   public loading = true;
-
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnInit(): void {
     this.loadChartData();
@@ -59,7 +57,7 @@ export class ChangeHistoryChartComponent implements OnInit {
     });
   }
 
-  private prepareChartData(data: any[]): { additions: number[], removals: number[], amendments: number[], days: string[] } {
+  private prepareChartData(data: { date: string; added?: number; removed?: number; updated?: number }[]): { additions: number[], removals: number[], amendments: number[], days: string[] } {
     const additions: number[] = [];
     const removals: number[] = [];
     const amendments: number[] = [];
@@ -102,7 +100,7 @@ export class ChangeHistoryChartComponent implements OnInit {
       },
       tooltip: {
         y: {
-          formatter: function (val: string) {
+          formatter: function (val: number) {
             return val + " changes";
           }
         }

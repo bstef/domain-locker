@@ -1,13 +1,5 @@
 
-import {
-  Component,
-  ChangeDetectorRef,
-  ViewChild,
-  OnInit,
-  OnDestroy,
-  Inject,
-  Input
-} from '@angular/core';
+import { Component, ChangeDetectorRef, ViewChild, OnInit, OnDestroy, Input, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { GalleriaModule, Galleria } from 'primeng/galleria';
@@ -31,6 +23,9 @@ export interface Screenshot {
   styleUrls: ['./screenshots.component.scss']
 })
 export class ScreenshotsComponent implements OnInit, OnDestroy {
+  private platformId = inject(PLATFORM_ID);
+  private cd = inject(ChangeDetectorRef);
+
   /**
    * The array of screenshots to display.
    */
@@ -46,7 +41,7 @@ export class ScreenshotsComponent implements OnInit, OnDestroy {
   fullscreen = false;
 
   // used to store the event listener reference
-  onFullScreenListener: any;
+  onFullScreenListener: (() => void) | null = null;
 
   // Some example responsive breakpoints if you wish:
   responsiveOptions = [
@@ -63,11 +58,6 @@ export class ScreenshotsComponent implements OnInit, OnDestroy {
       numVisible: 1
     }
   ];
-
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: any,
-    private cd: ChangeDetectorRef
-  ) {}
 
   ngOnInit() {
     // Bind for listening to when the user toggles browser fullscreen
@@ -135,14 +125,19 @@ export class ScreenshotsComponent implements OnInit, OnDestroy {
   }
 
   closePreviewFullScreen() {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if ((document as any).mozCancelFullScreen) {
-      (document as any).mozCancelFullScreen();
-    } else if ((document as any).webkitExitFullscreen) {
-      (document as any).webkitExitFullscreen();
-    } else if ((document as any).msExitFullscreen) {
-      (document as any).msExitFullscreen();
+    const doc = document as Document & {
+      mozCancelFullScreen?: () => void;
+      webkitExitFullscreen?: () => void;
+      msExitFullscreen?: () => void;
+    };
+    if (doc.exitFullscreen) {
+      doc.exitFullscreen();
+    } else if (doc.mozCancelFullScreen) {
+      doc.mozCancelFullScreen();
+    } else if (doc.webkitExitFullscreen) {
+      doc.webkitExitFullscreen();
+    } else if (doc.msExitFullscreen) {
+      doc.msExitFullscreen();
     }
   }
 
@@ -166,7 +161,7 @@ export class ScreenshotsComponent implements OnInit, OnDestroy {
   }
 
   unbindDocumentListeners() {
-    if (!isPlatformBrowser(this.platformId)) {
+    if (!isPlatformBrowser(this.platformId) || !this.onFullScreenListener) {
       return;
     }
     document.removeEventListener('fullscreenchange', this.onFullScreenListener);

@@ -1,5 +1,5 @@
 import { injectContent, injectContentFiles } from '@analogjs/content';
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DocsViewerComponent, DocAttributes } from '~/app/components/about-things/doc-viewer.component';
@@ -7,7 +7,7 @@ import { SponsorMessageComponent } from '~/app/components/sponsor-thanks/sponsor
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule, DocsViewerComponent, SponsorMessageComponent],
+  imports: [PrimeNgModule, DocsViewerComponent, SponsorMessageComponent],
   template: `
   <app-docs-viewer [doc$]="doc$" [allDocs]="files" [categoryName]="category" />
   <app-sponsor-message />

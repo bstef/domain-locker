@@ -1,8 +1,16 @@
-import { createError, defineEventHandler, readBody, sendError } from "h3";
+import { createError, defineEventHandler, readBody, sendError, type H3Event } from "h3";
 import pkg from "pg";
 const { Client } = pkg;
 
-function handleCors(event: any) {
+interface PgCredentials {
+  host?: string;
+  port?: string | number;
+  user?: string;
+  password?: string;
+  database?: string;
+}
+
+function handleCors(event: H3Event) {
   const req = event.node.req;
   const res = event.node.res;
   const origin = req.headers["origin"] || "*";
@@ -22,7 +30,7 @@ function handleCors(event: any) {
   return false;
 }
 
-async function getPostgresClient(credentials: any) {
+async function getPostgresClient(credentials?: PgCredentials) {
   const host = credentials?.host || process.env["DL_PG_HOST"];
   const port = +(credentials?.port || process.env["DL_PG_PORT"] || "5432");
   const user = credentials?.user || process.env["DL_PG_USER"];
@@ -39,11 +47,12 @@ async function getPostgresClient(credentials: any) {
   const client = new Client({ host, port, user, password, database });
   try {
     await client.connect();
-  } catch (err: any) {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     throw createError({
       statusCode: 500,
       statusMessage: "Unable to connect to Postgres",
-      data: { error: err.message },
+      data: { error: msg },
     });
   }
 
@@ -69,27 +78,29 @@ export default defineEventHandler(async (event) => {
     try {
       const result = await client.query(query, params || []);
       return { data: result.rows };
-    } catch (queryErr: any) {
+    } catch (queryErr) {
       console.error("❌ Query execution error:", queryErr);
+      const msg = queryErr instanceof Error ? queryErr.message : String(queryErr);
       return sendError(
         event,
         createError({
           statusCode: 500,
           statusMessage: "Error executing query",
-          data: { error: queryErr.message },
+          data: { error: msg },
         }),
       );
     } finally {
       await client.end();
     }
-  } catch (err: any) {
+  } catch (err) {
     console.error("❌ Unexpected error in Postgres executer:", err);
+    const e = err as { statusCode?: number; statusMessage?: string; data?: { error?: string }; message?: string };
     return sendError(
       event,
       createError({
-        statusCode: err.statusCode || 500,
-        statusMessage: err.statusMessage || "Unexpected server error",
-        data: { error: err.data?.error || err.message },
+        statusCode: e.statusCode || 500,
+        statusMessage: e.statusMessage || "Unexpected server error",
+        data: { error: e.data?.error || e.message },
       }),
     );
   }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
@@ -7,20 +7,21 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   standalone: true,
   imports: [CommonModule, NgOptimizedImage],
   template: `
-    <ng-container *ngIf="!faviconLoaded">
+    @if (!faviconLoaded) {
       <i class="pi" [ngClass]="{'pi-spin': isSpinning, 'pi-globe': true}" [style.font-size.px]="size"></i>
-    </ng-container>
-    <img
-      *ngIf="faviconLoaded !== false"
-      [ngSrc]="domainIcon || (apiBaseUrl + sanitizedDomain)"
-      [width]="size"
-      [height]="size"
-      (load)="onFaviconLoad()"
-      (error)="onFaviconError()"
-      [alt]="sanitizedDomain + ' favicon'"
-      [class]="styleClass + 'rounded-sm overflow-hidden block'"
-    />
-  `,
+    }
+    @if (faviconLoaded !== false) {
+      <img
+        [ngSrc]="domainIcon || (apiBaseUrl + sanitizedDomain)"
+        [width]="size"
+        [height]="size"
+        (load)="onFaviconLoad()"
+        (error)="onFaviconError()"
+        [alt]="sanitizedDomain + ' favicon'"
+        [class]="styleClass + 'rounded-sm overflow-hidden block'"
+        />
+    }
+    `,
   styles: [`
     :host {
       display: inline-block;
@@ -35,10 +36,12 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   `]
 })
 export class DomainFaviconComponent implements OnInit, OnDestroy {
+  private errorHandler = inject(ErrorHandlerService);
+
   @Input() domain!: string;
-  @Input() size: number = 24;
-  @Input() styleClass: string = '';
-  @Input() domainIcon: string = '';
+  @Input() size = 24;
+  @Input() styleClass = '';
+  @Input() domainIcon = '';
   apiBaseUrl = 'https://favicon.im/';
   // apiBaseUrl = 'https://favicon.twenty.com/';
   // apiBaseUrl = 'https://favicone.com/';
@@ -49,7 +52,7 @@ export class DomainFaviconComponent implements OnInit, OnDestroy {
 
   // https://icons.duckduckgo.com/ip4/gov.uk.ico
 
-  private _sanitizedDomain: string = '';
+  private _sanitizedDomain = '';
   public get sanitizedDomain(): string {
     return this._sanitizedDomain;
   }
@@ -57,12 +60,8 @@ export class DomainFaviconComponent implements OnInit, OnDestroy {
     this._sanitizedDomain = value;
   }
   faviconLoaded: boolean | undefined;
-  isSpinning: boolean = true;
-  private timeoutId: any;
-
-  constructor(
-    private errorHandler: ErrorHandlerService,
-  ) {}
+  isSpinning = true;
+  private timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   ngOnInit() {
     this.sanitizedDomain = this.getSanitizedDomain(this.domain);

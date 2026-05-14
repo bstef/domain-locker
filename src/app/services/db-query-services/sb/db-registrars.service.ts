@@ -1,13 +1,13 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
-import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
+import { catchError, from, map, Observable } from 'rxjs';
 import { DbDomain, Registrar } from '~/app/../types/Database';
 
 export class RegistrarQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
-    private formatDomainData: (data: any) => DbDomain,
+    private formatDomainData: (data: Record<string, unknown>) => DbDomain,
   ) {}
 
   
@@ -26,7 +26,7 @@ export class RegistrarQueries {
 
     // Method to get or insert registrar by name
     async getOrInsertRegistrarId(registrarName: string): Promise<string> {
-      const sanitizedName = (registrarName || '').trim().replace(/[\/\\?#%]/g, '');
+      const sanitizedName = (registrarName || '').trim().replace(/[/\\?#%]/g, '');
       const { data: existingRegistrar, error: registrarError } = await this.supabase
         .from('registrars')
         .select('id')
@@ -58,7 +58,8 @@ export class RegistrarQueries {
       map(({ data, error }) => {
         if (error) throw error;
         const counts: Record<string, number> = {};
-        data.forEach((item: any) => {
+        const rows = (data || []) as unknown as { registrars?: { name?: string } | null }[];
+        rows.forEach((item) => {
           const registrarName = item.registrars?.name;
           if (registrarName) {
             counts[registrarName] = (counts[registrarName] || 0) + 1;
@@ -93,17 +94,17 @@ export class RegistrarQueries {
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(domain => this.formatDomainData(domain));
+        return (data as unknown as Record<string, unknown>[]).map(domain => this.formatDomainData(domain));
       }),
       catchError(error => this.handleError(error))
     );
   }
 
-  
-  async saveRegistrar(domainId: string, registrar: Omit<Registrar, 'id'>): Promise<void> {
+
+  async saveRegistrar(domainId: string, registrar?: Omit<Registrar, 'id'>): Promise<void> {
     if (!registrar?.name) return;
 
-    const sanitizedName = (registrar.name || '').trim().replace(/[\/\\?#%]/g, '');
+    const sanitizedName = (registrar.name || '').trim().replace(/[/\\?#%]/g, '');
     const { data: existingRegistrar, error: fetchError } = await this.supabase
       .from('registrars')
       .select('id')

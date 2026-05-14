@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, catchError, from, lastValueFrom, map, Observable, throwError } from 'rxjs';
 import { SupabaseService } from '~/app/services/supabase.service';
 import { EnvService } from '~/app/services/environment.service';
@@ -17,15 +17,15 @@ type EnvironmentType = 'dev' | 'managed' | 'selfHosted' | 'demo';
   providedIn: 'root',
 })
 export class BillingService {
+  private supabaseService = inject(SupabaseService);
+  private envService = inject(EnvService);
+  private errorHandler = inject(ErrorHandlerService);
+  private http = inject(HttpClient);
+
   private userPlan$ = new BehaviorSubject<UserType | null>(null);
   private environmentType: EnvironmentType;
 
-  constructor(
-    private supabaseService: SupabaseService,
-    private envService: EnvService,
-    private errorHandler: ErrorHandlerService,
-    private http: HttpClient,
-  ) {
+  constructor() {
     this.environmentType = this.envService.getEnvironmentType();
   }
 
@@ -61,7 +61,7 @@ export class BillingService {
 
       // Fetch user plan from `user_info`
       const { data, error } = await this.supabaseService.getUserBillingInfo();
-      if (error || !data?.current_plan) {
+      if (error || !data?.['current_plan']) {
         this.errorHandler.handleError({
           error,
           message: 'Failed to fetch billing info',
@@ -70,7 +70,7 @@ export class BillingService {
         this.userPlan$.next('free');
         return;
       }
-      this.userPlan$.next(data.current_plan as UserType);
+      this.userPlan$.next(data['current_plan'] as UserType);
     } catch (error) {
       this.errorHandler.handleError({
         error,
@@ -89,7 +89,7 @@ export class BillingService {
   }
 
   /** Returns an Observable that emits the user's billing row or throws an error. */
-  getBillingData(): Observable<any> {
+  getBillingData(): Observable<Record<string, unknown> | null> {
     return from(
       this.supabaseService.supabase
         .from('billing')
@@ -100,13 +100,13 @@ export class BillingService {
         if (error) {
           throw error;
         }
-        return data;
+        return data as Record<string, unknown> | null;
       }),
       catchError((err) => throwError(() => err))
     );
   }
 
-  async cancelSubscription(): Promise<any> {
+  async cancelSubscription(): Promise<{ error?: string } & Record<string, unknown>> {
     const userId = (await this.supabaseService.getCurrentUser())?.id;
     const endpoint = this.envService.getEnvVar('DL_STRIPE_CANCEL_URL');
     if (!endpoint) {
@@ -116,13 +116,13 @@ export class BillingService {
     try {
       // interceptor will add Authorization header for supabase functions
       const data = await lastValueFrom(
-        this.http.post<any>(endpoint, { userId })
+        this.http.post<{ error?: string } & Record<string, unknown>>(endpoint, { userId })
       );
       if (data.error) {
         throw new Error(data.error);
       }
       return data;
-    } catch (error: any) {
+    } catch (error) {
       this.errorHandler.handleError({
         error,
         message: 'Failed to cancel subscription',
@@ -142,6 +142,10 @@ export class BillingService {
       ? `${host}/settings/upgrade`
       : (typeof window !== 'undefined' ? window.location.href : '');
 
+    if (!endpoint) {
+      throw new Error('Stripe checkout endpoint is not configured.');
+    }
+
     try {
       const body = { userId, productId, callbackUrl };
       // interceptor will attach JWT
@@ -152,7 +156,7 @@ export class BillingService {
         throw new Error(data.error || 'Failed to create checkout session');
       }
       return data.url;
-    } catch (error: any) {
+    } catch (error) {
       this.errorHandler.handleError({
         error,
         message: 'Failed to create checkout session',
@@ -165,8 +169,8 @@ export class BillingService {
 
 
   verifyStripeSession(sessionId: string) {
-    this.http.post('/api/verify-checkout', { sessionId })
-      .subscribe((res: any) => {
+    this.http.post<{ status?: string }>('/api/verify-checkout', { sessionId })
+      .subscribe((res) => {
         if (res && res.status === 'paid') {
           // Payment is confirmed, plan is 'pro' or 'hobby', etc.
           // Now you can either refresh the user plan from DB or fallback if webhooks fail

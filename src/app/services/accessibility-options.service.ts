@@ -25,11 +25,11 @@ export const defaultAccessibilityOptions: AccessibilityOptions = {
 /**
  * List of accessibility options, with a description, used for building the UI form
  */
-export const accessibilityOptionsInfo: ReadonlyArray<{
+export const accessibilityOptionsInfo: readonly {
   key: keyof AccessibilityOptions;
   label: string;
   className: string;
-}> = [
+}[] = [
   { key: 'reducedMotion', label: 'Reduced Motion', className: 'a11y_reduced-motion' },
   { key: 'touchTargetExpand', label: 'Touch Target Expand', className: 'a11y_touch-target-expanded' },
   { key: 'highContrast', label: 'High Contrast', className: 'a11y_high-contrast' },
@@ -47,8 +47,6 @@ export class AccessibilityService {
 
   // Default values used (if localStorage is empty or corrupted)
   private readonly defaultOptions: AccessibilityOptions = defaultAccessibilityOptions;
-
-  constructor() {}
 
   /**
    * Get the entire AccessibilityOptions object from localStorage,

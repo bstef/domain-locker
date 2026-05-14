@@ -1,12 +1,12 @@
-import { SupabaseClient, User } from '@supabase/supabase-js';
-import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { catchError, from, map, Observable } from 'rxjs';
 import { DbDomain, Host } from '~/app/../types/Database';
 
 export class HostsQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
-    private formatDomainData: (domain: any) => DbDomain,
+    private handleError: (error: unknown) => Observable<never>,
+    private formatDomainData: (domain: Record<string, unknown>) => DbDomain,
   ) {}
 
   getHosts(): Observable<Host[]> {
@@ -31,7 +31,8 @@ export class HostsQueries {
       map(({ data, error }) => {
         if (error) throw error;
         const counts: Record<string, number> = {};
-        data.forEach((item: any) => {
+        const rows = (data || []) as unknown as { hosts?: { isp?: string } | null }[];
+        rows.forEach((item) => {
           const isp = item.hosts?.isp;
           if (isp) {
             counts[isp] = (counts[isp] || 0) + 1;
@@ -66,7 +67,7 @@ export class HostsQueries {
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(domain => this.formatDomainData(domain));
+        return (data as unknown as Record<string, unknown>[]).map(domain => this.formatDomainData(domain));
       }),
       catchError(error => this.handleError(error))
     );

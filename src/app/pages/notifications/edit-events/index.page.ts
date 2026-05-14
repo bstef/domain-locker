@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import DatabaseService from '~/app/services/database.service';
 import { notificationTypes } from '~/app/constants/notification-types';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -18,6 +18,12 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   templateUrl: './index.page.html',
 })
 export default class BulkNotificationPreferencesPage implements OnInit {
+  private databaseService = inject(DatabaseService);
+  private fb = inject(FormBuilder);
+  private globalMessageService = inject(GlobalMessageService);
+  private featureService = inject(FeatureService);
+  private errorHandler = inject(ErrorHandlerService);
+
   notificationTypes = notificationTypes;
   domains: DbDomain[] = [];
   notificationPreferences: { domain_id: string; notification_type: string; is_enabled: boolean }[] = [];
@@ -25,14 +31,6 @@ export default class BulkNotificationPreferencesPage implements OnInit {
   loading = true;
 
   changeNotificationsFeatureEnabled$ = this.featureService.isFeatureEnabled('changeNotifications');
-  
-  constructor(
-    private databaseService: DatabaseService,
-    private fb: FormBuilder,
-    private globalMessageService: GlobalMessageService,
-    private featureService: FeatureService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnInit() {
     this.loadDomainsAndPreferences();

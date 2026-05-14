@@ -1,6 +1,6 @@
 import { ContentFile, injectContent, injectContentFiles, MarkdownComponent } from '@analogjs/content';
-import { CommonModule, NgIf } from '@angular/common';
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+
+import { Component, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { aboutPages, AboutLink } from './data/about-page-list';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, switchMap } from 'rxjs';
@@ -19,7 +19,7 @@ export interface DocAttributes {
 
 @Component({
   standalone: true,
-  imports: [MarkdownComponent, NgIf, CommonModule, PrimeNgModule, NotFoundPage],
+  imports: [MarkdownComponent, PrimeNgModule, NotFoundPage],
   templateUrl: './[slug].page.html',
   styleUrls: ['../../styles/prism.css'],
   encapsulation: ViewEncapsulation.None,
@@ -34,11 +34,14 @@ export interface DocAttributes {
   `],
 })
 export default class DocsComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private metaTagsService = inject(MetaTagsService);
+
 
   public aboutPages = aboutPages;
   public currentPage = '';
 
-  public docsNotFound: boolean = false;
+  public docsNotFound = false;
   public linksTitle: string | null = null;
   public links: AboutLink[] = [];
 
@@ -51,11 +54,6 @@ export default class DocsComponent implements OnInit {
   readonly docs = injectContentFiles<DocAttributes>((contentFile) => {
     return contentFile.filename.includes('/src/content/docs/')
   });
-
-  constructor(
-    private route: ActivatedRoute,
-    private metaTagsService: MetaTagsService,
-  ) {}
 
   async ngOnInit(): Promise<void> {
     this.doc$.subscribe(doc => {

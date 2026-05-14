@@ -17,7 +17,7 @@
     <app-feature-carousel class="mt-3"/>
     <p-divider />
     <h3 class="mt-2 mb-0 text-3xl">{{ 'HOME.DOCS_TITLE' | translate }}</h3>
-    <about-links />
+    <app-about-links />
     <p-divider />
     <app-cta />
   </div>
@@ -25,13 +25,19 @@
 
 <!-- Authenticated homepage -->
 @if (isAuthenticated) {
-  <app-demo-welcome *ngIf="isDemoInstance" [isDemoInstance]="true" />
-  <app-demo-welcome *ngIf="isDevInstance" [isDevInstance]="true" />
+  @if (isDemoInstance) {
+    <app-demo-welcome [isDemoInstance]="true" />
+  }
+  @if (isDevInstance) {
+    <app-demo-welcome [isDevInstance]="true" />
+  }
 
-  <loading *ngIf="loading" [loadingTitle]="'HOME.LOADING_TITLE' | translate" [loadingDescription]="'HOME.LOADING_DESCRIPTION' | translate" />
+  @if (loading) {
+    <app-loading [loadingTitle]="'HOME.LOADING_TITLE' | translate" [loadingDescription]="'HOME.LOADING_DESCRIPTION' | translate" />
+  }
 
   @if (!loading && domains.length === 0) {
-    <welcome />
+    <app-welcome />
   } @else if (!loading) {
     <h2 class="my-4 block">{{ 'HOME.SUBHEADINGS.DASHBOARD' | translate }}</h2>
     <div class="p-card p-4" pAnimateOnScroll enterClass="fadeIn" leaveClass="fadeOut">
@@ -78,7 +84,7 @@
         [outlined]="true"
         class="flex justify-end"
         routerLink="/stats"
-      />
+        />
     }
     <p-divider align="center" (click)="toggleInsights()">
       @if (!showInsights) {
@@ -96,14 +102,15 @@
       }
     </p-divider>
     <h2 class="my-4 block">{{ 'HOME.SUBHEADINGS.DOMAINS' | translate }}</h2>
-    <app-domain-view
-      *ngIf="!loading"
-      [domains]="domains"
-      [showFooter]="false"
-      [loading]="loading"
-      ($triggerReload)="newDomainAdded($event)"
-      pAnimateOnScroll enterClass="fadeIn" leaveClass="fadeOut"
-    />
+    @if (!loading) {
+      <app-domain-view
+        [domains]="domains"
+        [showFooter]="false"
+        [loading]="loading"
+        ($triggerReload)="newDomainAdded($event)"
+        pAnimateOnScroll enterClass="fadeIn" leaveClass="fadeOut"
+        />
+    }
     <p-divider />
     <h2 class="my-4 block">{{ 'HOME.SUBHEADINGS.CATEGORIES' | translate }}</h2>
     <app-tag-grid pAnimateOnScroll enterClass="fadeIn" leaveClass="fadeOut" />

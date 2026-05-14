@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MeterItem } from 'primeng/metergroup';
 import { PrimeNgModule } from '../../../prime-ng.module';
@@ -32,22 +32,20 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   ]
 })
 export class DomainExpirationBarComponent implements OnInit {
+  private databaseService = inject(DatabaseService);
+  private translationService = inject(TranslateService);
+
   meterValues: MeterItem[] = [];
   counts = { imminently: 0, soon: 0, later: 0 };
-  domainsPerCategory: { [key: string]: DomainExpiration[] } = { imminently: [], soon: [], later: [] };
+  domainsPerCategory: Record<string, DomainExpiration[]> = { imminently: [], soon: [], later: [] };
   upcomingDomains: DomainExpiration[] = [];
   nextExpiringDomain?: DomainExpiration;
-  loading: boolean = true;
+  loading = true;
 
-  timelineEvents: any[] = [];
-  showTimeline: boolean = false;
+  timelineEvents: { date: Date; icon: string; color: string; domain: string }[] = [];
+  showTimeline = false;
 
-  @Input() showFull: boolean = false;
-
-  constructor(
-    private databaseService: DatabaseService,
-    private translationService: TranslateService
-  ) {}
+  @Input() showFull = false;
 
   ngOnInit() {
     this.databaseService.instance.getDomainExpirations().subscribe(domains => {

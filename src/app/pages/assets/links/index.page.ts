@@ -1,13 +1,11 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DbDomain, Link } from '~/app/../types/Database';
 import DatabaseService from '~/app/services/database.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
-import { TagEditorComponent } from '~/app/components/forms/tag-editor/tag-editor.component';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
-import { DomainFaviconComponent } from '~/app/components/misc/favicon.component';
 import { LinkDialogComponent } from '~/app/components/misc/edit-link.component';
 import { ContextMenu } from 'primeng/contextmenu';
 import { DialogService } from 'primeng/dynamicdialog';
@@ -27,28 +25,29 @@ export interface LinkResponse {
   linksWithDomains?: ModifiedLink[];
 }
 
-interface CustomSections {
-  [key: string]: {
-    [key: string]: Omit<Link, 'id'>[];
-
-  };
-}
+type CustomSections = Record<string, Record<string, Omit<Link, 'id'>[]>>;
 
 
 @Component({
   standalone: true,
   selector: 'app-tags-index',
-  imports: [CommonModule, RouterModule, PrimeNgModule, TagEditorComponent, DomainFaviconComponent, LinkDialogComponent, DomainLinkComponent],
+  imports: [CommonModule, RouterModule, PrimeNgModule, DomainLinkComponent],
   templateUrl: './index.page.html',
   providers: [DialogService],
   // styleUrl: './tags.scss'
 })
 export default class LinksIndexPageComponent implements OnInit {
-  
-  links!: LinkResponse;
-  loading: boolean = true;
-  showAutoLinks: boolean = false;
-  fetchedExtraLinks: boolean = false;
+  private databaseService = inject(DatabaseService);
+  private messageService = inject(MessageService);
+  private errorHandlerService = inject(ErrorHandlerService);
+  private confirmationService = inject(ConfirmationService);
+  private dialogService = inject(DialogService);
+
+
+  links: LinkResponse | null = null;
+  loading = true;
+  showAutoLinks = false;
+  fetchedExtraLinks = false;
   customSections: CustomSections = {};
   domains: DbDomain[] = [];
 
@@ -62,14 +61,6 @@ export default class LinksIndexPageComponent implements OnInit {
   @ViewChild('menu') menu: ContextMenu | undefined;
   selectedLink: ModifiedLink | null = null;
   public contextMenuItems: MenuItem[] = [];
-
-  constructor(
-    private databaseService: DatabaseService,
-    private messageService: MessageService,
-    private errorHandlerService: ErrorHandlerService,
-    private confirmationService: ConfirmationService,
-    private dialogService: DialogService,
-  ) {}
 
   ngOnInit() {
     this.loadLinks();
@@ -110,7 +101,7 @@ export default class LinksIndexPageComponent implements OnInit {
     this.openLinkDialog(null);
   }
 
-  objKeys(obj: any): string[] {
+  objKeys(obj: Record<string, unknown>): string[] {
     return Object.keys(obj);
   }
 
@@ -176,15 +167,13 @@ export default class LinksIndexPageComponent implements OnInit {
   }
 
   async autoLinksFromDomainData(domains: DbDomain[]) {
-    // If no user-added links, create an empty object before we begin
-    if (!this.links.groupedByDomain) {
-      this.links.groupedByDomain = {};
-    };
+    if (!this.links) this.links = {};
+    if (!this.links.groupedByDomain) this.links.groupedByDomain = {};
+    const groupedByDomain = this.links.groupedByDomain;
 
-    for (const eachDomain of domains) { 
-      // Add sections for domains without any user-added links
-      if (!this.links.groupedByDomain[eachDomain.domain_name]) {
-        this.links.groupedByDomain[eachDomain.domain_name] = [];
+    for (const eachDomain of domains) {
+      if (!groupedByDomain[eachDomain.domain_name]) {
+        groupedByDomain[eachDomain.domain_name] = [];
       }
 
       // Create object for domain, ready to add additional sections
@@ -202,7 +191,7 @@ export default class LinksIndexPageComponent implements OnInit {
 
       // Providers
       const cleanName = (name: string) => name.replace(/,|Inc|[^a-zA-Z0-9\s-]/g, '').trim(); 
-      let providers = [];
+      const providers: { type: string; name: string }[] = [];
       if (eachDomain.host?.isp) providers.push({ type: 'Host', name: eachDomain.host.isp });
       if (eachDomain.registrar?.name) providers.push({ type: 'Registrar', name: eachDomain.registrar.name });
       if (eachDomain.ssl?.issuer) providers.push({ type: 'SSL Issuer', name: eachDomain.ssl.issuer });
@@ -251,7 +240,7 @@ export default class LinksIndexPageComponent implements OnInit {
     }
   }
 
-  async fetchProviders(providerNames: string[]): Promise<any[]> {
+  async fetchProviders(providerNames: string[]): Promise<{ name: string; link: string }[]> {
     const response = await fetch(
       `https://find-company-domain.as93.workers.dev/?names=${providerNames.join(',')}`,
     );

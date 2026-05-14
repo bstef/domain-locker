@@ -12,7 +12,7 @@ export function normalizeStr(input: string | null | undefined): string {
 }
 
 export function removeUrlChars(input: string | null | undefined): string {
-  return (input || '').trim().replace(/[\/\\?#%]/g, '');
+  return (input || '').trim().replace(/[/\\?#%]/g, '');
 }
 
 export function normalizeDate(input: string | null | undefined): string {

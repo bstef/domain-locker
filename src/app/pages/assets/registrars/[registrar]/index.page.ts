@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { ActivatedRoute } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DbDomain } from '~/app/../types/Database';
@@ -11,10 +11,12 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 @Component({
   standalone: true,
   selector: 'app-registrar-domains',
-  imports: [CommonModule, PrimeNgModule, DomainCollectionComponent, DomainFaviconComponent],
+  imports: [PrimeNgModule, DomainCollectionComponent, DomainFaviconComponent],
   template: `
     <h1 class="flex gap-3 align-items-center">
-      <app-domain-favicon *ngIf="registrarUrl" [domain]="registrarUrl" [size]="28" class=""></app-domain-favicon>
+      @if (registrarUrl) {
+        <app-domain-favicon [domain]="registrarUrl" [size]="28" class=""></app-domain-favicon>
+      }
       {{ registrarName }}
     </h1>
     @if (registrarUrl && registrarUrl !== 'Unknown') {
@@ -22,26 +24,27 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
         <a [href]="registrarUrl"><i class="pi pi-external-link mr-2 capitalize"></i> {{registrarName}} Website</a>
       </p>
     }
-    <app-domain-view
-      [domains]="domains"
-      *ngIf="!loading"
-      [preFilteredText]="'registered with '+registrarName+''"
-      [showAddButton]="false"
-    />
-    <p-progressSpinner *ngIf="loading" />
-  `,
+    @if (!loading) {
+      <app-domain-view
+        [domains]="domains"
+        [preFilteredText]="'registered with '+registrarName+''"
+        [showAddButton]="false"
+        />
+    }
+    @if (loading) {
+      <p-progressSpinner />
+    }
+    `,
 })
 export default class RegistrarDomainsPageComponent implements OnInit {
-  registrarName: string = '';
-  registrarUrl: string = '';
-  domains: DbDomain[] = [];
-  loading: boolean = true;
+  private route = inject(ActivatedRoute);
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
 
-  constructor(
-    private route: ActivatedRoute,
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
+  registrarName = '';
+  registrarUrl = '';
+  domains: DbDomain[] = [];
+  loading = true;
 
   ngOnInit() {
     this.route.params.subscribe(params => {

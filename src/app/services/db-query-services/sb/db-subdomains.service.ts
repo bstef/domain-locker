@@ -1,12 +1,18 @@
-import { SupabaseClient, User } from '@supabase/supabase-js';
-import { catchError, forkJoin, from, map, Observable, of, switchMap, throwError } from 'rxjs';
-import { Subdomain } from '~/app/../types/Database';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { catchError, from, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { GlobalMessageService } from '../../messaging.service';
+
+interface SubdomainRow {
+  id?: string;
+  name: string;
+  sd_info?: string | null;
+  domain_name?: string;
+}
 
 export class SubdomainsQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private messageService: GlobalMessageService,
   ) {}
 
@@ -131,8 +137,9 @@ export class SubdomainsQueries {
       if (deleteError) {
         throw new Error(`Failed to delete subdomains for domain ${domain}: ${deleteError.message}`);
       }
-    } catch (error: Error | any) {
-      throw new Error(`Failed to delete subdomains by domain: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to delete subdomains by domain: ${message}`);
     }
   }
 
@@ -195,7 +202,7 @@ export class SubdomainsQueries {
     }
   }
 
-  getAllSubdomains(): Observable<any[]> {
+  getAllSubdomains(): Observable<SubdomainRow[]> {
     return from(
       this.supabase
         .from('sub_domains')
@@ -210,14 +217,13 @@ export class SubdomainsQueries {
         // Flatten the result so `domain_name` is at the same level as other fields
         return (data || []).map((subdomain) => ({
           ...subdomain,
-          // @ts-ignore - `domains` is a relation. It DOES exist. Fuck you Typescript.
           // domain_name: subdomain.domains?.domain_name,
         }));
       })
     );
   }
 
-  getSubdomainsByDomain(domain: string): Observable<any[]> {
+  getSubdomainsByDomain(domain: string): Observable<SubdomainRow[]> {
     return from(
       this.supabase
         .from('sub_domains')
@@ -231,7 +237,7 @@ export class SubdomainsQueries {
     );
   }  
 
-  getSubdomainInfo(domain: string, subdomain: string): Observable<any> {
+  getSubdomainInfo(domain: string, subdomain: string): Observable<SubdomainRow | null> {
     return from(
       this.supabase
         .from('sub_domains')
@@ -286,9 +292,10 @@ export class SubdomainsQueries {
         }
         return of<void>(undefined); // success
       }),
-      catchError((err) =>
-        throwError(() => new Error(`Failed to delete subdomain: ${err.message || err}`))
-      )
+      catchError((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        return throwError(() => new Error(`Failed to delete subdomain: ${message}`));
+      })
     );
   }
 

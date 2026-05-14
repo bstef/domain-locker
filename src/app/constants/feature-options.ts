@@ -6,15 +6,15 @@
 
 import { BillingPlans } from '~/app/services/billing.service';
 
-export type FeatureConfig<T> = {
+export interface FeatureConfig<T> {
   default: T;
   managed?: T | Record<BillingPlans, T>;
   selfHosted?: T;
   dev?: T;
   demo?: T;
-};
+}
 
-export type FeatureDefinitions = {
+export interface FeatureDefinitions {
   domainLimit: FeatureConfig<number>;
   notificationChannels: FeatureConfig<boolean>;
   changeNotifications: FeatureConfig<boolean>;
@@ -31,7 +31,7 @@ export type FeatureDefinitions = {
   enablePreviewDomain: FeatureConfig<boolean>;
   enableDeletionTool: FeatureConfig<boolean>;
   enableAdvancedInfo: FeatureConfig<boolean>;
-};
+}
 
 export const features: FeatureDefinitions = {
   domainLimit: {

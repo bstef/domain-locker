@@ -5,9 +5,9 @@ import { DbDomain, SaveDomainData } from '~/app/../types/Database';
 export class SslQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getFullDomainQuery: () => string,
-    private formatDomainData: (domain: any) => DbDomain,
+    private formatDomainData: (domain: Record<string, unknown>) => DbDomain,
   ) {}
 
   getSslIssuersWithDomainCounts(): Observable<{ issuer: string; domain_count: number }[]> {
@@ -61,7 +61,7 @@ export class SslQueries {
     `;
     const params = [issuer];
 
-    return this.pgApiUtil.postToPgExecutor(query, params).pipe(
+    return this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(query, params).pipe(
       map(response => response.data.map(domain => this.formatDomainData(domain))),
       catchError(error => this.handleError(error))
     );

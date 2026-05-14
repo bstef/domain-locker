@@ -1,10 +1,10 @@
-import { Component, Input, HostListener, ViewEncapsulation, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, Input, HostListener, ViewEncapsulation, PLATFORM_ID, inject, OnInit, OnDestroy, AfterViewChecked } from '@angular/core';
 import { ContentFile } from '@analogjs/content';
 import { filter, Observable, Subscription } from 'rxjs';
 import { MarkdownComponent } from '@analogjs/content';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { MetaTagsService } from '~/app/services/meta-tags.service';
-import { CommonModule, isPlatformBrowser, NgIf } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
@@ -24,33 +24,38 @@ export interface DocAttributes {
 @Component({
   standalone: true,
   selector: 'app-docs-viewer',
-  imports: [CommonModule, NgIf, MarkdownComponent, PrimeNgModule],
+  imports: [CommonModule, MarkdownComponent, PrimeNgModule],
   template: `
   <section class="flex flex-row-reverse items-start gap-4 h-full mx-auto my-4 flex-wrap md:flex-nowrap min-h-[105vh]">
-    <article *ngIf="doc" class="p-card p-4 flex-1 h-full min-h-64 max-w-[60rem] w-2">
-      <h2 class="text-3xl text-default opacity-100">{{ doc.attributes.title }}</h2>
-      <analog-markdown class="block max-w-[59rem]" [content]="doc.content"></analog-markdown>
-    </article>
-
+    @if (doc) {
+      <article class="p-card p-4 flex-1 h-full min-h-64 max-w-[60rem] w-2">
+        <h2 class="text-3xl text-default opacity-100">{{ doc.attributes.title }}</h2>
+        <analog-markdown class="block max-w-[59rem]" [content]="doc.content"></analog-markdown>
+      </article>
+    }
+  
     <div class="relative h-full min-h-64 min-w-[18rem] w-full md:w-fit mr-0 md:mr-4">
       <nav class="p-card py-4 relative md:fixed sticky-nav overflow-y-auto" [style.top]="navTop" [style.max-height]="navBottom">
         <a [routerLink]="['/about', categoryName]" class="no-underline text-default">
           <h2 class="capitalize mx-4">{{ categoryName }} Docs</h2>
         </a>
         <ul class="list-none p-0 mx-0 mt-4 flex flex-col">
-          <li *ngFor="let file of sortedDocs; index as index" class="border-x-0 border-b-0 border-t-2 border-solid border-surface-200">
-            <a
-              *ngIf="!file.attributes.noShowInContents"
-              [routerLink]="['/about', categoryName, file.slug]"
-              pTooltip="{{ file.attributes.description }}"
-              showDelay="300"
-              class="no-underline py-2 block px-4 hover:bg-surface-100 transition-all duration-200"
-              [ngClass]="{ 'text-default font-bold': file.slug === doc?.slug, 'text-primary': file.slug !== doc?.slug}"
-            >
-              <span class="opacity-70 text-default font-normal">{{index + 1}}. </span>
-              {{ file.attributes.title }}
-            </a>
-          </li>
+          @for (file of sortedDocs; track file; let index = $index) {
+            <li class="border-x-0 border-b-0 border-t-2 border-solid border-surface-200">
+              @if (!file.attributes.noShowInContents) {
+                <a
+                  [routerLink]="['/about', categoryName, file.slug]"
+                  pTooltip="{{ file.attributes.description }}"
+                  showDelay="300"
+                  class="no-underline py-2 block px-4 hover:bg-surface-100 transition-all duration-200"
+                  [ngClass]="{ 'text-default font-bold': file.slug === doc?.slug, 'text-primary': file.slug !== doc?.slug}"
+                  >
+                  <span class="opacity-70 text-default font-normal">{{index + 1}}. </span>
+                  {{ file.attributes.title }}
+                </a>
+              }
+            </li>
+          }
         </ul>
         <a routerLink="/about" class="w-full flex">
           <p-button
@@ -60,7 +65,7 @@ export interface DocAttributes {
             [outlined]="true"
             size="small"
             icon="pi pi-arrow-left"
-          />
+            />
         </a>
       </nav>
     </div>
@@ -145,7 +150,12 @@ export interface DocAttributes {
     }
   `]
 })
-export class DocsViewerComponent {
+export class DocsViewerComponent implements OnInit, OnDestroy, AfterViewChecked {
+  private router = inject(Router);
+  private errorHandler = inject(ErrorHandlerService);
+  private metaTagsService = inject(MetaTagsService);
+  private platformId = inject<object>(PLATFORM_ID);
+
   /** The doc$ to display. If it's null or never resolves, we'll treat it as 'not found'. */
   @Input() doc$!: Observable<ContentFile<DocAttributes | Record<string, never>>>;
 
@@ -153,7 +163,7 @@ export class DocsViewerComponent {
   @Input() allDocs: ContentFile<DocAttributes>[] = [];
 
   /** The name of the category (e.g. 'legal', 'blog'), for building links. */
-  @Input() categoryName: string = '';
+  @Input() categoryName = '';
 
   doc: ContentFile<DocAttributes | Record<string, never>> | null = null;
 
@@ -163,13 +173,6 @@ export class DocsViewerComponent {
   private routerSub?: Subscription;
   private docLoaded = false;
   private hasRenderedMermaid = false;
-
-  constructor(
-    private router: Router,
-    private errorHandler: ErrorHandlerService,
-    private metaTagsService: MetaTagsService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
 
   ngOnInit() {
 
@@ -324,7 +327,7 @@ export class DocsViewerComponent {
 
   private runMermaid() {
     try {
-      const mermaid = (window as any).mermaid;
+      const mermaid = (window as unknown as { mermaid?: { initialize: (opts: { startOnLoad: boolean }) => void; run: (opts: { querySelector: string }) => void } }).mermaid;
       if (!mermaid) return;
       try {
         mermaid.initialize({ startOnLoad: false });

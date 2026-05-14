@@ -1,14 +1,14 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
-import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
-import { DbDomain, SaveDomainData, Ssl } from '~/app/../types/Database';
+import { catchError, from, map, Observable } from 'rxjs';
+import { DbDomain, SaveDomainData } from '~/app/../types/Database';
 
 export class SslQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
     private getFullDomainQuery: () => string,
-    private formatDomainData: (domain: any) => DbDomain,
+    private formatDomainData: (domain: Record<string, unknown>) => DbDomain,
   ) {}
 
   getSslIssuersWithDomainCounts(): Observable<{ issuer: string; domain_count: number }[]> {
@@ -31,7 +31,7 @@ export class SslQueries {
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(domain => this.formatDomainData(domain));
+        return (data as unknown as Record<string, unknown>[]).map(domain => this.formatDomainData(domain));
       }),
       catchError(error => this.handleError(error))
     );

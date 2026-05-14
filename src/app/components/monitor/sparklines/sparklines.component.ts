@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -30,6 +30,10 @@ type Timeframe = 'day' | 'week' | 'month' | 'year';
   styleUrls: ['./sparklines.component.scss'],
 })
 export class DomainSparklineComponent implements OnInit {
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private cdr = inject(ChangeDetectorRef);
+
 
   @Input() domainId!: string;
   @Input() userId!: string;
@@ -37,10 +41,10 @@ export class DomainSparklineComponent implements OnInit {
   timeframe: Timeframe = 'day';
   timeframeOptions: Timeframe[] = ['day', 'week', 'month', 'year'];
 
-  advancedMode: boolean = false;
+  advancedMode = false;
 
   uptimeData: UptimeData[] = [];
-  isUp: boolean = false;
+  isUp = false;
   uptimePercentage!: number;
   responseCodes: ResponseCode[] = [];
   
@@ -60,26 +64,21 @@ export class DomainSparklineComponent implements OnInit {
   hoveredSslTime: DateValue | null = null;
 
   // Chart data
-  responseTimeChart: any;
-  dnsTimeChart: any;
-  sslTimeChart: any;
+  responseTimeChart: ApexOptions = {};
+  dnsTimeChart: ApexOptions = {};
+  sslTimeChart: ApexOptions = {};
 
   getUptimeColor = getUptimeColor;
   getResponseCodeColor = getResponseCodeColor;
   getPerformanceColor = getPerformanceColor;
-
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-    private cdr: ChangeDetectorRef,
-  ) {}
 
   ngOnInit(): void {
     this.fetchUptimeData();
   }
 
   fetchUptimeData(): void {
-    this.databaseService.instance.getDomainUptime(this.userId, this.domainId, this.timeframe).then((data: any) => {
+    this.databaseService.instance.getDomainUptime(this.userId, this.domainId, this.timeframe).then((raw: unknown) => {
+      const data = raw as { data?: UptimeData[]; length?: number; error?: unknown } & UptimeData[];
       if (!data.data && data.length) data.data = data; // Note to future me: I am sorry.
       if (data.data) {
         this.uptimeData = data.data;

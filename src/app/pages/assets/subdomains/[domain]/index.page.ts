@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { SubdomainListComponent } from '~/app/pages/assets/subdomains/subdomain-list.component';
 import DatabaseService from '~/app/services/database.service';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -16,23 +16,21 @@ import { EnvService } from '~/app/services/environment.service';
   @Component({
     standalone: true,
     selector: 'app-subdomains-domain',
-    imports: [CommonModule, SubdomainListComponent, PrimeNgModule, NotFoundComponent, AddSubdomainDialogComponent],
+    imports: [SubdomainListComponent, PrimeNgModule, NotFoundComponent, AddSubdomainDialogComponent],
     templateUrl: './index.page.html',
   })
   export default class SubdomainsDomainPageComponent implements OnInit {
-    domain: string = '';
-    subdomains: any[] = [];
-    loading: boolean = true;
-    validDomain: boolean = true;
+    private route = inject(ActivatedRoute);
+    private databaseService = inject(DatabaseService);
+    private errorHandler = inject(ErrorHandlerService);
+    private http = inject(HttpClient);
+    private globalMessageService = inject(GlobalMessageService);
+    private envService = inject(EnvService);
 
-    constructor(
-      private route: ActivatedRoute,
-      private databaseService: DatabaseService,
-      private errorHandler: ErrorHandlerService,
-      private http: HttpClient,
-      private globalMessageService: GlobalMessageService,
-      private envService: EnvService,
-    ) {}
+    domain = '';
+    subdomains: { id?: string; name: string; sd_info?: unknown; domain_name?: string }[] = [];
+    loading = true;
+    validDomain = true;
 
     ngOnInit() {
       this.domain = this.route.snapshot.params['domain'];
@@ -69,7 +67,7 @@ import { EnvService } from '~/app/services/environment.service';
     searchForSubdomains() {
       this.loading = true;
       const domainSubsEndpoint = this.envService.getEnvVar('DL_DOMAIN_SUBS_API', '/api/domain-subs');
-      this.http.get<any[]>(`${domainSubsEndpoint}?domain=${this.domain}`).pipe(
+      this.http.get<{ subdomain: string }[]>(`${domainSubsEndpoint}?domain=${this.domain}`).pipe(
         // 1) filter out ignored subdomains
         map((response) => filterOutIgnoredSubdomains(response, this.domain)),
         // 2) pass them to a helper that handles “found vs none,”
@@ -91,7 +89,7 @@ import { EnvService } from '~/app/services/environment.service';
      * A small helper that shows messages and returns an Observable 
      * that either saves subdomains or just completes immediately. 
      */
-    private handleDiscoveredSubdomains(validSubdomains: any[]): Observable<unknown> {
+    private handleDiscoveredSubdomains(validSubdomains: { subdomain: string }[]): Observable<unknown> {
       if (!validSubdomains.length) {
         // No subdomains → show warning & do nothing
         this.globalMessageService.showMessage({
@@ -119,7 +117,7 @@ import { EnvService } from '~/app/services/environment.service';
     }
     
     
-    private parseSdInfo(sdInfo: string): any {
+    private parseSdInfo(sdInfo: string): unknown {
       try {
         return JSON.parse(sdInfo);
       } catch (error) {

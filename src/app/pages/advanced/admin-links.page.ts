@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DomainFaviconComponent } from '~/app/components/misc/favicon.component';
 
@@ -7,7 +7,7 @@ import { selfHostedLinks, serviceLinks, documentationLinks, downloadLinks, type 
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule, DomainFaviconComponent],
+  imports: [PrimeNgModule, DomainFaviconComponent],
   templateUrl: './admin-links.page.html',
 })
 export default class AdminLinksPage {

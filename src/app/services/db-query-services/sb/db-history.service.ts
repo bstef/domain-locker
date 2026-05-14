@@ -1,14 +1,33 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 import { catchError, from, map, Observable, of } from 'rxjs';
+
+export interface DomainUpdateRow {
+  id?: string;
+  domain_id?: string;
+  domain_name?: string;
+  change_type: string;
+  change?: string;
+  date: string;
+  old_value?: string;
+  new_value?: string;
+  domains?: { domain_name?: string };
+}
+
+export interface HistoryEntry {
+  date: string;
+  added: number;
+  removed: number;
+  updated: number;
+}
 
 export class HistoryQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
   ) {}
 
 
-  getChangeHistory(domainName?: string, days: number = 7): Observable<any[]> {
+  getChangeHistory(domainName?: string, days = 7): Observable<HistoryEntry[]> {
     let query = this.supabase
       .from('domain_updates')
       .select('change_type, date')
@@ -59,18 +78,18 @@ export class HistoryQueries {
   }
 
   getTotalUpdateCount(domainName?: string): Observable<number> {
-    let query = this.supabase
+    let query: PromiseLike<{ count: number | null; error: PostgrestError | null }> = this.supabase
       .from('domain_updates')
       .select('id', { count: 'exact' });
-  
+
       if (domainName) {
         query = this.supabase
-          .from<any, any>('domain_updates')
+          .from('domain_updates')
           .select('id, domains!inner(domain_name)', { count: 'exact' })
           .eq('domains.domain_name', domainName);
       }
-  
-    return from(query.then(({ count, error }: { count: number | null; error: any }) => {
+
+    return from(query.then(({ count, error }: { count: number | null; error: PostgrestError | null }) => {
       if (error) throw error;
       return count || 0;
     })).pipe(
@@ -86,7 +105,7 @@ export class HistoryQueries {
   }
 
     
-  getDomainUpdates(domainName?: string, start: number = 0, end: number = 24, category?: string, changeType?: string, filterDomain?: string): Observable<any[]> {
+  getDomainUpdates(domainName?: string, start = 0, end = 24, category?: string, changeType?: string, filterDomain?: string): Observable<DomainUpdateRow[]> {
     let query = this.supabase
       .from('domain_updates')
       .select(`
@@ -112,7 +131,7 @@ export class HistoryQueries {
     return from(query).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data;
+        return (data || []) as DomainUpdateRow[];
       }),
       catchError((error) => {
         this.handleError({

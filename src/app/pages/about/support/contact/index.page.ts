@@ -1,14 +1,13 @@
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, inject, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { SupabaseService } from '~/app/services/supabase.service';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HelpfulLinksComponent } from '~/app/components/misc/helpful-links.component';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
-interface QueryInfo {
-  [key: string]: {
+type QueryInfo = Record<string, {
     allow: boolean;
     info?: string,
     warn?: string,
@@ -18,16 +17,20 @@ interface QueryInfo {
       icon: string,
       body: string
     }[]
-  }
-}
+  }>;
 
 @Component({
   standalone: true,
   selector: 'app-contact',
-  imports: [CommonModule, PrimeNgModule, FormsModule, ReactiveFormsModule, HelpfulLinksComponent],
+  imports: [PrimeNgModule, FormsModule, ReactiveFormsModule, HelpfulLinksComponent],
   templateUrl: './index.page.html',
 })
-export default class ContactPageComponent implements OnInit {
+export default class ContactPageComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private supabaseService = inject(SupabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private platformId = inject<object>(PLATFORM_ID);
+
   contactForm!: FormGroup;
   isAuthenticated = false;
   userType: string | null = null;
@@ -85,13 +88,6 @@ export default class ContactPageComponent implements OnInit {
   private initScript?: HTMLScriptElement;
   private freshdeskScript?: HTMLScriptElement;
 
-  constructor(
-    private fb: FormBuilder,
-    private supabaseService: SupabaseService,
-    private errorHandler: ErrorHandlerService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
-
   async ngOnInit(): Promise<void> {
 
     // Init chat widget
@@ -126,7 +122,7 @@ export default class ContactPageComponent implements OnInit {
 
       // Init Fresh widget with user details
       if (isPlatformBrowser(this.platformId)) {
-        (window as any).FreshworksWidget('identify', 'ticketForm', {name, email});
+        (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('identify', 'ticketForm', {name, email});
       }
     }
   }
@@ -170,7 +166,7 @@ export default class ContactPageComponent implements OnInit {
 
   openFreshChat(): void {
     if (isPlatformBrowser(this.platformId)) {
-      (window as any).FreshworksWidget('open');
+      (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('open');
     }
   }
 
@@ -196,12 +192,12 @@ export default class ContactPageComponent implements OnInit {
     this.freshdeskScript.async = true;
     this.freshdeskScript.defer = true;
     document.body.appendChild(this.freshdeskScript);
-    
-    (window as any).FreshworksWidget('hide');
+
+    (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('hide');
   }
 
   deregisterFreshChat(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    (window as any).FreshworksWidget('hide');
+    (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('hide');
   }
 }

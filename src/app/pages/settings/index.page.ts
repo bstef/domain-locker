@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { AccountIssuesComponent } from '~/app/components/settings/account-issues/account-issues.component';
@@ -7,7 +7,7 @@ import { ThemeService } from '~/app/services/theme.service';
 import { SupabaseService } from '~/app/services/supabase.service';
 import { TranslationService } from '~/app/services/translation.service';
 import DatabaseService from '~/app/services/database.service';
-import { Observable, of, from } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import { User } from '@supabase/supabase-js';
 import { settingsLinks } from '~/app/constants/navigation-links';
 
@@ -18,24 +18,30 @@ import { settingsLinks } from '~/app/constants/navigation-links';
   imports: [CommonModule, PrimeNgModule, AccountIssuesComponent],
 })
 export default class SettingsPage {
+  private billingService = inject(BillingService);
+  private themeService = inject(ThemeService);
+  private supabaseService = inject(SupabaseService);
+  private translationService = inject(TranslationService);
+  private databaseService = inject(DatabaseService);
+
   currentPlan$?: Observable<string | null>;
   user$?: Observable<User | null>;
 
   displayOptions: { theme: string, darkMode: boolean, font: string, scale: string } | null = null;
-  language: string = 'English';
-  notifications: null | any = null;
+  language = 'English';
+  notifications: {
+    email: boolean;
+    slack: boolean;
+    matrix: boolean;
+    signal: boolean;
+    webHook: boolean;
+    telegram: boolean;
+    pushNotification: boolean;
+  } | null = null;
 
   showAccountInfo = false;
   isAccountInfoLoading = false;
   settingsLinks = settingsLinks;
-
-  constructor(
-    private billingService: BillingService,
-    private themeService: ThemeService,
-    private supabaseService: SupabaseService,
-    private translationService: TranslationService,
-    private databaseService: DatabaseService,
-  ) {}
 
   public toggleAccountInfo(): void {
     this.showAccountInfo = !this.showAccountInfo;

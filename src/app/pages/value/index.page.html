@@ -1,7 +1,7 @@
 <div class="w-full flex justify-between flex-wrap">
   <h1>Domain Valuation</h1>
   <a routerLink="/value/edit">
-    <button pButton label="Edit" icon="pi pi-pencil"></button>
+    <button pButton label="Edit" aria-label="Edit" icon="pi pi-pencil"></button>
   </a>
 </div>
 
@@ -29,24 +29,28 @@
     <h4>Upcoming Payments</h4>
     <div class="w-full">
       <ul class="p-0 list-none mb-0">
-        <li *ngFor="let payment of upcomingPayments" class="flex w-full justify-between">
-          <span>
-            {{ payment.expiryDate }}: {{ payment.domainName }}
-          </span>
-          @if (payment.renewalCost && !payment.autoRenew) {
-            <span class="text-red-300" pTooltip="Auto-renew not enabled. Pay bill manually before domain expires">
-              {{ currencySymbol }}{{ payment.renewalCost | number:'1.2-2' }}
+        @for (payment of upcomingPayments; track payment) {
+          <li class="flex w-full justify-between">
+            <span>
+              {{ payment.expiryDate }}: {{ payment.domainName }}
             </span>
-          } @else if (payment.renewalCost && payment.autoRenew){
-            <span class="text-blue-300" pTooltip="Auto-renew enabled">
-              {{ currencySymbol }}{{ payment.renewalCost | number:'1.2-2' }}
-            </span>
-          } @else {
-            <span class="text-yellow-400">Unset</span>
-          }
-        </li>
+            @if (payment.renewalCost && !payment.autoRenew) {
+              <span class="text-red-300" pTooltip="Auto-renew not enabled. Pay bill manually before domain expires">
+                {{ currencySymbol }}{{ payment.renewalCost | number:'1.2-2' }}
+              </span>
+            } @else if (payment.renewalCost && payment.autoRenew){
+              <span class="text-blue-300" pTooltip="Auto-renew enabled">
+                {{ currencySymbol }}{{ payment.renewalCost | number:'1.2-2' }}
+              </span>
+            } @else {
+              <span class="text-yellow-400">Unset</span>
+            }
+          </li>
+        }
       </ul>
-      <small *ngIf="upcomingPayments.length === 0">No upcoming payments</small>
+      @if (upcomingPayments.length === 0) {
+        <small>No upcoming payments</small>
+      }
     </div>
   </div>
 </div>
@@ -60,7 +64,7 @@
   sortMode="multiple"
   sortField="domain_name"
   [resizableColumns]="true"
->
+  >
   <ng-template pTemplate="header">
     <tr>
       <th pSortableColumn="domain_name">Domain Name</th>

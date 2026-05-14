@@ -1,12 +1,12 @@
 import { injectContent, injectContentFiles } from '@analogjs/content';
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DocsViewerComponent, DocAttributes } from '~/app/components/about-things/doc-viewer.component';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule, DocsViewerComponent],
+  imports: [PrimeNgModule, DocsViewerComponent],
   template: `<app-docs-viewer [doc$]="doc$" [allDocs]="files" [categoryName]="'legal'" />`,
 })
 export default class DocsComponent {

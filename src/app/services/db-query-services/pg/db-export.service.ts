@@ -1,15 +1,39 @@
 import { Observable } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
 import { PgApiUtilService } from '~/app/utils/pg-api.util';
+
+interface ExportDomainRow {
+  registrar?: { name?: string; url?: string } | null;
+  ip_addresses?: { ip_address: string }[];
+  ssl_certificates?: { issuer: string }[];
+  whois_info?: {
+    name?: string;
+    organization?: string;
+    country?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+  } | null;
+  tags?: { name: string }[];
+  hosts?: { isp: string }[];
+  dns_records?: { record_type: string; record_value: string }[];
+  domain_costings?: {
+    purchase_price?: number;
+    current_value?: number;
+    renewal_cost?: number;
+    auto_renew?: boolean;
+  } | null;
+  [key: string]: unknown;
+}
 
 export class ExportQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<{ id: string } | null>
   ) {}
 
-  fetchAllForExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Observable<any[]> {
+  fetchAllForExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Observable<Record<string, unknown>[]> {
     return new Observable((observer) => {
       this.executeExport(domainNames, includeFields)
         .then((data) => {
@@ -20,7 +44,7 @@ export class ExportQueries {
     });
   }
 
-  private async executeExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Promise<any[]> {
+  private async executeExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Promise<Record<string, unknown>[]> {
     // Ensure includeFields is an array
     const fields = Array.isArray(includeFields) ? includeFields : [];
 
@@ -30,7 +54,7 @@ export class ExportQueries {
     const userId = user.id;
     const domainFilter = domainNames.trim();
 
-    const fieldMap: { [key: string]: string } = {
+    const fieldMap: Record<string, string> = {
       domain_statuses: `
         COALESCE(
           jsonb_agg(DISTINCT jsonb_build_object('status_code', domain_statuses.status_code))
@@ -162,7 +186,7 @@ export class ExportQueries {
       LIMIT 10000
     `;
 
-    const result = await this.pgApiUtil.postToPgExecutor<any[]>(query, params).toPromise();
+    const result = await this.pgApiUtil.postToPgExecutor<ExportDomainRow>(query, params).toPromise();
 
     if (!result || !result.data) {
       return [];
@@ -171,16 +195,16 @@ export class ExportQueries {
     return this.flattenData(result.data);
   }
 
-  private flattenData(data: any[]): any[] {
-    return data.map((domain: any) => ({
+  private flattenData(data: ExportDomainRow[]): Record<string, unknown>[] {
+    return data.map((domain) => ({
       ...domain,
       registrar_name: domain.registrar?.name || '',
       registrar_url: domain.registrar?.url || '',
       ip_addresses: Array.isArray(domain.ip_addresses)
-        ? domain.ip_addresses.map((ip: any) => ip.ip_address).join(', ')
+        ? domain.ip_addresses.map((ip) => ip.ip_address).join(', ')
         : '',
       ssl_certificates: Array.isArray(domain.ssl_certificates)
-        ? domain.ssl_certificates.map((cert: any) => cert.issuer).join(', ')
+        ? domain.ssl_certificates.map((cert) => cert.issuer).join(', ')
         : '',
       whois_name: domain.whois_info?.name || '',
       whois_organization: domain.whois_info?.organization || '',
@@ -190,13 +214,13 @@ export class ExportQueries {
       whois_state: domain.whois_info?.state || '',
       whois_postal_code: domain.whois_info?.postal_code || '',
       tags: Array.isArray(domain.tags)
-        ? domain.tags.map((tag: any) => tag.name).join(', ')
+        ? domain.tags.map((tag) => tag.name).join(', ')
         : '',
       hosts: Array.isArray(domain.hosts)
-        ? domain.hosts.map((host: any) => host.isp).join(', ')
+        ? domain.hosts.map((host) => host.isp).join(', ')
         : '',
       dns_records: Array.isArray(domain.dns_records)
-        ? domain.dns_records.map((record: any) => `${record.record_type}: ${record.record_value}`).join('; ')
+        ? domain.dns_records.map((record) => `${record.record_type}: ${record.record_value}`).join('; ')
         : '',
       purchase_price: domain.domain_costings?.purchase_price || 0,
       current_value: domain.domain_costings?.current_value || 0,

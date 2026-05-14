@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, AfterViewInit, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, AfterViewInit, PLATFORM_ID, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -38,33 +38,31 @@ import { FeatureService } from '~/app/services/features.service';
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent implements OnInit, AfterViewInit {
+  supabaseService = inject(SupabaseService);
+  private databaseService = inject(DatabaseService);
+  private billingService = inject(BillingService);
+  private environmentService = inject(EnvService);
+  private cdr = inject(ChangeDetectorRef);
+  private featureService = inject(FeatureService);
+  private platformId = inject<object>(PLATFORM_ID);
+
   @ViewChild('notificationsOverlay') notificationsOverlay!: OverlayPanel;
-  notificationsVisible: boolean = false;
+  notificationsVisible = false;
   items: MenuItem[] = [];
   itemsWithSettings: MenuItem[] = [];
-  sidebarVisible: boolean = false;
-  settingsVisible: boolean = false;
-  isAuthenticated: boolean = false;
-  unreadNotificationsCount: number = 0;
+  sidebarVisible = false;
+  settingsVisible = false;
+  isAuthenticated = false;
+  unreadNotificationsCount = 0;
   userPlan: EnvironmentType | UserType | null = null;
   userPlanName = '';
-  planColor: string = 'primary';
+  planColor = 'primary';
 
   settingsEnabled$ = this.featureService.isFeatureEnabled('accountSettings');
   enableSignUp = false;
   private subscriptions: Subscription = new Subscription();
 
   public isSupabaseEnabled = this.databaseService.serviceType === 'supabase';
-
-  constructor(
-    public supabaseService: SupabaseService,
-    private databaseService: DatabaseService,
-    private billingService: BillingService,
-    private environmentService: EnvService,
-    private cdr: ChangeDetectorRef,
-    private featureService: FeatureService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-  ) {}
 
   ngOnInit() {
     // Set contents of menubar items

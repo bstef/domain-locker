@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { map, takeUntil, catchError } from 'rxjs/operators';
 import DatabaseService from './database.service';
@@ -14,17 +14,15 @@ export interface RegistrarWithCount {
   providedIn: 'root'
 })
 export class RegistrarAutocompleteService implements OnDestroy {
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+
   private registrarsWithCounts$ = new BehaviorSubject<RegistrarWithCount[]>([]);
   private isLoading$ = new BehaviorSubject<boolean>(false);
   private hasError$ = new BehaviorSubject<boolean>(false);
   private sortedTopRegistrars: string[] = [];
   private destroy$ = new Subject<void>();
   private hasLoaded = false;
-
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnDestroy(): void {
     this.destroy$.next();

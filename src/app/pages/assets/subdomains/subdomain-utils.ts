@@ -1,4 +1,10 @@
-import { Subdomain } from "~/app/../types/Database";
+interface SubdomainLike {
+  id?: string;
+  name: string;
+  sd_info?: string | null;
+  domain_name?: string;
+  domains?: { domain_name?: string };
+}
 
 /**
  * The subdomain info (from sd_info column) is stored as a stringified array of KV pairs.
@@ -7,26 +13,29 @@ import { Subdomain } from "~/app/../types/Database";
  * @param sdInfo 
  * @returns 
  */
-export const makeKVList = (sdInfo: any): { key: string; value: string }[] => {
+export const makeKVList = (sdInfo: unknown): { key: string; value: string }[] => {
   if (!sdInfo) return [];
 
+  let info: Record<string, unknown>;
   if (typeof sdInfo === 'string') {
-    try { sdInfo = JSON.parse(sdInfo); } catch (e) { return []; }
+    try { info = JSON.parse(sdInfo); } catch { return []; }
+  } else {
+    info = sdInfo as Record<string, unknown>;
   }
 
-  const results = [];
-  if (sdInfo['type']) results.push({ key: 'Type', value: `${sdInfo['type']} Record` });
-  if (sdInfo['ip']) results.push({ key: 'Value', value: sdInfo['ip'] });
-  if (sdInfo['ports'] && sdInfo['ports'].length) {
-    results.push({ key: 'Ports', value: sdInfo['ports'].join(', ') });
+  const results: { key: string; value: string }[] = [];
+  if (info['type']) results.push({ key: 'Type', value: `${info['type']} Record` });
+  if (info['ip']) results.push({ key: 'Value', value: String(info['ip']) });
+  if (Array.isArray(info['ports']) && info['ports'].length) {
+    results.push({ key: 'Ports', value: (info['ports'] as unknown[]).join(', ') });
   }
-  if (sdInfo['tags'] && sdInfo['tags'].length) {
-    results.push({ key: 'Tags', value: sdInfo['tags'].join(', ') });
+  if (Array.isArray(info['tags']) && info['tags'].length) {
+    results.push({ key: 'Tags', value: (info['tags'] as unknown[]).join(', ') });
   }
-  if (sdInfo['asn']) results.push({ key: 'ASN', value: sdInfo['asn'] });
-  if (sdInfo['asn_name']) results.push({ key: 'ASN Name', value: sdInfo['asn_name'] });
-  if (sdInfo['asn_range']) results.push({ key: 'ASN Range', value: sdInfo['asn_range'] });
-  if (sdInfo['country'] && sdInfo['country'] !== 'unknown') results.push({ key: 'Country', value: sdInfo['country'] });
+  if (info['asn']) results.push({ key: 'ASN', value: String(info['asn']) });
+  if (info['asn_name']) results.push({ key: 'ASN Name', value: String(info['asn_name']) });
+  if (info['asn_range']) results.push({ key: 'ASN Range', value: String(info['asn_range']) });
+  if (info['country'] && info['country'] !== 'unknown') results.push({ key: 'Country', value: String(info['country']) });
 
   return results;
 }
@@ -42,7 +51,7 @@ export const makeKVList = (sdInfo: any): { key: string; value: string }[] => {
  * @param subdomains 
  * @returns 
  */
-export const filterOutIgnoredSubdomains = (subdomains: any[], parentDomain?: string): any[] => {
+export const filterOutIgnoredSubdomains = <T extends { subdomain?: string }>(subdomains: T[], parentDomain?: string): T[] => {
   if (!subdomains || !subdomains.length) return [];
   return subdomains.filter(subdomain => {
     const name = subdomain.subdomain;
@@ -66,7 +75,7 @@ export const cleanSubdomain = (subdomain: string): string => {
 
 export const subdomainsReadyForSave = (
   subdomainNames: string[],
-  subdomainInfo: { subdomain: string; [key: string]: any }[],
+  subdomainInfo: { subdomain: string; [key: string]: unknown }[],
 ): { name: string; sd_info?: string | undefined; }[] => {
   return subdomainNames.map((sd: string) => {
     const subdomainData = subdomainInfo.find((info) => info.subdomain === sd);
@@ -77,7 +86,7 @@ export const subdomainsReadyForSave = (
   });
 }
 
-export const autoSubdomainsReadyForSave = (subdomainInfo: { subdomain: string; [key: string]: any }[]): { name: string; sd_info?: string | undefined; }[] => {
+export const autoSubdomainsReadyForSave = (subdomainInfo: { subdomain: string; [key: string]: unknown }[]): { name: string; sd_info?: string | undefined; }[] => {
   return subdomainInfo.map((info) => {
     return {
       name: cleanSubdomain(info.subdomain),
@@ -93,7 +102,7 @@ export const autoSubdomainsReadyForSave = (subdomainInfo: { subdomain: string; [
  * @param subdomains 
  * @returns 
  */
-export const groupSubdomains = (subdomains: any[]): { domain: string; subdomains: Subdomain[] }[] => {
+export const groupSubdomains = (subdomains: SubdomainLike[]): { domain: string; subdomains: SubdomainLike[] }[] => {
   const grouped = subdomains.reduce((acc, subdomain) => {
     const domainName = subdomain.domains?.domain_name;
 
@@ -122,7 +131,7 @@ export const groupSubdomains = (subdomains: any[]): { domain: string; subdomains
     });
 
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, SubdomainLike[]>);
 
   // Convert the grouped object into an array
   return Object.keys(grouped).map((domain) => ({

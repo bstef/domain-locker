@@ -7,6 +7,8 @@ import { REQUEST } from '@analogjs/router/tokens';
   providedIn: 'root'
 })
 export class TranslationService {
+  translateService = inject(TranslateService);
+
   private platformId = inject(PLATFORM_ID);
   private defaultLang = 'en';
 
@@ -18,7 +20,7 @@ export class TranslationService {
     { code: 'fr', name: 'Français', flag: '🇫🇷' }
   ];
 
-  constructor(public translateService: TranslateService) {
+  constructor() {
     this.setInitialLanguage();
   }
 

@@ -1,7 +1,7 @@
 // ~/app/services/supabase.service.ts
-import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { createClient, Factor, Session, SupabaseClient, User } from '@supabase/supabase-js';
+import { createClient, Factor, PostgrestError, SupabaseClient, User } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
 import { EnvService } from '~/app/services/environment.service';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
@@ -12,6 +12,11 @@ import { GlobalMessageService } from './messaging.service';
   providedIn: 'root',
 })
 export class SupabaseService {
+  private platformId = inject<object>(PLATFORM_ID);
+  private envService = inject(EnvService);
+  private errorHandler = inject(ErrorHandlerService);
+  private messagingService = inject(GlobalMessageService);
+
 
   public supabase!: SupabaseClient;
   private authStateSubject = new BehaviorSubject<boolean>(false);
@@ -20,12 +25,7 @@ export class SupabaseService {
   user$ = this.userSubject.asObservable();
   private token: string | null = null;
 
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private envService: EnvService,
-    private errorHandler: ErrorHandlerService,
-    private messagingService: GlobalMessageService,
-  ) {
+  constructor() {
     
     try {
 
@@ -159,7 +159,7 @@ export class SupabaseService {
     factors: Factor[];
   }> {
     // First verify credentials and reach AAL1
-    const { data, error } = await this.supabase.auth.signInWithPassword({
+    const { data: _data, error } = await this.supabase.auth.signInWithPassword({
       email,
       password,
       options: { captchaToken },
@@ -197,7 +197,7 @@ export class SupabaseService {
     if (challengeError) throw challengeError;
 
     // Verify the challenge with provided code
-    const { data, error: verifyError } = await this.supabase.auth.mfa.verify({
+    const { data: _data, error: verifyError } = await this.supabase.auth.mfa.verify({
       factorId,
       challengeId: challengeData.id,
       code
@@ -225,7 +225,7 @@ export class SupabaseService {
   }
 
   async signInWithGitHub(): Promise<void> {
-    const { data, error } = await this.supabase.auth.signInWithOAuth({
+    const { data: _data, error } = await this.supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
         redirectTo: `${window.location.origin}/auth-callback`,
@@ -240,7 +240,7 @@ export class SupabaseService {
   }
 
   async signInWithGoogle(): Promise<void> {
-    const { data, error } = await this.supabase.auth.signInWithOAuth({
+    const { data: _data, error } = await this.supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth-callback`
@@ -258,7 +258,7 @@ export class SupabaseService {
   }
 
   async signInWithFacebook(): Promise<void> {
-    const { data, error } = await this.supabase.auth.signInWithOAuth({
+    const { data: _data, error } = await this.supabase.auth.signInWithOAuth({
       provider: 'facebook',
       options: {
         redirectTo: `${window.location.origin}/auth-callback`
@@ -407,7 +407,7 @@ export class SupabaseService {
     }
   }
 
-  async getUserBillingInfo(): Promise<{ data: any; error: any }> {
+  async getUserBillingInfo(): Promise<{ data: Record<string, unknown> | null; error: PostgrestError | Error | null }> {
     const user = await this.getCurrentUser();
     if (!user) {
       return { data: null, error: new Error('User not authenticated') };
@@ -428,7 +428,7 @@ export class SupabaseService {
     throw new Error('Backup codes not implemented');
   }
 
-  async exportUserData(): Promise<any> {
+  async exportUserData(): Promise<unknown> {
     // TODO: Implement data export logic
     // This will depend on what data you're storing for users
     throw new Error('Data export not implemented');
@@ -450,7 +450,7 @@ export class SupabaseService {
     if (domainErr) {
       throw domainErr;
     }
-    const domainIds = domainRows?.map((d: any) => d.id) || [];
+    const domainIds = domainRows?.map((d: { id: string }) => d.id) || [];
   
     // Domain-based tables use domain_id
     const domainBasedTablesAll = [
@@ -530,7 +530,7 @@ export class SupabaseService {
         'Data Removed',
         'We\'ve removed all of your data from our systems, and will not proceed to delete your account.'
       );
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler.handleError({
         error: err,
         message: 'Failed to delete user data',
@@ -645,7 +645,7 @@ export class SupabaseService {
     try {
       const { data: user } = await this.supabase.auth.getUser();
       const session = await this.supabase.auth.getSession();
-      const userInfo = await this.supabase.from('user_info').select('current_plan').single();
+      const _userInfo = await this.supabase.from('user_info').select('current_plan').single();
   
       // Check if session expired
       if (!session || !session.data.session) {
@@ -710,7 +710,7 @@ export class SupabaseService {
       if (billingError) {
         throw billingError;
       }
-      const currentPlan = billingInfo?.current_plan || 'free';
+      const currentPlan = (billingInfo?.['current_plan'] as string) || 'free';
 
       if (currentPlan === 'free' || currentPlan === 'hobby') {
         // Get domain count

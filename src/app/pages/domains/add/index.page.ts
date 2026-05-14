@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -31,6 +31,19 @@ import { RegistrarAutocompleteService } from '~/app/services/registrar-autocompl
   styleUrls: ['./add.page.scss']
 })
 export default class AddDomainComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
+  private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
+  private databaseService = inject(DatabaseService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private envService = inject(EnvService);
+  private errorHandler = inject(ErrorHandlerService);
+  private hitCountingService = inject(HitCountingService);
+  private cdr = inject(ChangeDetectorRef);
+  registrarAutocomplete = inject(RegistrarAutocompleteService);
+
   public domainForm!: FormGroup;
   public activeIndex = 0;
   public isProcessing = false;
@@ -42,7 +55,7 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   private existingDomains: string[] = [];
   public showDomainError = false;
   public readonly notificationOptions = notificationTypes;
-  private subdomainInfo: { subdomain: string; [key: string]: any }[] = [];
+  private subdomainInfo: { subdomain: string; [key: string]: unknown }[] = [];
   public initialDomain = '';
 
   public incompleteDomainInfo = false;
@@ -63,21 +76,6 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
       command: () => this.confirmDiscard()
     }
   ];
-
-  constructor(
-    private fb: FormBuilder,
-    private http: HttpClient,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService,
-    private databaseService: DatabaseService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private envService: EnvService,
-    private errorHandler: ErrorHandlerService,
-    private hitCountingService: HitCountingService,
-    private cdr: ChangeDetectorRef,
-    public registrarAutocomplete: RegistrarAutocompleteService,
-  ) {}
 
   ngOnInit(): void {
     this.initialDomain = this.route.snapshot.queryParamMap.get('domain') || '';
@@ -182,7 +180,7 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   }
 
   private domainExistsValidator(): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
+    return (control: AbstractControl): Record<string, boolean> | null => {
       const domain = control.value?.toLowerCase();
       if (domain && this.existingDomains.includes(domain)) {
         return { 'domainExists': true };
@@ -428,7 +426,7 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
    * Validator for tags
    */
   private tagsValidator(): ValidatorFn {
-    return (control: AbstractControl): Record<string, any> | null => {
+    return (control: AbstractControl): Record<string, boolean | string[]> | null => {
       const tags = control.value as string[];
 
       if (tags.length > 8) {
@@ -546,7 +544,7 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   /**
    * Handles general errors
    */
-  private handleError(error: any): void {
+  private handleError(error: unknown): void {
 
     this.errorHandler.handleError({
       error,

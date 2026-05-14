@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, Inject, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, ViewChild, inject, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SupabaseService } from '~/app/services/supabase.service';
@@ -35,14 +35,26 @@ import { NgxTurnstileModule, NgxTurnstileComponent } from 'ngx-turnstile';
     }
   `]
 })
-export default class LoginPageComponent implements OnInit {
+export default class LoginPageComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private supabaseService = inject(SupabaseService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  private messagingService = inject(GlobalMessageService);
+  private errorHandlerService = inject(ErrorHandlerService);
+  private featureService = inject(FeatureService);
+  private environmentService = inject(EnvService);
+  private hitCountingService = inject(HitCountingService);
+  private platformId = inject<object>(PLATFORM_ID);
+
   isLogin = true;
   form: FormGroup;
   errorMessage = '';
   successMessage = '';
   showLoader = false;
   showWelcomeCard = false;
-  isAuthenticated: boolean = false;
+  isAuthenticated = false;
   showResendEmail = false;
   showPasswordResetForm = false;
   showNewPasswordSetForm = false;
@@ -55,7 +67,7 @@ export default class LoginPageComponent implements OnInit {
   requireMFA = false;
   factorId: string | null = null;
   challengeId: string | null = null;
-  partialSession: any;
+  partialSession: unknown;
   isDemoInstance = false;
 
   @ViewChild(NgxTurnstileComponent) turnstile!: NgxTurnstileComponent;
@@ -66,19 +78,7 @@ export default class LoginPageComponent implements OnInit {
 
   enableSocialLogin$ = this.featureService.isFeatureEnabled('enableSocialLogin');
 
-  constructor(
-    private fb: FormBuilder,
-    private supabaseService: SupabaseService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-    private messagingService: GlobalMessageService,
-    private errorHandlerService: ErrorHandlerService,
-    private featureService: FeatureService,
-    private environmentService: EnvService,
-    private hitCountingService: HitCountingService,
-    @Inject(PLATFORM_ID) private platformId: Object,
-  ) {
+  constructor() {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -87,7 +87,7 @@ export default class LoginPageComponent implements OnInit {
       acceptTerms: [false]
     });
 
-    this.turnstileSiteKey = this.environmentService.getEnvVar('DL_TURNSTILE_KEY', undefined);
+    this.turnstileSiteKey = this.environmentService.getEnvVar('DL_TURNSTILE_KEY') || '';
   }
 
   ngOnInit() {
@@ -169,8 +169,8 @@ export default class LoginPageComponent implements OnInit {
       await this.supabaseService.setPassword(newPassword);
       this.successMessage = 'Your password has been updated. Please log in with your new password.';
       this.showNewPasswordSetForm = false;
-    } catch (error: any) {
-      this.errorMessage = error.message || 'Failed to set new password. Please try again.';
+    } catch (error) {
+      this.errorMessage = (error as Error)?.message || 'Failed to set new password. Please try again.';
     } finally {
       this.showLoader = false;
     }
@@ -233,7 +233,7 @@ export default class LoginPageComponent implements OnInit {
     }
   }
 
-  passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
+  passwordMatchValidator(control: AbstractControl): Record<string, boolean> | null {
     const password = this.form.get('password')?.value;
     const confirmPassword = control.value;
     return password === confirmPassword ? null : { 'passwordMismatch': true };
@@ -253,7 +253,7 @@ export default class LoginPageComponent implements OnInit {
     try {
       this.hitCountingService.trackEvent('auth_login_start', { method: 'social', provider: 'github' });
       await this.supabaseService.signInWithGitHub();
-    } catch (error: any) {
+    } catch (error) {
       this.errorHandlerService.handleError({ error, message: 'Failed to sign in with GitHub', showToast: true, location: 'login' });
     }
   }
@@ -262,7 +262,7 @@ export default class LoginPageComponent implements OnInit {
     try {
       this.hitCountingService.trackEvent('auth_login_start', { method: 'social', provider: 'google' });
       await this.supabaseService.signInWithGoogle();
-    } catch (error: any) {
+    } catch (error) {
       this.errorHandlerService.handleError({
         error,
         message: 'Failed to sign in with Google',
@@ -276,7 +276,7 @@ export default class LoginPageComponent implements OnInit {
     try {
       this.hitCountingService.trackEvent('auth_login_start', { method: 'social', provider: 'facebook' });
       await this.supabaseService.signInWithFacebook();
-    } catch (error: any) {
+    } catch (error) {
       this.errorHandlerService.handleError({
         error,
         message: 'Failed to sign in with Facebook',
@@ -299,8 +299,8 @@ export default class LoginPageComponent implements OnInit {
       this.successMessage = 'Password reset email sent successfully.';
       this.errorMessage = '';
       this.showPasswordResetForm = false;
-    } catch (error: any) {
-      this.errorMessage = error.message || 'Failed to send password reset email. Please try again.';
+    } catch (error) {
+      this.errorMessage = (error as Error)?.message || 'Failed to send password reset email. Please try again.';
       this.successMessage = '';
     } finally {
       this.showLoader = false;
@@ -454,7 +454,7 @@ export default class LoginPageComponent implements OnInit {
       this.errorMessage = '';
       this.showResendEmail = false;
       this.showLoader = false;
-    } catch (error: any) {
+    } catch {
       this.errorMessage = 'Failed to resend verification email. Please try again.';
       this.showLoader = false;
     }

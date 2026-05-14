@@ -20,29 +20,31 @@
         selectedItemsLabel="{0} fields shown"
         [style]="{minWidth: '200px'}"
         placeholder="Choose visible fields"
-      />
+        />
     </div>
     <!-- Sort Select Dropdown -->
-    <div class="flex flex-col gap-1" *ngIf="selectedLayout">
-      <label for="field-filters" class="text-xs text-surface-400">Sort</label>
-      <p-dropdown
-        id="field-filters"
-        [options]="sortOptions"
-        [(ngModel)]="sortOrder"
-        (onChange)="onSortChange($event)"
-        optionLabel="label"
-        selectedItemsLabel="sorted by {0}"
-        [style]="{minWidth: '160px'}"
-      />
-    </div>
+    @if (selectedLayout) {
+      <div class="flex flex-col gap-1">
+        <label for="field-filters" class="text-xs text-surface-400">Sort</label>
+        <p-dropdown
+          id="field-filters"
+          [options]="sortOptions"
+          [(ngModel)]="sortOrder"
+          (onChange)="onSortChange($event)"
+          optionLabel="label"
+          selectedItemsLabel="sorted by {0}"
+          [style]="{minWidth: '160px'}"
+          />
+      </div>
+    }
     <!-- Layout Toggle -->
     <div class="flex flex-col gap-1">
       <label for="field-filters" class="text-xs text-surface-400">Layout</label>
-      <p-selectButton 
+      <p-selectButton
         [(ngModel)]="selectedLayout"
         [options]="layoutOptions"
         (onChange)="onLayoutChange($event.value)"
-        optionLabel="label" 
+        optionLabel="label"
         optionValue="value">
         <ng-template let-option pTemplate>
           <i [class]="option.icon"></i>
@@ -51,23 +53,24 @@
     </div>
   </div>
   <!-- Add Domain Button -->
-  <p-splitButton
-    *ngIf="showAddButton"
-    label="Add Domain"
-    (onClick)="showQuickAddDialog()"
-    icon="pi pi-plus"
-    class="w-fit"
-    aria-label="Add Domain"
-    [model]="addButtonLinks"
-  />
+  @if (showAddButton) {
+    <p-splitButton
+      label="Add Domain"
+      (onClick)="showQuickAddDialog()"
+      icon="pi pi-plus"
+      class="w-fit"
+      aria-label="Add Domain"
+      [model]="addButtonLinks"
+      />
+  }
 </div>
 
 
-<p-dialog 
-    header="Add New Domain" 
-    [modal]="true"
-    [(visible)]="quickAddDialogOpen"  
-    [breakpoints]="{ '1199px': '50vw', '575px': '90vw' }" 
-    [maximizable]="true">
-    <app-quick-add-domain ($afterSave)="afterDomainAdded($event)" [isInModal]="true" />
+<p-dialog
+  header="Add New Domain"
+  [modal]="true"
+  [(visible)]="quickAddDialogOpen"
+  [breakpoints]="{ '1199px': '50vw', '575px': '90vw' }"
+  [maximizable]="true">
+  <app-quick-add-domain ($afterSave)="afterDomainAdded($event)" [isInModal]="true" />
 </p-dialog>

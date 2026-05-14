@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -7,7 +7,7 @@ import DatabaseService from '~/app/services/database.service';
 import { DbDomain, Link, SaveDomainData } from '~/app/../types/Database';
 import { notificationTypes, NotificationType } from '~/app/constants/notification-types';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule } from '@angular/forms';
 import { GlobalMessageService } from '~/app/services/messaging.service';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
@@ -19,10 +19,19 @@ import { Subject, takeUntil } from 'rxjs';
   templateUrl: './edit-domain.page.html',
   styleUrls: ['./edit-domain.page.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PrimeNgModule],
+  imports: [ReactiveFormsModule, PrimeNgModule],
   providers: [MessageService]
 })
 export default class EditDomainComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
+  private globalMessageService = inject(GlobalMessageService);
+  private cdr = inject(ChangeDetectorRef);
+  registrarAutocomplete = inject(RegistrarAutocompleteService);
+
   domainForm: FormGroup;
   domain: DbDomain | undefined;
   notificationTypes: NotificationType[] = notificationTypes;
@@ -33,16 +42,7 @@ export default class EditDomainComponent implements OnInit, OnDestroy {
   public registrarLoadFailed = false;
   private destroy$ = new Subject<void>();
 
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService,
-    private globalMessageService: GlobalMessageService,
-    private cdr: ChangeDetectorRef,
-    public registrarAutocomplete: RegistrarAutocompleteService,
-  ) {
+  constructor() {
     this.domainForm = this.fb.group({
       registrar: ['', Validators.required],
       expiryDate: [null, Validators.required],
@@ -170,9 +170,9 @@ export default class EditDomainComponent implements OnInit, OnDestroy {
           notes: formValue.notes,
         },
         tags: formValue.tags,
-        notifications: Object.entries(formValue.notifications).map(([notification_type, is_enabled]) => ({
-          notification_type,
-          is_enabled: is_enabled as boolean
+        notifications: Object.entries(formValue.notifications).map(([type, isEnabled]) => ({
+          type,
+          isEnabled: isEnabled as boolean
         })),
         subdomains,
         links,  
@@ -200,7 +200,7 @@ export default class EditDomainComponent implements OnInit, OnDestroy {
     }
   }
 
-  createLinkGroup(name: string = '', url: string = '', description: string = ''): FormGroup {
+  createLinkGroup(name = '', url = '', description = ''): FormGroup {
     return this.fb.group({
       link_name: [name, [Validators.required, Validators.maxLength(255)]],
       link_url: [

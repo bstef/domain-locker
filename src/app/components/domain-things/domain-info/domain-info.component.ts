@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DomainUtils } from '~/app/services/domain-utils.service';
@@ -17,22 +17,25 @@ import { CurrencyService } from '~/app/services/currency.service';
   styleUrls: ['./domain-info.component.scss'],
 })
 export class DomainInfoComponent implements OnInit {
-  @Input() domain: DbDomain | null = null;
+  domainUtils = inject(DomainUtils);
+  currencyService = inject(CurrencyService);
 
-  constructor(
-    public domainUtils: DomainUtils,
-    public currencyService: CurrencyService
-  ) {}
+  @Input() domain: DbDomain | null = null;
 
   ngOnInit() {
     // Fallback in case we really fuck up the types
-    if (this.domain && (this.domain as any).status) {
-      this.domain.statuses = this.makeStatuses((this.domain as any).status);
+    type LegacyDomain = DbDomain & {
+      status?: string[];
+      dates?: { expiry_date?: Date; creation_date?: Date; updated_date?: Date };
+    };
+    const legacy = this.domain as LegacyDomain | null;
+    if (legacy && legacy.status) {
+      this.domain!.statuses = this.makeStatuses(legacy.status);
     }
-    if (this.domain && !this.domain.expiry_date && (this.domain as any).dates) {
-      this.domain.expiry_date = (this.domain as any).dates.expiry_date;
-      this.domain.registration_date = (this.domain as any).dates.creation_date;
-      this.domain.updated_date = (this.domain as any).dates.updated_date;
+    if (legacy && !legacy.expiry_date && legacy.dates) {
+      this.domain!.expiry_date = legacy.dates.expiry_date;
+      this.domain!.registration_date = legacy.dates.creation_date;
+      this.domain!.updated_date = legacy.dates.updated_date;
     }
   }
 

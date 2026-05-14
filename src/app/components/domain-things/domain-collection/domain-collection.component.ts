@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, OnChanges, SimpleChanges, Output, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, OnChanges, SimpleChanges, Output, ViewChild, inject } from '@angular/core';
+
 import Fuse from 'fuse.js';
 import { DomainCardComponent } from '~/app/components/domain-things/domain-card/domain-card.component';
 import { DomainListComponent } from '~/app/components/domain-things/domain-list/domain-list.component';
@@ -15,30 +15,31 @@ import { TranslateModule } from '@ngx-translate/core';
     DomainCardComponent,
     DomainListComponent,
     PrimeNgModule,
-    CommonModule,
     FieldVisibilityFilterComponent,
     TranslateModule
-  ],
+],
   templateUrl: './domain-collection.component.html',
 })
 export class DomainCollectionComponent implements OnInit, OnChanges {
+  private cdr = inject(ChangeDetectorRef);
+
   @Input() domains: DbDomain[] = [];
-  @Input() showAddButton: boolean = true;
-  @Input() showFooter: boolean = true;
+  @Input() showAddButton = true;
+  @Input() showFooter = true;
   @Input() preFilteredText: string | undefined;
-  @Input() loading: boolean = false;
+  @Input() loading = false;
   
-  @Input() triggerReload: () => void = () => {};
+  @Input() triggerReload: () => void = () => { /* no-op */ };
   @Output() $triggerReload = new EventEmitter();
 
   @ViewChild(FieldVisibilityFilterComponent)
   filtersComp!: FieldVisibilityFilterComponent;
 
   filteredDomains: DbDomain[] = [];
-  isGridLayout: boolean = true;
+  isGridLayout = true;
   visibleFields: FieldOption[] = [];
-  searchTerm: string = '';
-  sortOrder: string = 'date';
+  searchTerm = '';
+  sortOrder = 'date';
   private fuse!: Fuse<DbDomain>;
 
   allColumns = [
@@ -57,11 +58,7 @@ export class DomainCollectionComponent implements OnInit, OnChanges {
     { field: 'sub_domains', header: 'DOMAINS.DOMAIN_COLLECTION.COLUMN.SUB_DOMAINS', width: 200 },
   ];
 
-  visibleColumns: any[] = [];
-
-  constructor(
-    private cdr: ChangeDetectorRef,
-  ) {}
+  visibleColumns: { field: string; header: string; width: number }[] = [];
 
   ngOnInit() {
     this.filteredDomains = this.domains;
@@ -125,7 +122,7 @@ export class DomainCollectionComponent implements OnInit, OnChanges {
   }
 
   mapFieldToColumn(fieldValue: string): string {
-    const fieldToColumnMap: { [key: string]: string } = {
+    const fieldToColumnMap: Record<string, string> = {
       'domainName': 'domain_name',
       'registrar': 'registrar',
       'expiryDate': 'expiry_date',
@@ -151,7 +148,7 @@ export class DomainCollectionComponent implements OnInit, OnChanges {
     this.isGridLayout = isGrid;
   }
 
-  reloadDomains(event: any) {
+  reloadDomains(event: string) {
     setTimeout(() => {
       this.$triggerReload.emit(event);
       this.cdr.detectChanges();

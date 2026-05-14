@@ -1,22 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { ActivatedRoute } from '@angular/router';
 import { GlobalMessageService } from '~/app/services/messaging.service';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule],
+  imports: [PrimeNgModule],
   templateUrl: './error.page.html',
   styles: [``],
 })
 export default class ErrorPage implements OnInit {
-  errorMessage?: string;
+  private route = inject(ActivatedRoute);
+  private messagingService = inject(GlobalMessageService);
 
-  constructor(
-    private route: ActivatedRoute,
-    private messagingService: GlobalMessageService,
-  ) {}
+  errorMessage?: string;
 
   ngOnInit(): void {
     this.errorMessage = this.route.snapshot.queryParamMap.get('errorMessage') || undefined;

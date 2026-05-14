@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { DemoComponent } from '~/app/components/home-things/demo/demo.component';
 import { CtaComponent } from '~/app/components/home-things/cta/cta.component';
@@ -33,7 +33,7 @@ import { screenshots } from '~/app/pages/about/data/feature-comparison';
     <app-cta />
   `,
   standalone: true,
-  imports: [CommonModule, PrimeNgModule, DemoComponent, CtaComponent, ScreenshotsComponent ]
+  imports: [PrimeNgModule, DemoComponent, CtaComponent, ScreenshotsComponent]
 })
 export default class DemoPage {
   public screenshots = screenshots;

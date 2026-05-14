@@ -22,7 +22,7 @@ const parseDate = (date: string | null | undefined): string | undefined => {
   }
 
   // DD/MM/YYYY or DD.MM.YYYY format (day > 12 = definitely day-first)
-  const match = cleaned.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{4})/);
+  const match = cleaned.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/);
   if (match) {
     const [, a, b, year] = match.map(Number);
     const day = a > 12 ? a : (b > 12 ? b : a);
@@ -47,6 +47,13 @@ interface WhoisResult {
   whois: Partial<Contact>;
   abuse: Partial<Abuse>;
 }
+
+type RawWhois = Record<string, unknown> & {
+  error?: unknown;
+  registrar?: string | { name?: string } | null;
+  registrarName?: string;
+  dates?: Record<string, string | undefined>;
+};
 
 let rdapBootstrapCache: Record<string, string> | null = null;
 
@@ -75,8 +82,8 @@ export const getWhoisInfo = async (domain: string): Promise<WhoisResult | null> 
   try {
     const WHOIS_TIMEOUT_MS = 8000;
     const raw = await Promise.race([
-      whois(trimmed),
-      new Promise((_, reject) =>
+      whois(trimmed) as Promise<RawWhois>,
+      new Promise<RawWhois>((_, reject) =>
         setTimeout(() => reject(new Error(`WHOIS timeout after ${WHOIS_TIMEOUT_MS}ms for ${domain}`)), WHOIS_TIMEOUT_MS)
       )
     ]);
@@ -99,67 +106,72 @@ export const getWhoisInfo = async (domain: string): Promise<WhoisResult | null> 
 };
 
 /* Converts mystery random whois structure into WhoisResult */
-const normalizeWhoisJson = (raw: any): WhoisResult => {
+const normalizeWhoisJson = (raw: RawWhois): WhoisResult => {
+  const str = (key: string): string | undefined => {
+    const v = raw[key];
+    return typeof v === 'string' ? v : undefined;
+  };
+  const registrarObj = (typeof raw.registrar === 'object' && raw.registrar) ? raw.registrar : undefined;
   const registrarName =
-    raw.registrarName ||
-    (typeof raw.registrar === 'string' ? raw.registrar : raw?.registrar?.name) ||
+    str('registrarName') ||
+    (typeof raw.registrar === 'string' ? raw.registrar : registrarObj?.name) ||
     'Unknown';
   return {
-    domainName: raw.domainName || null,
+    domainName: str('domainName') || null,
     registrar: {
       name: registrarName,
-      id: raw.registrarIanaId || null,
-      url: raw.registrarUrl || null,
-      registryDomainId: raw.registryDomainId || null,
+      id: str('registrarIanaId'),
+      url: str('registrarUrl'),
+      registryDomainId: str('registryDomainId'),
     },
     dates: {
       creation_date: parseDate(
-        raw.creationDate ||
-        raw.createdDate ||
-        raw.created ||
-        raw.domainRegistrationDate ||
-        raw.registered ||
-        raw.registrationDate ||
-        (raw.dates && (raw.dates.creation_date || raw.dates.created))
+        str('creationDate') ||
+        str('createdDate') ||
+        str('created') ||
+        str('domainRegistrationDate') ||
+        str('registered') ||
+        str('registrationDate') ||
+        (raw.dates && (raw.dates['creation_date'] || raw.dates['created']))
       ),
       updated_date: parseDate(
-        raw.updatedDate ||
-        raw.lastUpdated ||
-        raw.updated ||
-        raw.domainLastUpdated ||
-        raw.lastModified ||
-        raw.modified ||
-        (raw.dates && (raw.dates.updated_date || raw.dates.updated))
+        str('updatedDate') ||
+        str('lastUpdated') ||
+        str('updated') ||
+        str('domainLastUpdated') ||
+        str('lastModified') ||
+        str('modified') ||
+        (raw.dates && (raw.dates['updated_date'] || raw.dates['updated']))
       ),
       expiry_date: parseDate(
-        raw.expiryDate ||
-        raw.registrarRegistrationExpirationDate ||
-        raw.expiresDate ||
-        raw.expirationDate ||
-        raw.domainExpirationDate ||
-        raw.expiry ||
-        raw.expires ||
-        raw.expire ||
-        raw.paidUntil ||
-        raw.paid_until ||
-        (raw.dates && (raw.dates.expiry_date || raw.dates.expires))
+        str('expiryDate') ||
+        str('registrarRegistrationExpirationDate') ||
+        str('expiresDate') ||
+        str('expirationDate') ||
+        str('domainExpirationDate') ||
+        str('expiry') ||
+        str('expires') ||
+        str('expire') ||
+        str('paidUntil') ||
+        str('paid_until') ||
+        (raw.dates && (raw.dates['expiry_date'] || raw.dates['expires']))
       ),
     },
     whois: {
-      name: raw.registrantName || null,
-      organization: raw.registrantOrganization || null,
-      street: raw.registrantStreet || null,
-      city: raw.registrantCity || null,
-      country: raw.registrantCountry || null,
-      state: raw.registrantStateProvince || null,
-      postal_code: raw.registrantPostalCode || null,
+      name: str('registrantName'),
+      organization: str('registrantOrganization'),
+      street: str('registrantStreet'),
+      city: str('registrantCity'),
+      country: str('registrantCountry'),
+      state: str('registrantStateProvince'),
+      postal_code: str('registrantPostalCode'),
     },
     abuse: {
-      email: raw.abuseContactEmail || raw.registrarAbuseContactEmail || null,
-      phone: raw.abuseContactPhone || raw.registrarAbuseContactPhone || null,
+      email: str('abuseContactEmail') || str('registrarAbuseContactEmail'),
+      phone: str('abuseContactPhone') || str('registrarAbuseContactPhone'),
     },
-    status: parseStatusArray(raw.domainStatus || raw.status),
-    dnssec: raw.dnssec || null,
+    status: parseStatusArray(str('domainStatus') || str('status')),
+    dnssec: str('dnssec') || null,
   };
 }
 
@@ -206,7 +218,7 @@ const getRdapUrlForTld = async (tld: string): Promise<string | null> => {
     if (!rdapBootstrapCache) {
       const res = await fetch(RDAP_BOOTSTRAP_URL);
       if (!res.ok) throw new Error(`Failed to fetch IANA RDAP data`);
-      const json = await res.json();
+      const json = await res.json() as { services: [string[], string[]][] };
 
       rdapBootstrapCache = {};
       for (const [tlds, urls] of json.services) {
@@ -237,7 +249,7 @@ const tryNativeWhois = async (domain: string): Promise<WhoisResult | null> => {
       return null;
     }
 
-    const { stdout, stderr } = await execAsync(`whois ${sanitizedDomain}`, { timeout: 10000 });
+    const { stdout } = await execAsync(`whois ${sanitizedDomain}`, { timeout: 10000 });
 
     if (!stdout || stdout.length < 50) {
       log.warn(`Native whois returned insufficient data for ${domain}: ${stdout?.length || 0} bytes`);
@@ -247,7 +259,6 @@ const tryNativeWhois = async (domain: string): Promise<WhoisResult | null> => {
     // Parse key-value pairs from whois output
     const lines = stdout.split(/\r?\n/);  // Handle both \n and \r\n line endings
     const data: Record<string, string> = {};
-    let lineCount = 0;
 
     for (const line of lines) {
       const trimmedLine = line.trim();
@@ -255,7 +266,6 @@ const tryNativeWhois = async (domain: string): Promise<WhoisResult | null> => {
 
       const match = trimmedLine.match(/^([^:]+):\s*(.+)$/);
       if (match) {
-        lineCount++;
         const key = match[1].trim().toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_');
         const value = match[2].trim();
         if (value && !value.startsWith('REDACTED')) {
@@ -302,6 +312,24 @@ const tryNativeWhois = async (domain: string): Promise<WhoisResult | null> => {
   }
 };
 
+type VCardEntry = [string, Record<string, unknown>, string, string];
+
+interface RdapEntity {
+  roles?: string[];
+  vcardArray?: [string, VCardEntry[]];
+  publicIds?: { type: string; identifier: string }[];
+  entities?: RdapEntity[];
+}
+
+interface RdapResponse {
+  ldhName?: string;
+  handle?: string;
+  status?: string[];
+  events?: { eventAction: string; eventDate: string }[];
+  entities?: RdapEntity[];
+  secureDNS?: { zoneSigned?: boolean };
+}
+
 const tryRdapLookup = async (domain: string): Promise<WhoisResult | null> => {
   try {
     const tld = domain.split('.').pop();
@@ -315,27 +343,27 @@ const tryRdapLookup = async (domain: string): Promise<WhoisResult | null> => {
 
     const res = await fetch(`${rdapBase}/domain/${domain}`);
     if (!res.ok) throw new Error(`RDAP request failed with ${res.status}`);
-    const json = await res.json();
+    const json = await res.json() as RdapResponse;
 
-    const events = (json.events || []) as Array<{ eventAction: string; eventDate: string }>;
+    const events = json.events || [];
     const getEvent = (action: string) =>
       events.find((e) => e.eventAction === action)?.eventDate || null;
 
     // Find registrar entity
-    const registrarEntity = json.entities?.find((e: any) => e.roles?.includes('registrar'));
+    const registrarEntity = json.entities?.find((e) => e.roles?.includes('registrar'));
     const registrarName = registrarEntity?.vcardArray?.[1]
-      ?.find((v: any[]) => v[0] === 'fn')?.[3] || null;
+      ?.find((v) => v[0] === 'fn')?.[3] || null;
     const registrarIanaId = registrarEntity?.publicIds
-      ?.find((p: any) => p.type === 'IANA Registrar ID')?.identifier || null;
+      ?.find((p) => p.type === 'IANA Registrar ID')?.identifier || null;
 
     // Find abuse contact entity
-    const abuseEntity = json.entities?.flatMap((e: any) =>
-      e.entities?.filter((sub: any) => sub.roles?.includes('abuse')) || []
+    const abuseEntity = json.entities?.flatMap((e) =>
+      e.entities?.filter((sub) => sub.roles?.includes('abuse')) || []
     )?.[0];
     const abuseEmail = abuseEntity?.vcardArray?.[1]
-      ?.find((v: any[]) => v[0] === 'email')?.[3] || null;
+      ?.find((v) => v[0] === 'email')?.[3] || null;
     const abusePhone = abuseEntity?.vcardArray?.[1]
-      ?.find((v: any[]) => v[0] === 'tel')?.[3]?.replace('tel:', '') || null;
+      ?.find((v) => v[0] === 'tel')?.[3]?.replace('tel:', '') || null;
 
     log.success(`Got WHOIS data via RDAP for ${domain}`);
     return {

@@ -1,15 +1,15 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
-import { catchError, forkJoin, from, map, Observable, of } from 'rxjs';
-import { Dns, SaveDomainData } from '~/app/../types/Database';
+import { catchError, from, map, Observable } from 'rxjs';
+import { SaveDomainData } from '~/app/../types/Database';
 
 export class DnsQueries {
   constructor(
     private supabase: SupabaseClient,
-    private handleError: (error: any) => Observable<never>,
+    private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
   ) {}
 
-  getDnsRecords(recordType: string): Observable<any[]> {
+  getDnsRecords(recordType: string): Observable<{ record_value: string; domains: string[] }[]> {
     return from(this.supabase
       .from('dns_records')
       .select(`
@@ -22,7 +22,7 @@ export class DnsQueries {
         if (error) throw error;
         return data.map(record => ({
           record_value: record.record_value,
-          // @ts-ignore: Check if record.domains is an object, and handle accordingly
+          // @ts-expect-error record.domains shape varies
           domains: record.domains ? [record.domains.domain_name] : []
         }));
       }),

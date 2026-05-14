@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, inject, OnInit } from '@angular/core';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { SupabaseService } from '~/app/services/supabase.service';
 import { GlobalMessageService } from '~/app/services/messaging.service';
@@ -22,22 +22,20 @@ interface DangerCard {
 @Component({
   standalone: true,
   selector: 'app-delete-account',
-  imports: [CommonModule, PrimeNgModule],
+  imports: [PrimeNgModule],
   templateUrl: './delete-data.component.html',
   styles: [``]
 })
-export class DeleteAccountComponent {
-  writePermissions: boolean = false;
-  allowDataDeletion: boolean = false;
-  @Input() isInPage: boolean = true;
-  
-  constructor(
-      private supabaseService: SupabaseService,
-      private messageService: GlobalMessageService,
-      private errorHandler: ErrorHandlerService,
-      private confirmationService: ConfirmationService,
-      private featureService: FeatureService,
-    ) {}
+export class DeleteAccountComponent implements OnInit {
+  private supabaseService = inject(SupabaseService);
+  private messageService = inject(GlobalMessageService);
+  private errorHandler = inject(ErrorHandlerService);
+  private confirmationService = inject(ConfirmationService);
+  private featureService = inject(FeatureService);
+
+  writePermissions = false;
+  allowDataDeletion = false;
+  @Input() isInPage = true;
 
     ngOnInit() {
       (this.featureService.isFeatureEnabled('writePermissions')).subscribe((isEnabled) => {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -37,6 +37,14 @@ import { NotFoundComponent } from '~/app/components/misc/domain-not-found.compon
   templateUrl: './[domain].page.html',
 })
 export default class DomainDetailsPage implements OnInit {
+  private route = inject(ActivatedRoute);
+  private databaseService = inject(DatabaseService);
+  domainUtils = inject(DomainUtils);
+  private featureService = inject(FeatureService);
+  private router = inject(Router);
+  private globalMessageService = inject(GlobalMessageService);
+  private errorHandler = inject(ErrorHandlerService);
+
   domain: DbDomain | null = null;
   domainId: string | null = null;
   name: string | null = null;
@@ -44,16 +52,6 @@ export default class DomainDetailsPage implements OnInit {
   monitorEnabled$ = this.featureService.isFeatureEnabled('domainMonitor');
 
   shouldMountCalendar = false;
-
-  constructor(
-    private route: ActivatedRoute,
-    private databaseService: DatabaseService,
-    public domainUtils: DomainUtils,
-    private featureService: FeatureService,
-    private router: Router,
-    private globalMessageService: GlobalMessageService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
 
   ngOnInit() {
     this.route.params.pipe(

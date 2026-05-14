@@ -1,5 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { ConfirmationService } from 'primeng/api';
@@ -15,28 +15,26 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 @Component({
   standalone: true,
   selector: 'app-tag-domains',
-  imports: [CommonModule, PrimeNgModule, DomainCollectionComponent, TagEditorComponent, TagPickListComponent],
+  imports: [PrimeNgModule, DomainCollectionComponent, TagEditorComponent, TagPickListComponent],
   templateUrl: './tag.page.html',
   styleUrl: '../tags.scss',
   providers: [ConfirmationService]
 })
 export default class TagDomainsPageComponent implements OnInit {
-  tagName: string = '';
-  domains: DbDomain[] = [];
-  loading: boolean = true;
-  editDialogOpen: boolean = false;
-  addDomainsDialogOpen: boolean = false;
-  tag: Tag | any = {};
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private databaseService = inject(DatabaseService);
+  private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
+  private errorHandler = inject(ErrorHandlerService);
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private databaseService: DatabaseService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService,
-    private errorHandler: ErrorHandlerService,
-    private cdr: ChangeDetectorRef,
-  ) {}
+  tagName = '';
+  domains: DbDomain[] = [];
+  loading = true;
+  editDialogOpen = false;
+  addDomainsDialogOpen = false;
+  tag: Partial<Tag> = {};
 
   ngOnInit() {
     this.route.params.subscribe(params => {
@@ -111,6 +109,7 @@ export default class TagDomainsPageComponent implements OnInit {
       acceptButtonStyleClass: 'p-button-danger p-button-sm',
       rejectButtonStyleClass: 'p-button-secondary p-button-sm',
       accept: () => {
+        if (!this.tag.id) return;
         this.databaseService.instance.tagQueries.deleteTag(this.tag.id).subscribe({
           next: () => {
             this.messageService.add({

@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import DatabaseService from '~/app/services/database.service';
@@ -15,7 +15,7 @@ interface SslIssuer {
 @Component({
   standalone: true,
   selector: 'app-ssl-issuers-index',
-  imports: [CommonModule, RouterModule, PrimeNgModule, TableModule],
+  imports: [RouterModule, PrimeNgModule, TableModule],
   template: `
     <h1 class="mt-2 mb-4">SSL Certificate Issuers</h1>
     <p-table [value]="sslIssuers" [loading]="loading" styleClass="p-datatable-striped">
@@ -35,14 +35,12 @@ interface SslIssuer {
   `,
 })
 export default class SslIssuersIndexPageComponent implements OnInit {
-  sslIssuers: SslIssuer[] = [];
-  loading: boolean = true;
+  private databaseService = inject(DatabaseService);
+  private messageService = inject(MessageService);
+  private errorHandler = inject(ErrorHandlerService);
 
-  constructor(
-    private databaseService: DatabaseService,
-    private messageService: MessageService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
+  sslIssuers: SslIssuer[] = [];
+  loading = true;
 
   ngOnInit() {
     this.loadSslIssuers();

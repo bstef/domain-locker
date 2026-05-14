@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { Host } from '~/app/../types/common';
@@ -11,7 +11,7 @@ import { TableModule } from 'primeng/table';
 @Component({
   standalone: true,
   selector: 'app-hosts-index',
-  imports: [CommonModule, RouterModule, PrimeNgModule, TableModule],
+  imports: [RouterModule, PrimeNgModule, TableModule],
   template: `
 <h1 class="mt-2 mb-4">Hosts</h1>
 <p-table [value]="hosts" [loading]="loading" styleClass="p-datatable-striped">
@@ -37,14 +37,12 @@ import { TableModule } from 'primeng/table';
   `,
 })
 export default class HostsIndexPageComponent implements OnInit {
-  hosts: (Host & { domainCount: number })[] = [];
-  loading: boolean = true;
+  private databaseService = inject(DatabaseService);
+  private messageService = inject(MessageService);
+  private errorHandler = inject(ErrorHandlerService);
 
-  constructor(
-    private databaseService: DatabaseService,
-    private messageService: MessageService,
-    private errorHandler: ErrorHandlerService,
-  ) {}
+  hosts: (Host & { domainCount: number })[] = [];
+  loading = true;
 
   ngOnInit() {
     this.loadHosts();
@@ -56,22 +54,23 @@ export default class HostsIndexPageComponent implements OnInit {
       next: (hostsWithCounts) => {
         // Group hosts by ISP
         const groupedHosts = hostsWithCounts.reduce((acc, host) => {
+          const ip = host.ip || '';
           if (!acc[host.isp]) {
             acc[host.isp] = {
               ...host,
-              ips: [host.ip],
+              ips: [ip],
               domainCount: host.domain_count
             };
           } else {
-            acc[host.isp].ips.push(host.ip);
+            acc[host.isp].ips.push(ip);
             acc[host.isp].domainCount += host.domain_count;
           }
           return acc;
-        }, {} as Record<string, any>);
-  
+        }, {} as Record<string, Host & { ips: string[]; domainCount: number }>);
+
         // Convert grouped hosts back to an array
         this.hosts = Object.values(groupedHosts)
-          .map((host: any) => ({
+          .map((host) => ({
             ...host,
             ip: host.ips.join(', ')
           }))

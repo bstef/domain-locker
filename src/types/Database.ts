@@ -101,13 +101,13 @@ export interface NotificationOptions extends Timestamps {
 export interface SaveDomainData {
   domain: Omit<DbDomain, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'dns' | 'ipAddresses'>;
   tags: string[];
-  notifications: any;
-  statuses?: any;
-  ipAddresses?: any;
+  notifications: { type: string; isEnabled: boolean }[];
+  statuses?: string[];
+  ipAddresses?: { ipAddress: string; isIpv6: boolean }[];
   ssl?: Ssl;
   whois?: Contact;
   dns?: Dns;
-  registrar?: any;
+  registrar?: Registrar;
   host?: Host;
   subdomains: { name: string; sd_info?: string }[];
   links?: Link[];
@@ -131,11 +131,11 @@ export abstract class DatabaseService {
   statusQueries!: SbStatusQueries | PgStatusQueries;
   subdomainsQueries!: SbSubdomainsQueries | PgSubdomainsQueries;
 
-  abstract getDomainUptime(userId: string, domainId: string, timeframe: string): any;
+  abstract getDomainUptime(userId: string, domainId: string, timeframe: string): PromiseLike<unknown>;
   abstract listDomains(): Observable<DbDomain[]>;
   abstract domainExists(inputUserId: string | null, domainName: string): Promise<boolean>;
   abstract saveDomain(data: SaveDomainData): Observable<DbDomain>;
-  abstract fetchAllForExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Observable<any[]>;
+  abstract fetchAllForExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Observable<Record<string, unknown>[]>;
   abstract getDomainsByEppCodes(statuses: string[]): Observable<Record<string, { domainId: string; domainName: string }[]>>;
   abstract getDomainExpirations(): Observable<DomainExpiration[]>;
   abstract deleteDomain(domainId: string): Observable<void>;

@@ -1,12 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { ActivatedRoute } from '@angular/router';
-import { GlobalMessageService } from '~/app/services/messaging.service';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule],
+  imports: [PrimeNgModule],
   template: `
   <div style="position: relative; height:40dvh; overflow:auto;"> 
 <iframe 

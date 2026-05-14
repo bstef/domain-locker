@@ -1,9 +1,14 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 
 @Injectable({ providedIn: 'root' })
 export class MetaTagsService {
+  private title = inject(Title);
+  private meta = inject(Meta);
+  private document = inject<Document>(DOCUMENT);
+  private platformId = inject<object>(PLATFORM_ID);
+
   // Defaults
   private defaultTitle = 'Domain Locker';
   private defaultDescription =
@@ -16,19 +21,12 @@ export class MetaTagsService {
   private pageDescription?: string; 
   private pageKeywords?: string;
   private pageCoverImage?: string;
-  private jsonLdSchemas: Map<string, any> = new Map();
-
-  constructor(
-    private title: Title,
-    private meta: Meta,
-    @Inject(DOCUMENT) private document: Document,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  private jsonLdSchemas = new Map<string, Record<string, unknown>>();
 
   public setRouteMeta(routeName: string) {
     // Set to defaults
     this.reset(false);
-    let baseRoute = (routeName || '').split('/')[1];
+    const baseRoute = (routeName || '').split('/')[1];
 
     // If page has some pre-defined top-level meta tags, set them
     switch (baseRoute) {
@@ -86,7 +84,7 @@ export class MetaTagsService {
   }
 
   /** Reset to global defaults */
-  public reset(apply: boolean = true) {
+  public reset(apply = true) {
     this.pageTitle = undefined;
     this.pageDescription = undefined;
     this.pageKeywords = undefined;
@@ -133,8 +131,8 @@ export class MetaTagsService {
     }
   }
 
-  public addStructuredData(type: 'about' | 'faq' | 'breadcrumb' | 'software' | 'article', extraData?: any) {
-    let jsonLd: any;
+  public addStructuredData(type: 'about' | 'faq' | 'breadcrumb' | 'software' | 'article', extraData?: Record<string, unknown> | unknown[]) {
+    let jsonLd: Record<string, unknown>;
 
     switch (type) {
       case 'about':
@@ -164,12 +162,13 @@ export class MetaTagsService {
         };
         break;
 
-        case 'article':
+        case 'article': {
+          const article = (extraData as Record<string, unknown>) || {};
           jsonLd = {
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": extraData?.title || "Domain Locker Articles",
-            "description": extraData?.description || "No description available.",
+            "headline": article['title'] || "Domain Locker Articles",
+            "description": article['description'] || "No description available.",
             "author": { "@type": "Person", "name": "Alicia Sykes", "url": "https://aliciasykes.com" },
             "publisher": {
               "@type": "Organization",
@@ -177,15 +176,17 @@ export class MetaTagsService {
               "url": "https://domain-locker.com",
               "logo": { "@type": "ImageObject", "url": "https://domain-locker.com/logo.png" }
             },
-            "image": extraData?.coverImage || "https://domain-locker.com/og.png",
-            "url": `https://domain-locker.com/about/${extraData?.category || "uncategorized"}/${extraData?.slug || "unknown"}`,
-            "datePublished": extraData?.publishedDate || new Date().toISOString(),
-            "dateModified": extraData?.modifiedDate || extraData?.publishedDate || new Date().toISOString(),
+            "image": article['coverImage'] || "https://domain-locker.com/og.png",
+            "url": `https://domain-locker.com/about/${article['category'] || "uncategorized"}/${article['slug'] || "unknown"}`,
+            "datePublished": article['publishedDate'] || new Date().toISOString(),
+            "dateModified": article['modifiedDate'] || article['publishedDate'] || new Date().toISOString(),
           };
           break;
+        }
 
       case 'software':
-      default:
+      default: {
+        const software = (extraData as Record<string, unknown>) || {};
         jsonLd = {
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
@@ -195,7 +196,7 @@ export class MetaTagsService {
           "url": "https://domain-locker.com",
           "image": "https://domain-locker.com/logo.png",
           "description": "Domain Locker is a powerful tool to manage domains, track changes, and monitor expiration dates.",
-          "offers": extraData?.offers || {
+          "offers": software['offers'] || {
             "@type": "Offer",
             "price": "0.00",
             "priceCurrency": "USD",
@@ -208,6 +209,7 @@ export class MetaTagsService {
           },
         };
         break;
+      }
     }
     this.jsonLdSchemas.set(type, jsonLd);
     this.injectJsonLD();

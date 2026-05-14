@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import DatabaseService from '~/app/services/database.service';
@@ -9,27 +9,32 @@ import { DomainFaviconComponent } from '~/app/components/misc/favicon.component'
 import { groupSubdomains } from './subdomain-utils';
 import { LazyLoadDirective } from '~/app/utils/lazy.directive';
 
+interface SubdomainEntry {
+  id?: string;
+  name: string;
+  sd_info?: string | null;
+  domain_name?: string;
+}
+
 interface DomainGroup {
   name: string;
-  subdomains: any[];
+  subdomains: SubdomainEntry[];
   loadingSubs: boolean;
 }
 
 @Component({
   standalone: true,
   selector: 'app-subdomains-index',
-  imports: [CommonModule, RouterModule, PrimeNgModule, SubdomainListComponent, DomainFaviconComponent, LazyLoadDirective],
+  imports: [RouterModule, PrimeNgModule, SubdomainListComponent, DomainFaviconComponent, LazyLoadDirective],
   templateUrl: './subdomains.page.html',
 })
 export default class SubdomainsIndexPageComponent implements OnInit {
-  subdomains: { domain: string; subdomains: any[] }[] = [];
-  loading: boolean = true;
-  domains: DomainGroup[] = [];
+  private databaseService = inject(DatabaseService);
+  private errorHandler = inject(ErrorHandlerService);
 
-  constructor(
-    private databaseService: DatabaseService,
-    private errorHandler: ErrorHandlerService
-  ) {}
+  subdomains: { domain: string; subdomains: SubdomainEntry[] }[] = [];
+  loading = true;
+  domains: DomainGroup[] = [];
 
   ngOnInit() {
     this.loadParentDomains();
