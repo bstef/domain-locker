@@ -13,10 +13,18 @@
       @for (link of section.links; track link) {
         <li>
           @if (link.routerLink) {
-            <a [routerLink]="link.routerLink" class="font-semibold no-underline hover:underline text-primary">{{ link.title }}</a>
+            <a
+              [routerLink]="link.routerLink"
+              class="font-semibold no-underline hover:underline text-primary"
+              >{{ link.title }}</a
+            >
           }
           @if (link.href) {
-            <a [href]="link.href" class="font-semibold no-underline hover:underline text-primary">{{ link.title }}</a>
+            <a
+              [href]="link.href"
+              class="font-semibold no-underline hover:underline text-primary"
+              >{{ link.title }}</a
+            >
           }
           @if (link.description) {
             <span class="hidden opacity-70 italic ml-2">- {{ link.description }}</span>

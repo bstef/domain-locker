@@ -17,7 +17,8 @@ export default class ErrorPage implements OnInit {
   errorMessage?: string;
 
   ngOnInit(): void {
-    this.errorMessage = this.route.snapshot.queryParamMap.get('errorMessage') || undefined;
+    this.errorMessage =
+      this.route.snapshot.queryParamMap.get('errorMessage') || undefined;
   }
 
   reload() {
@@ -33,6 +34,9 @@ export default class ErrorPage implements OnInit {
   }
 
   enableDebugging() {
-    this.messagingService.showInfo('Enabling Debug Mode', 'Error logs and diagnostics will be send to us');
+    this.messagingService.showInfo(
+      'Enabling Debug Mode',
+      'Error logs and diagnostics will be send to us',
+    );
   }
 }

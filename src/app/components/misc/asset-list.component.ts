@@ -22,7 +22,13 @@ interface Asset {
     <h2 class="my-4 block">{{ 'HOME.SUBHEADINGS.ASSETS' | translate }}</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative">
       @for (asset of assets; track asset) {
-        <a pAnimateOnScroll enterClass="fadeIn" leaveClass="fadeOut" class="asset-card-link" [routerLink]="asset.link">
+        <a
+          pAnimateOnScroll
+          enterClass="fadeIn"
+          leaveClass="fadeOut"
+          class="asset-card-link"
+          [routerLink]="asset.link"
+        >
           <div class="p-card asset-card">
             <h4>{{ asset.titleKey | translate }}</h4>
             @if (asset.count !== undefined) {
@@ -36,36 +42,38 @@ interface Asset {
                 [viewBox]="asset.viewBox || '0 0 512 512'"
                 classNames="w-full h-full"
                 color="var(--surface-200)"
-                />
+              />
             </div>
           </div>
         </a>
       }
     </div>
-    `,
-  styles: [`
-    .asset-card-link {
-      text-decoration: none;
-      color: inherit;
-      .asset-card {
-        position: relative;
-        break-inside: avoid !important;
-        transition: ease-in-out 0.3s;
-        border: 3px solid transparent;
-        cursor: pointer;
-        height: 100%;
-        padding: 1rem;
-        h4 {
-          font-size: 1.4rem;
-          margin: 0.5rem 0;
-        }
-        &:hover {
-          border-color: var(--primary-color);
+  `,
+  styles: [
+    `
+      .asset-card-link {
+        text-decoration: none;
+        color: inherit;
+        .asset-card {
+          position: relative;
+          break-inside: avoid !important;
+          transition: ease-in-out 0.3s;
+          border: 3px solid transparent;
+          cursor: pointer;
+          height: 100%;
+          padding: 1rem;
+          h4 {
+            font-size: 1.4rem;
+            margin: 0.5rem 0;
+          }
+          &:hover {
+            border-color: var(--primary-color);
+          }
         }
       }
-    }
-  `],
-  imports: [PrimeNgModule, DlIconComponent, TranslateModule]
+    `,
+  ],
+  imports: [PrimeNgModule, DlIconComponent, TranslateModule],
 })
 export default class AssetListComponent implements OnInit {
   private databaseService = inject(DatabaseService);
@@ -140,20 +148,20 @@ export default class AssetListComponent implements OnInit {
   }
 
   private fetchAssetCounts() {
-    this.assets.forEach(asset => {
+    this.assets.forEach((asset) => {
       this.databaseService.instance.getAssetCount(asset.title.toLowerCase()).subscribe({
-        next: count => {
+        next: (count) => {
           this.ngZone.run(() => {
             asset.count = count;
           });
         },
-        error: error => {
+        error: (error) => {
           this.errorHandlerService.handleError({
             error,
             message: `Error fetching count for ${asset.title}`,
             location: 'AssetListComponent.fetchAssetCounts',
           });
-        }
+        },
       });
     });
   }

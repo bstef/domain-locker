@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { TldOrganizationChartComponent } from '~/app/components/charts/domain-hierarchy/domain-hierarchy.component';
 
-
 @Component({
   standalone: true,
   template: `
@@ -9,7 +8,14 @@ import { TldOrganizationChartComponent } from '~/app/components/charts/domain-hi
     <app-tld-organization-chart />
   `,
   imports: [TldOrganizationChartComponent],
-  styles: [`::ng-deep app-tld-organization-chart {max-width: 100%; display: block; overflow-x: scroll;}`]
+  styles: [
+    `
+      ::ng-deep app-tld-organization-chart {
+        max-width: 100%;
+        display: block;
+        overflow-x: scroll;
+      }
+    `,
+  ],
 })
 export default class HostMapPage {}
-

@@ -21,7 +21,9 @@ if (IS_MANAGED) {
   }
 }
 
-export async function verifyAuth(event: H3Event): Promise<{ success: boolean; error?: string }> {
+export async function verifyAuth(
+  event: H3Event,
+): Promise<{ success: boolean; error?: string }> {
   if (!IS_MANAGED) return { success: true }; // Skip auth if not in managed mode
 
   if (!SUPABASE_CLIENT) {

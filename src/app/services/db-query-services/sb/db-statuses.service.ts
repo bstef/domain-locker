@@ -11,14 +11,11 @@ export class StatusQueries {
 
   async saveStatuses(domainId: string, statuses?: string[]): Promise<void> {
     if (!statuses || statuses.length === 0) return;
-    const statusEntries = statuses.map(status => ({
+    const statusEntries = statuses.map((status) => ({
       domain_id: domainId,
       status_code: status,
     }));
-    const { error } = await this.supabase
-      .from('domain_statuses')
-      .insert(statusEntries);
+    const { error } = await this.supabase.from('domain_statuses').insert(statusEntries);
     if (error) throw error;
   }
-
 }

@@ -24,15 +24,25 @@ export class ServerSafeTranslateLoader implements TranslateLoader {
     // Client-Side: Use HttpClient to fetch translations from /i18n/
     if (isPlatformBrowser(this.platformId)) {
       const langRequestUrl = `/i18n/${sanitizedLang}.json`;
-      return this.http.get<Record<string, unknown>>(langRequestUrl).pipe(catchError(() => of({})));
+      return this.http
+        .get<Record<string, unknown>>(langRequestUrl)
+        .pipe(catchError(() => of({})));
     }
 
     // Server-Side: Use fs to read translation files directly
     if (isPlatformServer(this.platformId)) {
       try {
         // Get path to translation file (it vary depending on environment)
-        const productionPath = path.join(process.cwd(), 'dist/i18n', `${sanitizedLang}.json`);
-        const devPath = path.join(process.cwd(), 'src/assets/i18n', `${sanitizedLang}.json`);
+        const productionPath = path.join(
+          process.cwd(),
+          'dist/i18n',
+          `${sanitizedLang}.json`,
+        );
+        const devPath = path.join(
+          process.cwd(),
+          'src/assets/i18n',
+          `${sanitizedLang}.json`,
+        );
         const filePath = fs.existsSync(productionPath) ? productionPath : devPath;
         // Read and parse the translation file
         const data = fs.readFileSync(filePath, 'utf8');
@@ -58,13 +68,16 @@ export class CustomMissingTranslationHandler implements MissingTranslationHandle
 }
 
 /** Initializes the language based on client or server environment */
-export function languageInitializerFactory(translate: TranslateService, platformId: object) {
+export function languageInitializerFactory(
+  translate: TranslateService,
+  platformId: object,
+) {
   return () => {
     const defaultLang = 'en';
     if (isPlatformBrowser(platformId)) {
       const savedLanguage = localStorage?.getItem('language') || defaultLang;
       translate.setDefaultLang(defaultLang);
-      translate.use(savedLanguage); 
+      translate.use(savedLanguage);
     } else {
       translate.setDefaultLang(defaultLang);
     }

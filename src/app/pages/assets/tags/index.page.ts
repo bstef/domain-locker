@@ -14,7 +14,7 @@ import { TableModule } from 'primeng/table';
   selector: 'app-tags-index',
   imports: [RouterModule, PrimeNgModule, TagEditorComponent, TableModule],
   templateUrl: './index.page.html',
-  styleUrl: './tags.scss'
+  styleUrl: './tags.scss',
 })
 export default class TagsIndexPageComponent implements OnInit {
   private databaseService = inject(DatabaseService);
@@ -35,7 +35,7 @@ export default class TagsIndexPageComponent implements OnInit {
     this.loading = true;
     this.databaseService.instance.tagQueries.getTags().subscribe({
       next: (tags) => {
-        this.tags = tags.map(tag => ({ ...tag, domainCount: 0 }));
+        this.tags = tags.map((tag) => ({ ...tag, domainCount: 0 }));
         this.loadDomainCounts();
       },
       error: (error) => {
@@ -43,20 +43,20 @@ export default class TagsIndexPageComponent implements OnInit {
           message: 'Failed to load tags',
           error,
           showToast: true,
-          location: 'TagsIndexPageComponent.loadTags'
+          location: 'TagsIndexPageComponent.loadTags',
         });
         this.loading = false;
         this.cdr.markForCheck();
-      }
+      },
     });
   }
 
   loadDomainCounts() {
     this.databaseService.instance.tagQueries.getDomainCountsByTag().subscribe({
       next: (counts) => {
-        this.tags = this.tags.map(tag => ({
+        this.tags = this.tags.map((tag) => ({
           ...tag,
-          domainCount: counts[tag.name] || 0
+          domainCount: counts[tag.name] || 0,
         }));
         this.loading = false;
         this.cdr.markForCheck();
@@ -66,11 +66,11 @@ export default class TagsIndexPageComponent implements OnInit {
           message: 'Failed to load domain counts',
           error,
           showToast: true,
-          location: 'TagsIndexPageComponent.loadDomainCounts'
+          location: 'TagsIndexPageComponent.loadDomainCounts',
         });
         this.loading = false;
         this.cdr.markForCheck();
-      }
+      },
     });
   }
 
@@ -100,7 +100,7 @@ export default class TagsIndexPageComponent implements OnInit {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `Tag "${tag.name}" deleted successfully.`
+              detail: `Tag "${tag.name}" deleted successfully.`,
             });
             this.loadTags();
           },
@@ -109,11 +109,11 @@ export default class TagsIndexPageComponent implements OnInit {
               message: 'Failed to delete tag',
               error,
               showToast: true,
-              location: 'TagsIndexPageComponent.deleteTag'
+              location: 'TagsIndexPageComponent.deleteTag',
             });
-          }
+          },
         });
-      }
+      },
     });
   }
 }

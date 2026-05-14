@@ -12,12 +12,7 @@ import { EnvService } from '~/app/services/environment.service';
 @Component({
   standalone: true,
   selector: 'app-domain-details',
-  imports: [
-    CtaComponent,
-    CommonModule,
-    PrimeNgModule,
-    BusinessFeaturesComponent,
-  ],
+  imports: [CtaComponent, CommonModule, PrimeNgModule, BusinessFeaturesComponent],
   providers: [ConfirmationService, MessageService],
   templateUrl: 'index.page.html',
 })
@@ -35,7 +30,6 @@ export default class DomainDetailsPage implements OnInit {
     this.environmentType = this.environmentService.getEnvironmentType();
   }
 
-
   cleanDomain(domain: string): string {
     if (!domain) return '';
     return domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
@@ -46,6 +40,5 @@ export default class DomainDetailsPage implements OnInit {
     if (this.domain) {
       this.router.navigate(['/preview', this.domain]);
     }
-    
   }
 }

@@ -9,7 +9,7 @@ import { TranslateModule } from '@ngx-translate/core';
   standalone: true,
   imports: [RouterModule, PrimeNgModule, TranslateModule],
   templateUrl: './hero.component.html',
-  styles: []
+  styles: [],
 })
 export class HeroComponent {
   features = [

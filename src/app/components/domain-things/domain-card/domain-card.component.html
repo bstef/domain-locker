@@ -1,55 +1,82 @@
-<div #domainCard
+<div
+  #domainCard
   aria-haspopup="true"
   role="group"
   [@cardAnimation]="cardVisible ? 'visible' : 'hidden'"
-  pAnimateOnScroll enterClass="fadeIn" leaveClass="fadeOut"
+  pAnimateOnScroll
+  enterClass="fadeIn"
+  leaveClass="fadeOut"
   tabindex="0"
   (click)="onCardClick($event)"
   (keydown.enter)="onCardKeydown($event)"
   (keydown.space)="onCardKeydown($event)"
-  class="domain-card p-card bg-surface-card text-default px-4 py-2 mb-4 shadow-md border-radius-custom h-full flex flex-col gap-4 relative overflow-hidden">
-
+  class="domain-card p-card bg-surface-card text-default px-4 py-2 mb-4 shadow-md border-radius-custom h-full flex flex-col gap-4 relative overflow-hidden"
+>
   <!-- Action buttons - visible only on hover -->
   <div class="edit-button-container absolute top-2 right-2 gap-2 align-items-center">
-    <a [routerLink]="'/domains/'+domain.domain_name+'/edit'">
+    <a [routerLink]="'/domains/' + domain.domain_name + '/edit'">
       <p-button
         [link]="true"
         icon="pi pi-pencil"
         class="text-xs text-default m-0 opacity-70 hover:!opacity-100"
         styleClass="text-default m-0 p-2 font-normal text-xs"
-        />
+      />
     </a>
   </div>
 
   <!-- Domain Name -->
   @if (isVisible('domainName')) {
     <h2 class="m-0">
-      <a [routerLink]="'/domains/'+domain.domain_name" class="no-underline text-default flex items-center">
+      <a
+        [routerLink]="'/domains/' + domain.domain_name"
+        class="no-underline text-default flex items-center"
+      >
         <app-domain-favicon [domain]="domain.domain_name" [size]="24" class="mr-2 mt-2" />
-        <span class="text-primary">{{ domainUtils.splitDomain(domain.domain_name).domain }}</span>
+        <span class="text-primary">{{
+          domainUtils.splitDomain(domain.domain_name).domain
+        }}</span>
         <span class="text-default">.</span>
-        <span class="text-secondary">{{ domainUtils.splitDomain(domain.domain_name).tld }}</span>
+        <span class="text-secondary">{{
+          domainUtils.splitDomain(domain.domain_name).tld
+        }}</span>
       </a>
     </h2>
   }
 
   <!-- Core Info: Registrar and Expiry -->
-  <div class="flex justify-between align-items-center {{ (domain.expiry_date && !domain.registrar) ? '!justify-end' : ''}}">
+  <div
+    class="flex justify-between align-items-center {{
+      domain.expiry_date && !domain.registrar ? '!justify-end' : ''
+    }}"
+  >
     @if (domain.registrar && isVisible('registrar')) {
-      <a [routerLink]="'/assets/registrars/'+domain.registrar.name" class="text-default no-underline hover:underline flex-1 overflow-hidden">
-        <p class="m-0 truncate text-default"
-          [pTooltip]="('DOMAINS.DOMAIN_COLLECTION.GRID.CLICK_VIEW_REGISTRAR' | translate:{registrar: domain.registrar.name})">
+      <a
+        [routerLink]="'/assets/registrars/' + domain.registrar.name"
+        class="text-default no-underline hover:underline flex-1 overflow-hidden"
+      >
+        <p
+          class="m-0 truncate text-default"
+          [pTooltip]="
+            'DOMAINS.DOMAIN_COLLECTION.GRID.CLICK_VIEW_REGISTRAR'
+              | translate: { registrar: domain.registrar.name }
+          "
+        >
           {{ domain.registrar.name }}
         </p>
       </a>
     }
     @if (domain.expiry_date && isVisible('expiryDate')) {
       <p-tag
-        [pTooltip]="domain.expiry_date ? ('DOMAINS.DOMAIN_COLLECTION.GRID.EXPIRES_ON' | translate:{date: (domain.expiry_date | date:'mediumDate')}) : ('DOMAINS.DOMAIN_COLLECTION.GRID.UNKNOWN_EXPIRY' | translate)"
+        [pTooltip]="
+          domain.expiry_date
+            ? ('DOMAINS.DOMAIN_COLLECTION.GRID.EXPIRES_ON'
+              | translate: { date: (domain.expiry_date | date: 'mediumDate') })
+            : ('DOMAINS.DOMAIN_COLLECTION.GRID.UNKNOWN_EXPIRY' | translate)
+        "
         [value]="domainUtils.getRemainingDaysText(domain.expiry_date)"
         [severity]="domainUtils.getExpirySeverity(domain.expiry_date)"
         styleClass="ml-2 w-20"
-        />
+      />
     }
   </div>
 
@@ -57,8 +84,11 @@
   @if (domain.tags?.length && isVisible('tags')) {
     <div>
       @for (tag of domain.tags; track tag) {
-        <a [routerLink]="'/assets/tags/'+tag">
-          <p-tag [value]="tag" styleClass="bg-highlight rounded-2xl text-highlight px-2 py-1 mr-1"></p-tag>
+        <a [routerLink]="'/assets/tags/' + tag">
+          <p-tag
+            [value]="tag"
+            styleClass="bg-highlight rounded-2xl text-highlight px-2 py-1 mr-1"
+          ></p-tag>
         </a>
       }
     </div>
@@ -72,9 +102,7 @@
       </h4>
       <ul class="list-none p-0 m-0">
         @for (subDomain of domain.sub_domains; track subDomain) {
-          <li class="font-mono text-xs">
-            {{ subDomain.name }}.{{ domain.domain_name }}
-          </li>
+          <li class="font-mono text-xs">{{ subDomain.name }}.{{ domain.domain_name }}</li>
         }
       </ul>
     </div>
@@ -92,17 +120,33 @@
         @for (status of domain.statuses; track status.label) {
           <li class="py-1">
             @if (status.severity === 'good') {
-              <p-tag icon="pi pi-check-circle" severity="success" [pTooltip]="status.description" />
+              <p-tag
+                icon="pi pi-check-circle"
+                severity="success"
+                [pTooltip]="status.description"
+              />
             } @else if (status.severity === 'bad') {
-              <p-tag icon="pi pi-times-circle" severity="danger" [pTooltip]="status.description" />
+              <p-tag
+                icon="pi pi-times-circle"
+                severity="danger"
+                [pTooltip]="status.description"
+              />
             } @else {
-              <p-tag icon="pi pi-info-circle" severity="info" [pTooltip]="status.description" />
+              <p-tag
+                icon="pi pi-info-circle"
+                severity="info"
+                [pTooltip]="status.description"
+              />
             }
-            <span class="ml-2">{{status.label}}</span>
+            <span class="ml-2">{{ status.label }}</span>
             <ul class="pl-5 ml-1 text-surface-400 list-none text-xs">
-              <li>{{status.description}}</li>
+              <li>{{ status.description }}</li>
               @if (status.actionToTake) {
-                <li [class]="status.severity === 'bad' ? 'text-red-400' : 'text-blue-400'">{{status.actionToTake}}</li>
+                <li
+                  [class]="status.severity === 'bad' ? 'text-red-400' : 'text-blue-400'"
+                >
+                  {{ status.actionToTake }}
+                </li>
               }
             </ul>
           </li>
@@ -122,7 +166,11 @@
       <ul class="list-none p-0 m-0">
         @for (ip of domain.ip_addresses; track ip) {
           <li class="font-mono text-xs">
-            {{ ip.ip_address }} ({{ ip.is_ipv6 ? ('DOMAINS.DOMAIN_COLLECTION.GRID.IPV6' | translate) : ('DOMAINS.DOMAIN_COLLECTION.GRID.IPV4' | translate) }})<br>
+            {{ ip.ip_address }} ({{
+              ip.is_ipv6
+                ? ('DOMAINS.DOMAIN_COLLECTION.GRID.IPV6' | translate)
+                : ('DOMAINS.DOMAIN_COLLECTION.GRID.IPV4' | translate)
+            }})<br />
           </li>
         }
       </ul>
@@ -140,10 +188,19 @@
       <div class="text-sm">
         @if (domain.domain_costings.renewal_cost) {
           <p class="m-0 mb-2 font-semibold">
-            {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.PAYMENT_DUE' | translate:{
-            amount: (domain.domain_costings.renewal_cost | currency:currencyService.getCurrencyCode():'symbol':'1.0-0'),
-            date: (domain.expiry_date | date:'mediumDate')
-            } }}
+            {{
+              'DOMAINS.DOMAIN_COLLECTION.GRID.PAYMENT_DUE'
+                | translate
+                  : {
+                      amount:
+                        (domain.domain_costings.renewal_cost
+                        | currency
+                          : currencyService.getCurrencyCode()
+                          : 'symbol'
+                          : '1.0-0'),
+                      date: (domain.expiry_date | date: 'mediumDate'),
+                    }
+            }}
           </p>
         }
         <h5 class="my-2 mr-2 inline">
@@ -151,212 +208,286 @@
         </h5>
         @if (domain.domain_costings.auto_renew) {
           <span class="text-green-400">
-            <i class="pi pi-check text-sm"></i> {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.AUTO_RENEW_ENABLED' | translate }}
+            <i class="pi pi-check text-sm"></i>
+            {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.AUTO_RENEW_ENABLED' | translate }}
           </span>
         } @else {
           <span class="text-red-400">
-            <i class="pi pi-times text-sm"></i> {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.AUTO_RENEW_DISABLED' | translate }}
+            <i class="pi pi-times text-sm"></i>
+            {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.AUTO_RENEW_DISABLED' | translate }}
           </span>
         }
-        <br>
-          @if (domain.domain_costings.purchase_price && domain.domain_costings.current_value) {
-            <h5 class="my-2 mr-2 inline">
-              {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.PROFIT_LOSS' | translate }}
-            </h5>
-            <span class="text-{{domain.domain_costings.current_value - domain.domain_costings.purchase_price >= 0? 'green' : 'red'}}-400">
-              {{ domain.domain_costings.current_value - domain.domain_costings.purchase_price | currency:currencyService.getCurrencyCode():'symbol':'1.0-0' }}
-            </span>
-            <span>
-              ({{ domain.domain_costings.current_value | currency:currencyService.getCurrencyCode():'symbol':'1.0-0' }} - {{ domain.domain_costings.purchase_price | currency:currencyService.getCurrencyCode():'symbol':'1.0-0' }})
-            </span>
-            <br>
-            } @else if (domain.domain_costings.purchase_price) {
-              <h5 class="my-2 mr-2 inline">
-                {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.PURCHASE_PRICE' | translate }}
-              </h5>
-              <span>{{ domain.domain_costings.purchase_price | currency:currencyService.getCurrencyCode():'symbol':'1.0-0' }}</span>
-              <br>
-              } @else if (domain.domain_costings.current_value) {
-                <h5 class="my-2 mr-2 inline">
-                  {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.CURRENT_VALUE' | translate }}
-                </h5>
-                <span>{{ domain.domain_costings.current_value | currency:currencyService.getCurrencyCode():'symbol':'1.0-0' }}</span>
-              }
-            </div>
-          </p-panel>
+        <br />
+        @if (
+          domain.domain_costings.purchase_price && domain.domain_costings.current_value
+        ) {
+          <h5 class="my-2 mr-2 inline">
+            {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.PROFIT_LOSS' | translate }}
+          </h5>
+          <span
+            class="text-{{
+              domain.domain_costings.current_value -
+                domain.domain_costings.purchase_price >=
+              0
+                ? 'green'
+                : 'red'
+            }}-400"
+          >
+            {{
+              domain.domain_costings.current_value - domain.domain_costings.purchase_price
+                | currency: currencyService.getCurrencyCode() : 'symbol' : '1.0-0'
+            }}
+          </span>
+          <span>
+            ({{
+              domain.domain_costings.current_value
+                | currency: currencyService.getCurrencyCode() : 'symbol' : '1.0-0'
+            }}
+            -
+            {{
+              domain.domain_costings.purchase_price
+                | currency: currencyService.getCurrencyCode() : 'symbol' : '1.0-0'
+            }})
+          </span>
+          <br />
+        } @else if (domain.domain_costings.purchase_price) {
+          <h5 class="my-2 mr-2 inline">
+            {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.PURCHASE_PRICE' | translate }}
+          </h5>
+          <span>{{
+            domain.domain_costings.purchase_price
+              | currency: currencyService.getCurrencyCode() : 'symbol' : '1.0-0'
+          }}</span>
+          <br />
+        } @else if (domain.domain_costings.current_value) {
+          <h5 class="my-2 mr-2 inline">
+            {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.CURRENT_VALUE' | translate }}
+          </h5>
+          <span>{{
+            domain.domain_costings.current_value
+              | currency: currencyService.getCurrencyCode() : 'symbol' : '1.0-0'
+          }}</span>
         }
+      </div>
+    </p-panel>
+  }
 
-        <!-- SSL Info -->
-        @if (domain.ssl && isVisible('sslCertificate')) {
-          <p-panel [toggleable]="true" class="custom-pannel">
-            <ng-template pTemplate="header">
-              <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
-                {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_CERTIFICATE' | translate }}
-              </h4>
-            </ng-template>
-            <div class="flex flex-col gap-1">
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_ISSUER' | translate }}: </strong>
-                <a class="text-default" [routerLink]="'/assets/certs/'+domain.ssl.issuer">{{ domain.ssl.issuer }}</a>
-              </p>
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_ISSUER_COUNTRY' | translate }}: </strong>
-                {{ domain.ssl.issuer_country }}
-              </p>
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_SUBJECT' | translate }}: </strong>
-                {{ domain.ssl.subject }}
-              </p>
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_VALID_FROM' | translate }}: </strong>
-                {{ domain.ssl.valid_from | date:'mediumDate' }}
-              </p>
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_VALID_TO' | translate }}: </strong>
-                {{ domain.ssl.valid_to | date:'mediumDate' }}
-              </p>
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_KEY_SIZE' | translate }}: </strong>
-                {{ domain.ssl.key_size }}
-              </p>
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_SIGNATURE_ALGORITHM' | translate }}: </strong>
-                {{ domain.ssl.signature_algorithm }}
-              </p>
-              <p class="m-0 text-xs truncate max-w-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_FINGERPRINT' | translate }}: </strong>
-                {{ domain.ssl.fingerprint }}
-              </p>
-            </div>
-          </p-panel>
+  <!-- SSL Info -->
+  @if (domain.ssl && isVisible('sslCertificate')) {
+    <p-panel [toggleable]="true" class="custom-pannel">
+      <ng-template pTemplate="header">
+        <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
+          {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_CERTIFICATE' | translate }}
+        </h4>
+      </ng-template>
+      <div class="flex flex-col gap-1">
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_ISSUER' | translate }}:
+          </strong>
+          <a class="text-default" [routerLink]="'/assets/certs/' + domain.ssl.issuer">{{
+            domain.ssl.issuer
+          }}</a>
+        </p>
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_ISSUER_COUNTRY' | translate }}:
+          </strong>
+          {{ domain.ssl.issuer_country }}
+        </p>
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_SUBJECT' | translate }}:
+          </strong>
+          {{ domain.ssl.subject }}
+        </p>
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_VALID_FROM' | translate }}:
+          </strong>
+          {{ domain.ssl.valid_from | date: 'mediumDate' }}
+        </p>
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_VALID_TO' | translate }}:
+          </strong>
+          {{ domain.ssl.valid_to | date: 'mediumDate' }}
+        </p>
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_KEY_SIZE' | translate }}:
+          </strong>
+          {{ domain.ssl.key_size }}
+        </p>
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_SIGNATURE_ALGORITHM' | translate }}:
+          </strong>
+          {{ domain.ssl.signature_algorithm }}
+        </p>
+        <p class="m-0 text-xs truncate max-w-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.SSL_FINGERPRINT' | translate }}:
+          </strong>
+          {{ domain.ssl.fingerprint }}
+        </p>
+      </div>
+    </p-panel>
+  }
+
+  <!-- WHOIS Info -->
+  @if (domain.whois && isVisible('whoisRecord')) {
+    <p-panel [toggleable]="true" class="custom-pannel">
+      <ng-template pTemplate="header">
+        <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
+          {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_RECORDS' | translate }}
+        </h4>
+      </ng-template>
+      <div class="flex flex-col gap-1">
+        @if (domain.whois.name) {
+          <p class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_NAME' | translate }}:
+            </strong>
+            {{ domain.whois.name }}
+          </p>
         }
-
-        <!-- WHOIS Info -->
-        @if (domain.whois && isVisible('whoisRecord')) {
-          <p-panel [toggleable]="true" class="custom-pannel">
-            <ng-template pTemplate="header">
-              <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
-                {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_RECORDS' | translate }}
-              </h4>
-            </ng-template>
-            <div class="flex flex-col gap-1">
-              @if (domain.whois.name) {
-                <p class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_NAME' | translate }}: </strong>
-                  {{ domain.whois.name }}
-                </p>
-              }
-              @if (domain.whois.organization) {
-                <p class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_ORGANIZATION' | translate }}: </strong>
-                  {{ domain.whois.organization }}
-                </p>
-              }
-              @if (domain.whois.street || domain.whois.city || domain.whois.state) {
-                <p class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_ADDRESS' | translate }}: </strong>
-                  {{ domain.whois.street }}, {{ domain.whois.city }}, {{ domain.whois.state }} {{ domain.whois.postal_code }}
-                </p>
-              }
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_COUNTRY' | translate }}: </strong>
-                {{ domain.whois.country }}
-              </p>
-            </div>
-          </p-panel>
+        @if (domain.whois.organization) {
+          <p class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_ORGANIZATION' | translate }}:
+            </strong>
+            {{ domain.whois.organization }}
+          </p>
         }
-
-        <!-- Host Info -->
-        @if (domain.host && isVisible('hostInfo')) {
-          <p-panel [toggleable]="true" class="custom-pannel">
-            <ng-template pTemplate="header">
-              <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
-                {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOSTS' | translate }}
-              </h4>
-            </ng-template>
-            <div class="flex flex-col gap-1">
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_ISP' | translate }}: </strong>
-                <a class="text-default" [routerLink]="'/assets/hosts/'+domain.host.isp">{{ domain.host.isp }}</a>
-              </p>
-              @if (domain.host.org !== domain.host.isp) {
-                <p class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_ORG' | translate }}: </strong>
-                  {{ domain.host.org }}
-                </p>
-              }
-              @if (domain.host.asNumber) {
-                <p class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_AS_REF' | translate }}: </strong>
-                  {{ domain.host.asNumber }}
-                </p>
-              }
-              <p class="m-0 text-xs">
-                <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_ADDRESS' | translate }}: </strong>
-                {{ domain.host.city }}, {{ domain.host.region }}, {{ domain.host.country }}
-              </p>
-            </div>
-          </p-panel>
+        @if (domain.whois.street || domain.whois.city || domain.whois.state) {
+          <p class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_ADDRESS' | translate }}:
+            </strong>
+            {{ domain.whois.street }}, {{ domain.whois.city }}, {{ domain.whois.state }}
+            {{ domain.whois.postal_code }}
+          </p>
         }
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.WHOIS_COUNTRY' | translate }}:
+          </strong>
+          {{ domain.whois.country }}
+        </p>
+      </div>
+    </p-panel>
+  }
 
-        <!-- DNS Records -->
-        @if (domain.dns && isVisible('dnsRecords')) {
-          <p-panel [toggleable]="true" class="custom-pannel">
-            <ng-template pTemplate="header">
-              <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
-                {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_RECORDS' | translate }}
-              </h4>
-            </ng-template>
-            <div class="flex flex-col gap-2">
-              @if (domain.dns.dnssec) {
-                <p class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_DNSSEC' | translate }}: </strong>
-                  {{ domain.dns.dnssec }}
-                </p>
-              }
-              @if (domain.dns.nameServers) {
-                <div class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_NAME_SERVERS' | translate }}: </strong>
-                  <ul class="list-none p-0 m-0">
-                    @for (ns of domain.dns.nameServers; track ns) {
-                      <li class="font-mono text-xs truncate">{{ ns }}</li>
-                    }
-                  </ul>
-                </div>
-              }
-              @if (domain.dns.mxRecords) {
-                <div class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_MX_RECORDS' | translate }}: </strong>
-                  <ul class="list-none p-0 m-0">
-                    @for (mx of domain.dns.mxRecords; track mx) {
-                      <li class="font-mono text-xs truncate">{{ mx }}</li>
-                    }
-                  </ul>
-                </div>
-              }
-              @if (domain.dns.txtRecords) {
-                <div class="m-0 text-xs">
-                  <strong class="font-semibold">{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_TXT_RECORDS' | translate }}: </strong>
-                  <ul class="list-none p-0 m-0">
-                    @for (txt of domain.dns.txtRecords; track txt) {
-                      <li class="font-mono text-xs truncate">{{ txt }}</li>
-                    }
-                  </ul>
-                </div>
-              }
-            </div>
-          </p-panel>
+  <!-- Host Info -->
+  @if (domain.host && isVisible('hostInfo')) {
+    <p-panel [toggleable]="true" class="custom-pannel">
+      <ng-template pTemplate="header">
+        <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
+          {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOSTS' | translate }}
+        </h4>
+      </ng-template>
+      <div class="flex flex-col gap-1">
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_ISP' | translate }}:
+          </strong>
+          <a class="text-default" [routerLink]="'/assets/hosts/' + domain.host.isp">{{
+            domain.host.isp
+          }}</a>
+        </p>
+        @if (domain.host.org !== domain.host.isp) {
+          <p class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_ORG' | translate }}:
+            </strong>
+            {{ domain.host.org }}
+          </p>
         }
+        @if (domain.host.asNumber) {
+          <p class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_AS_REF' | translate }}:
+            </strong>
+            {{ domain.host.asNumber }}
+          </p>
+        }
+        <p class="m-0 text-xs">
+          <strong class="font-semibold"
+            >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.HOST_ADDRESS' | translate }}:
+          </strong>
+          {{ domain.host.city }}, {{ domain.host.region }}, {{ domain.host.country }}
+        </p>
+      </div>
+    </p-panel>
+  }
 
-        <!-- Notes -->
-        @if (domain.notes && isVisible('notes')) {
-          <div class="bg-surface-100 rounded p-2">
-            <span>{{ domain.notes }}</span>
+  <!-- DNS Records -->
+  @if (domain.dns && isVisible('dnsRecords')) {
+    <p-panel [toggleable]="true" class="custom-pannel">
+      <ng-template pTemplate="header">
+        <h4 class="text-surface-400 m-0 mb-2 uppercase text-sm font-bold">
+          {{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_RECORDS' | translate }}
+        </h4>
+      </ng-template>
+      <div class="flex flex-col gap-2">
+        @if (domain.dns.dnssec) {
+          <p class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_DNSSEC' | translate }}:
+            </strong>
+            {{ domain.dns.dnssec }}
+          </p>
+        }
+        @if (domain.dns.nameServers) {
+          <div class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_NAME_SERVERS' | translate }}:
+            </strong>
+            <ul class="list-none p-0 m-0">
+              @for (ns of domain.dns.nameServers; track ns) {
+                <li class="font-mono text-xs truncate">{{ ns }}</li>
+              }
+            </ul>
+          </div>
+        }
+        @if (domain.dns.mxRecords) {
+          <div class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_MX_RECORDS' | translate }}:
+            </strong>
+            <ul class="list-none p-0 m-0">
+              @for (mx of domain.dns.mxRecords; track mx) {
+                <li class="font-mono text-xs truncate">{{ mx }}</li>
+              }
+            </ul>
+          </div>
+        }
+        @if (domain.dns.txtRecords) {
+          <div class="m-0 text-xs">
+            <strong class="font-semibold"
+              >{{ 'DOMAINS.DOMAIN_COLLECTION.GRID.DNS_TXT_RECORDS' | translate }}:
+            </strong>
+            <ul class="list-none p-0 m-0">
+              @for (txt of domain.dns.txtRecords; track txt) {
+                <li class="font-mono text-xs truncate">{{ txt }}</li>
+              }
+            </ul>
           </div>
         }
       </div>
+    </p-panel>
+  }
 
-      <p-confirmDialog />
+  <!-- Notes -->
+  @if (domain.notes && isVisible('notes')) {
+    <div class="bg-surface-100 rounded p-2">
+      <span>{{ domain.notes }}</span>
+    </div>
+  }
+</div>
 
-      <!-- Context Menu -->
-      <p-contextMenu [target]="domainCard" [model]="contextMenuItems" />
+<p-confirmDialog />
+
+<!-- Context Menu -->
+<p-contextMenu [target]="domainCard" [model]="contextMenuItems" />

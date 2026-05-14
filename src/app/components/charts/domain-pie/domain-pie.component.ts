@@ -1,6 +1,23 @@
-import { Component, OnInit, ViewChild, AfterViewInit, PLATFORM_ID, ElementRef, Input, ChangeDetectorRef, inject } from "@angular/core";
-import { ChartComponent, NgApexchartsModule } from "ng-apexcharts";
-import { ApexNonAxisChartSeries, ApexChart, ApexResponsive, ApexTheme, ApexLegend, ApexStroke } from "ng-apexcharts";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  PLATFORM_ID,
+  ElementRef,
+  Input,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
+import { ChartComponent, NgApexchartsModule } from 'ng-apexcharts';
+import {
+  ApexNonAxisChartSeries,
+  ApexChart,
+  ApexResponsive,
+  ApexTheme,
+  ApexLegend,
+  ApexStroke,
+} from 'ng-apexcharts';
 import DatabaseService from '~/app/services/database.service';
 import { Observable, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
@@ -8,7 +25,7 @@ import { isPlatformBrowser } from '@angular/common';
 
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { ErrorHandlerService } from "~/app/services/error-handler.service";
+import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 interface ChartDataItem {
   registrar_name?: string;
@@ -36,7 +53,7 @@ export interface ChartOptions {
   templateUrl: './domain-pie.component.html',
   styleUrl: './domain-pie.component.scss',
   standalone: true,
-  imports: [NgApexchartsModule, PrimeNgModule, TranslateModule]
+  imports: [NgApexchartsModule, PrimeNgModule, TranslateModule],
 })
 export class DomainPieChartsComponent implements OnInit, AfterViewInit {
   private databaseService = inject(DatabaseService);
@@ -44,9 +61,9 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
   private platformId = inject<object>(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
 
-  @ViewChild("registrarChart") registrarChart!: ChartComponent;
-  @ViewChild("sslIssuerChart") sslIssuerChart!: ChartComponent;
-  @ViewChild("hostChart") hostChart!: ChartComponent;
+  @ViewChild('registrarChart') registrarChart!: ChartComponent;
+  @ViewChild('sslIssuerChart') sslIssuerChart!: ChartComponent;
+  @ViewChild('hostChart') hostChart!: ChartComponent;
   @ViewChild('chartContainer', { static: true }) chartContainer!: ElementRef;
 
   @Input() listMode = false;
@@ -107,54 +124,65 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
   }
 
   loadRegistrarData() {
-    this.getRegistrarData().pipe(
-      tap(data => {
-        this.initChartOptions('registrar', data);
-        this.registrarDataLoaded = true;
-        this.registrarChartReady = true;
-        this.cdr.markForCheck();
-      })
-    ).subscribe();
+    this.getRegistrarData()
+      .pipe(
+        tap((data) => {
+          this.initChartOptions('registrar', data);
+          this.registrarDataLoaded = true;
+          this.registrarChartReady = true;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe();
   }
 
   loadSslIssuerData() {
-    this.getSslIssuerData().pipe(
-      tap(data => {
-        this.initChartOptions('sslIssuer', data);
-        this.sslIssuerDataLoaded = true;
-        this.sslIssuerChartReady = true;
-        this.cdr.markForCheck();
-      })
-    ).subscribe();
+    this.getSslIssuerData()
+      .pipe(
+        tap((data) => {
+          this.initChartOptions('sslIssuer', data);
+          this.sslIssuerDataLoaded = true;
+          this.sslIssuerChartReady = true;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe();
   }
 
   loadHostData() {
-    this.getHostData().pipe(
-      tap(data => {
-        this.initChartOptions('host', data);
-        this.hostDataLoaded = true;
-        this.hostChartReady = true;
-        this.cdr.markForCheck();
-      })
-    ).subscribe();
+    this.getHostData()
+      .pipe(
+        tap((data) => {
+          this.initChartOptions('host', data);
+          this.hostDataLoaded = true;
+          this.hostChartReady = true;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe();
   }
 
-  initChartOptions(chartType: 'registrar' | 'sslIssuer' | 'host', data: {name: string, count: number}[]) {
+  initChartOptions(
+    chartType: 'registrar' | 'sslIssuer' | 'host',
+    data: { name: string; count: number }[],
+  ) {
     const baseOptions: Partial<ChartOptions> = {
-      series: data.map(item => item.count),
-      labels: data.map(item => item.name || 'No Data'),
+      series: data.map((item) => item.count),
+      labels: data.map((item) => item.name || 'No Data'),
       chart: {
-        type: "pie",
+        type: 'pie',
         background: 'transparent',
       },
-      responsive: [{
-        breakpoint: 480,
-        options: {
-          chart: {
-            width: '100%'
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            chart: {
+              width: '100%',
+            },
           },
-        }
-      }],
+        },
+      ],
       theme: {
         mode: 'dark',
         palette: 'palette1',
@@ -163,13 +191,13 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
         position: 'bottom',
         show: false,
         labels: {
-          colors: 'var(--surface-500)'
-        }
+          colors: 'var(--surface-500)',
+        },
       },
       stroke: {
-        colors: ['var(--surface-100)']
+        colors: ['var(--surface-100)'],
       },
-      colors: this.colors
+      colors: this.colors,
     };
 
     if (chartType === 'registrar') {
@@ -193,73 +221,79 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
     return Array.isArray(data) ? data : [];
   }
 
-  getRegistrarData(): Observable<{name: string, count: number}[]> {
-    return this.databaseService.instance.registrarQueries.getDomainCountsByRegistrar().pipe(
-      map(response => {
-        const normalized = this.normalizeChartData(response);
+  getRegistrarData(): Observable<{ name: string; count: number }[]> {
+    return this.databaseService.instance.registrarQueries
+      .getDomainCountsByRegistrar()
+      .pipe(
+        map((response) => {
+          const normalized = this.normalizeChartData(response);
 
-        // Handle array of objects (self-hosted PostgreSQL format)
-        if (Array.isArray(normalized) && normalized.length > 0 && typeof normalized[0] === 'object') {
-          return normalized.map(item => ({
-            name: item.registrar_name ?? item.name ?? 'Unknown',
-            count: Number(item.domain_count ?? item.count ?? 0)
+          // Handle array of objects (self-hosted PostgreSQL format)
+          if (
+            Array.isArray(normalized) &&
+            normalized.length > 0 &&
+            typeof normalized[0] === 'object'
+          ) {
+            return normalized.map((item) => ({
+              name: item.registrar_name ?? item.name ?? 'Unknown',
+              count: Number(item.domain_count ?? item.count ?? 0),
+            }));
+          }
+
+          // Handle Record<string, number> (Supabase format)
+          return Object.entries(response).map(([name, count]) => ({
+            name,
+            count: Number(count),
           }));
-        }
-
-        // Handle Record<string, number> (Supabase format)
-        return Object.entries(response).map(([name, count]) => ({
-          name,
-          count: Number(count)
-        }));
-      }),
-      catchError(error => {
-        this.errorHandler.handleError({
-          error,
-          message: 'Failed to fetch registrar data',
-          location: 'DomainPieChartsComponent.getRegistrarData',
-        });
-        return of([]);
-      })
-    );
+        }),
+        catchError((error) => {
+          this.errorHandler.handleError({
+            error,
+            message: 'Failed to fetch registrar data',
+            location: 'DomainPieChartsComponent.getRegistrarData',
+          });
+          return of([]);
+        }),
+      );
   }
 
-  getSslIssuerData(): Observable<{name: string, count: number}[]> {
+  getSslIssuerData(): Observable<{ name: string; count: number }[]> {
     return this.databaseService.instance.sslQueries.getSslIssuersWithDomainCounts().pipe(
-      map(response => {
+      map((response) => {
         const normalized = this.normalizeChartData(response);
-        return normalized.map(item => ({
+        return normalized.map((item) => ({
           name: item.issuer ?? item.name ?? 'Unknown',
-          count: Number(item.domain_count ?? item.count ?? 0)
+          count: Number(item.domain_count ?? item.count ?? 0),
         }));
       }),
-      catchError(error => {
+      catchError((error) => {
         this.errorHandler.handleError({
           error,
           message: 'Failed to fetch SSL issuer data',
           location: 'DomainPieChartsComponent.getSslIssuerData',
         });
         return of([]);
-      })
+      }),
     );
   }
 
-  getHostData(): Observable<{name: string, count: number}[]> {
+  getHostData(): Observable<{ name: string; count: number }[]> {
     return this.databaseService.instance.hostsQueries.getHostsWithDomainCounts().pipe(
-      map(response => {
+      map((response) => {
         const normalized = this.normalizeChartData(response);
-        return normalized.map(item => ({
+        return normalized.map((item) => ({
           name: item.isp ?? item.host_name ?? item.name ?? 'Unknown',
-          count: Number(item.domain_count ?? item.count ?? 0)
+          count: Number(item.domain_count ?? item.count ?? 0),
         }));
       }),
-      catchError(error => {
+      catchError((error) => {
         this.errorHandler.handleError({
           error,
           message: 'Failed to fetch host data',
           location: 'DomainPieChartsComponent.getHostData',
         });
         return of([]);
-      })
+      }),
     );
   }
 
@@ -276,23 +310,30 @@ export class DomainPieChartsComponent implements OnInit, AfterViewInit {
         style.getPropertyValue('--pink-400'),
         style.getPropertyValue('--yellow-400'),
         style.getPropertyValue('--orange-400'),
-        style.getPropertyValue('--red-000')
+        style.getPropertyValue('--red-000'),
       ];
     }
   }
 
   setChartSize() {
     if (this.chartContainer) {
-      const { width: _width, height } = this.chartContainer.nativeElement.getBoundingClientRect();
+      const { width: _width, height } =
+        this.chartContainer.nativeElement.getBoundingClientRect();
       const chartSize = {
         width: '90%',
         height: height,
       };
       if (this.registrarChartOptions.chart) {
-        this.registrarChartOptions.chart = { ...this.registrarChartOptions.chart, ...chartSize };
+        this.registrarChartOptions.chart = {
+          ...this.registrarChartOptions.chart,
+          ...chartSize,
+        };
       }
       if (this.sslIssuerChartOptions.chart) {
-        this.sslIssuerChartOptions.chart = { ...this.sslIssuerChartOptions.chart, ...chartSize };
+        this.sslIssuerChartOptions.chart = {
+          ...this.sslIssuerChartOptions.chart,
+          ...chartSize,
+        };
       }
       if (this.hostChartOptions.chart) {
         this.hostChartOptions.chart = { ...this.hostChartOptions.chart, ...chartSize };

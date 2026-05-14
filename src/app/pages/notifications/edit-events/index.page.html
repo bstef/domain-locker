@@ -10,7 +10,9 @@
 @if (!loading) {
   <form [formGroup]="notificationForm" class="space-y-6 mt-4 relative">
     @if ((changeNotificationsFeatureEnabled$ | async) === false) {
-      <div class="absolute bg-surface-50 h-full w-full z-10 opacity-25 cursor-not-allowed"></div>
+      <div
+        class="absolute bg-surface-50 h-full w-full z-10 opacity-25 cursor-not-allowed"
+      ></div>
     }
     @for (type of notificationTypes; track type) {
       <div class="p-card p-4 shadow-sm rounded-lg mb-4">
@@ -27,9 +29,16 @@
           placeholder="Select domains"
           display="chip"
           styleClass="w-full mt-2"
-          />
+        />
       </div>
     }
-    <button pButton label="Save Preferences" aria-label="Save preferences" icon="pi pi-save" class="p-button-primary" (click)="savePreferences()"></button>
+    <button
+      pButton
+      label="Save Preferences"
+      aria-label="Save preferences"
+      icon="pi pi-save"
+      class="p-button-primary"
+      (click)="savePreferences()"
+    ></button>
   </form>
 }

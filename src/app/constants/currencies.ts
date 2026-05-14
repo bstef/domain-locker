@@ -1,4 +1,3 @@
-
 /**
  * List of supported currencies for each locale
  */

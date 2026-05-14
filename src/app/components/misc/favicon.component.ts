@@ -8,32 +8,39 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   imports: [CommonModule, NgOptimizedImage],
   template: `
     @if (!faviconLoaded) {
-      <i class="pi" [ngClass]="{'pi-spin': isSpinning, 'pi-globe': true}" [style.font-size.px]="size"></i>
+      <i
+        class="pi"
+        [ngClass]="{ 'pi-spin': isSpinning, 'pi-globe': true }"
+        [style.font-size.px]="size"
+      ></i>
     }
     @if (faviconLoaded !== false) {
       <img
-        [ngSrc]="domainIcon || (apiBaseUrl + sanitizedDomain)"
+        [ngSrc]="domainIcon || apiBaseUrl + sanitizedDomain"
         [width]="size"
         [height]="size"
         (load)="onFaviconLoad()"
         (error)="onFaviconError()"
         [alt]="sanitizedDomain + ' favicon'"
         [class]="styleClass + 'rounded-sm overflow-hidden block'"
-        />
+      />
     }
+  `,
+  styles: [
+    `
+      :host {
+        display: inline-block;
+        width: var(--favicon-size, 24px);
+        height: auto;
+        max-height: var(--favicon-size, 24px);
+        line-height: 0;
+      }
+      i,
+      img {
+        vertical-align: middle;
+      }
     `,
-  styles: [`
-    :host {
-      display: inline-block;
-      width: var(--favicon-size, 24px);
-      height: auto;
-      max-height: var(--favicon-size, 24px);
-      line-height: 0;
-    }
-    i, img {
-      vertical-align: middle;
-    }
-  `]
+  ],
 })
 export class DomainFaviconComponent implements OnInit, OnDestroy {
   private errorHandler = inject(ErrorHandlerService);

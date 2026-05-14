@@ -9,37 +9,47 @@ export class DnsQueries {
     private getCurrentUser: () => Promise<User | null>,
   ) {}
 
-  getDnsRecords(recordType: string): Observable<{ record_value: string; domains: string[] }[]> {
-    return from(this.supabase
-      .from('dns_records')
-      .select(`
+  getDnsRecords(
+    recordType: string,
+  ): Observable<{ record_value: string; domains: string[] }[]> {
+    return from(
+      this.supabase
+        .from('dns_records')
+        .select(
+          `
         record_value,
         domains (domain_name)
-      `)
-      .eq('record_type', recordType)
+      `,
+        )
+        .eq('record_type', recordType),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(record => ({
+        return data.map((record) => ({
           record_value: record.record_value,
           // @ts-expect-error record.domains shape varies
-          domains: record.domains ? [record.domains.domain_name] : []
+          domains: record.domains ? [record.domains.domain_name] : [],
         }));
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
   async saveDnsRecords(domainId: string, dns: SaveDomainData['dns']): Promise<void> {
     if (!dns) return;
-    const dnsRecords: { domain_id: string; record_type: string; record_value: string }[] = [];
-    
+    const dnsRecords: { domain_id: string; record_type: string; record_value: string }[] =
+      [];
+
     const recordTypes = ['mxRecords', 'txtRecords', 'nameServers'] as const;
     const typeMap = { mxRecords: 'MX', txtRecords: 'TXT', nameServers: 'NS' };
 
-    recordTypes.forEach(type => {
-      dns[type]?.forEach(record => {
-        dnsRecords.push({ domain_id: domainId, record_type: typeMap[type], record_value: record });
+    recordTypes.forEach((type) => {
+      dns[type]?.forEach((record) => {
+        dnsRecords.push({
+          domain_id: domainId,
+          record_type: typeMap[type],
+          record_value: record,
+        });
       });
     });
 

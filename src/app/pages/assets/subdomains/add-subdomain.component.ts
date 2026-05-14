@@ -81,7 +81,7 @@ export class AddSubdomainDialogComponent {
   }
 
   /**
-   * Remove protocol, slash parts, invalid chars, 
+   * Remove protocol, slash parts, invalid chars,
    * and anything after the first dot.
    */
   private sanitizeSubdomain(input: string): string {
@@ -116,7 +116,7 @@ export class AddSubdomainDialogComponent {
     if (!cleanedSubdomain) {
       this.globalMessagingService.showError(
         'Invalid subdomain',
-        'Please enter a valid subdomain name.'
+        'Please enter a valid subdomain name.',
       );
       return;
     }
@@ -124,19 +124,23 @@ export class AddSubdomainDialogComponent {
     if (!(await this.featureService.isFeatureEnabledPromise('writePermissions'))) {
       this.globalMessagingService.showWarn(
         'Write Permissions Disabled',
-        'It\'s not possible to add subdomains on the demo instance.',
+        "It's not possible to add subdomains on the demo instance.",
       );
       this.display = false;
       return;
     }
 
     // Call a new service method that inserts subdomain for domain
-    const result$ = this.databaseService.instance.subdomainsQueries.saveSubdomainForDomain(this.domain, cleanedSubdomain) as Observable<unknown>;
+    const result$ =
+      this.databaseService.instance.subdomainsQueries.saveSubdomainForDomain(
+        this.domain,
+        cleanedSubdomain,
+      ) as Observable<unknown>;
     result$.subscribe({
       next: () => {
         this.globalMessagingService.showSuccess(
           'Subdomain Added',
-          `${cleanedSubdomain}.${this.domain} has been successfully added to your account`
+          `${cleanedSubdomain}.${this.domain} has been successfully added to your account`,
         );
         this.display = false;
 
@@ -145,7 +149,7 @@ export class AddSubdomainDialogComponent {
       },
       error: (error: unknown) => {
         this.errorHandler.handleError({ error });
-      }
+      },
     });
   }
 }

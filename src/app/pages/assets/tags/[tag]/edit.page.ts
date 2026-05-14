@@ -12,11 +12,10 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   standalone: true,
   selector: 'app-tag-edit',
   imports: [PrimeNgModule, TagEditorComponent],
-  template: `
-  <h2 class="mb-4 ml-4">Edit Tag: {{ tagName }}</h2>
-  <div class="p-card p-4 m-4">
-    <app-tag-editor [tag]="tag" ($afterSave)="afterSave()" />
-  </div>`,
+  template: ` <h2 class="mb-4 ml-4">Edit Tag: {{ tagName }}</h2>
+    <div class="p-card p-4 m-4">
+      <app-tag-editor [tag]="tag" ($afterSave)="afterSave()" />
+    </div>`,
 })
 export default class TagDomainsPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -32,7 +31,7 @@ export default class TagDomainsPageComponent implements OnInit {
   tag: Partial<Tag> = {};
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.tagName = params['tag'];
       this.loadTag();
     });
@@ -55,12 +54,11 @@ export default class TagDomainsPageComponent implements OnInit {
           location: 'TagDomainsPageComponent.loadTag',
         });
         this.loading = false;
-      }
+      },
     });
   }
 
   afterSave() {
     this.router.navigate([`/assets/tags/${this.tag.name}/add-domains`]);
   }
-
 }

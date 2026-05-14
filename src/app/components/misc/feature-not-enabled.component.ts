@@ -1,7 +1,10 @@
 import { Component, Input, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { type FeatureDefinitions, featureDescriptions } from '~/app/constants/feature-options';
+import {
+  type FeatureDefinitions,
+  featureDescriptions,
+} from '~/app/constants/feature-options';
 import { EnvironmentType, EnvService } from '~/app/services/environment.service';
 import { Observable } from 'rxjs';
 import { BillingService } from '~/app/services/billing.service';
@@ -22,7 +25,7 @@ import { BillingService } from '~/app/services/billing.service';
           } @else {
             <span>
               <i class="pi pi-lock"></i>
-              {{ featureName || 'This feature'}} is not available
+              {{ featureName || 'This feature' }} is not available
               @if (environment === 'managed') {
                 on the {{ (userPlan$ | async) || 'current' }} plan
               } @else {
@@ -37,13 +40,13 @@ import { BillingService } from '~/app/services/billing.service';
               icon="pi pi-arrow-circle-right"
               size="small"
               routerLink="/settings/upgrade"
-              />
+            />
           }
         </div>
       </ng-template>
     </p-messages>
-    `,
-  styles: []
+  `,
+  styles: [],
 })
 export class FeatureNotEnabledComponent implements OnInit {
   private billingService = inject(BillingService);
@@ -57,7 +60,7 @@ export class FeatureNotEnabledComponent implements OnInit {
 
   environment: EnvironmentType;
   userPlan$: Observable<string | null>;
-  
+
   constructor() {
     this.environment = this.environmentService.getEnvironmentType();
     this.userPlan$ = this.billingService.getUserPlan();
@@ -82,4 +85,3 @@ export class FeatureNotEnabledComponent implements OnInit {
     }
   }
 }
-

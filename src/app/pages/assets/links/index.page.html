@@ -1,4 +1,3 @@
-
 @if (links?.linksWithDomains?.length) {
   <div class="flex flex-wrap items-center justify-between">
     <h1 class="m-0">Links</h1>
@@ -6,7 +5,11 @@
       @if (displayBy === 'by-domain') {
         <div class="flex flex-col gap-2 items-center">
           <label for="showAutoLinks" class="text-sm opacity-80">Show Auto Links</label>
-          <p-inputSwitch [(ngModel)]="showAutoLinks" inputId="showAutoLinks" (onChange)="onShowAutoLinksChange($event.checked)" />
+          <p-inputSwitch
+            [(ngModel)]="showAutoLinks"
+            inputId="showAutoLinks"
+            (onChange)="onShowAutoLinksChange($event.checked)"
+          />
         </div>
       }
       <p-selectButton
@@ -15,7 +18,7 @@
         optionLabel="label"
         optionValue="value"
         (onChange)="onDisplayByChange($event)"
-        />
+      />
       <p-button icon="pi pi-plus" label="Add Link" (click)="addNewLink()" />
     </div>
   </div>
@@ -23,24 +26,30 @@
 
 <!-- No links yet -->
 @if (!links?.linksWithDomains?.length) {
-  <div
-    class="p-card p-4 my-4 mx-auto max-w-96 flex flex-col gap-2">
+  <div class="p-card p-4 my-4 mx-auto max-w-96 flex flex-col gap-2">
     <h2 class="m-0">
       <i class="pi pi-link text-3xl"></i>
       Domain Links
     </h2>
     <p class="m-0">
-      Here you can keep track of all domain-related links,
-      such as login portals, documentation, website analytics, associated social media profiles, etc.
+      Here you can keep track of all domain-related links, such as login portals,
+      documentation, website analytics, associated social media profiles, etc.
     </p>
-    <p-button icon="pi pi-plus" label="Add Link" (click)="addNewLink()" class="my-2 mx-auto" />
+    <p-button
+      icon="pi pi-plus"
+      label="Add Link"
+      (click)="addNewLink()"
+      class="my-2 mx-auto"
+    />
   </div>
 }
 
 <p-contextMenu #menu [model]="contextMenuItems" appendTo="body" />
 
 @if (displayBy === 'all-links' && links?.linksWithDomains?.length) {
-  <ul class="list-none p-0 m-0 mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
+  <ul
+    class="list-none p-0 m-0 mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3"
+  >
     @for (link of links?.linksWithDomains; track link) {
       <li class="w-full flex">
         <app-domain-link
@@ -50,7 +59,7 @@
           [linkDescription]="link.link_description"
           [associatedDomains]="link.domains"
           (contextMenu)="onRightClick($event, link)"
-          />
+        />
       </li>
     }
   </ul>
@@ -59,7 +68,10 @@
 @if (displayBy === 'by-domain') {
   @for (domain of links?.groupedByDomain | keyvalue; track domain; let isLast = $last) {
     <div class="mt-4">
-      <a [routerLink]="'/domains/' + domain.key" class="no-underline text-default hover:text-primary">
+      <a
+        [routerLink]="'/domains/' + domain.key"
+        class="no-underline text-default hover:text-primary"
+      >
         <h2 class="mt-3 mb-2">{{ domain.key }}</h2>
       </a>
       <!-- User's Links -->
@@ -67,8 +79,10 @@
         @if (showAutoLinks) {
           <h3 class="uppercase text-surface-200 text-sm mt-4 mb-2">Links</h3>
         }
-        <ul class="list-none p-0 m-0 mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
-          @for (link of (domain.value); track link) {
+        <ul
+          class="list-none p-0 m-0 mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3"
+        >
+          @for (link of domain.value; track link) {
             <li class="w-full flex">
               <app-domain-link
                 class="w-full"
@@ -76,7 +90,7 @@
                 [linkName]="link.link_name"
                 [linkDescription]="link.link_description"
                 (contextMenu)="onRightClick($event, link)"
-                />
+              />
             </li>
           }
         </ul>
@@ -85,7 +99,9 @@
       @if (customSections[domain.key] && customSections[domain.key]) {
         @for (subHeading of objKeys(customSections[domain.key]); track subHeading) {
           <h3 class="uppercase text-surface-200 text-sm mt-4 mb-2">{{ subHeading }}</h3>
-          <ul class="list-none p-0 m-0 mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
+          <ul
+            class="list-none p-0 m-0 mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3"
+          >
             @for (link of customSections[domain.key][subHeading]; track link) {
               <li class="w-full flex">
                 <app-domain-link
@@ -93,7 +109,7 @@
                   [linkUrl]="link.link_url"
                   [linkName]="link.link_name"
                   [linkDescription]="link.link_description"
-                  />
+                />
               </li>
             }
           </ul>
@@ -105,4 +121,3 @@
     </div>
   }
 }
-

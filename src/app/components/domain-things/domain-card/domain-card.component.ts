@@ -20,21 +20,33 @@ import { CurrencyService } from '~/app/services/currency.service';
   selector: 'app-domain-card',
   templateUrl: './domain-card.component.html',
   styleUrls: ['./domain-card.component.scss'],
-  imports: [PrimeNgModule, DatePipe, CommonModule, DomainFaviconComponent, TranslateModule],
+  imports: [
+    PrimeNgModule,
+    DatePipe,
+    CommonModule,
+    DomainFaviconComponent,
+    TranslateModule,
+  ],
   providers: [ConfirmationService, MessageService],
   animations: [
     trigger('cardAnimation', [
-      state('visible', style({
-        opacity: 1,
-        transform: 'translateY(0)'
-      })),
-      state('hidden', style({
-        opacity: 0,
-        transform: 'translateY(-100%)'
-      })),
-      transition('visible => hidden', animate('300ms ease-out'))
-    ])
-  ]
+      state(
+        'visible',
+        style({
+          opacity: 1,
+          transform: 'translateY(0)',
+        }),
+      ),
+      state(
+        'hidden',
+        style({
+          opacity: 0,
+          transform: 'translateY(-100%)',
+        }),
+      ),
+      transition('visible => hidden', animate('300ms ease-out')),
+    ]),
+  ],
 })
 export class DomainCardComponent implements OnInit {
   domainUtils = inject(DomainUtils);
@@ -53,36 +65,42 @@ export class DomainCardComponent implements OnInit {
   cardVisible = true;
 
   isVisible(field: string): boolean {
-    return this.visibleFields.some(option => option.value === field);
+    return this.visibleFields.some((option) => option.value === field);
   }
 
   ngOnInit() {
     this.contextMenuItems = [
-      { 
+      {
         label: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.VIEW'),
         icon: 'pi pi-reply',
-        command: () => this.viewDomain()
+        command: () => this.viewDomain(),
       },
-      { 
+      {
         label: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.EDIT'),
         icon: 'pi pi-pencil',
-        command: () => this.editDomain()
+        command: () => this.editDomain(),
       },
-      { 
-        label: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE'),
+      {
+        label: this.translate.instant(
+          'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE',
+        ),
         icon: 'pi pi-trash',
-        command: (event) => this.deleteDomain(event)
+        command: (event) => this.deleteDomain(event),
       },
-      { 
-        label: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_URL'),
+      {
+        label: this.translate.instant(
+          'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_URL',
+        ),
         icon: 'pi pi-copy',
-        command: () => this.copyDomainUrl()
+        command: () => this.copyDomainUrl(),
       },
-      { 
-        label: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.VISIT_URL'),
+      {
+        label: this.translate.instant(
+          'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.VISIT_URL',
+        ),
         icon: 'pi pi-external-link',
-        command: () => this.visitDomainUrl()
-      }
+        command: () => this.visitDomainUrl(),
+      },
     ];
   }
 
@@ -97,52 +115,71 @@ export class DomainCardComponent implements OnInit {
   deleteDomain(event: import('primeng/api').MenuItemCommandEvent) {
     this.confirmationService.confirm({
       target: event.originalEvent?.target as EventTarget,
-      header: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_HEADER'),
-      message: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_MESSAGE'),
+      header: this.translate.instant(
+        'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_HEADER',
+      ),
+      message: this.translate.instant(
+        'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_MESSAGE',
+      ),
       icon: 'pi pi-exclamation-triangle',
-      rejectButtonStyleClass:"p-button-text", 
+      rejectButtonStyleClass: 'p-button-text',
       accept: () => {
         this.databaseService.instance.deleteDomain(this.domain.id).subscribe({
           next: () => {
             this.globalMessageService.showMessage({
               severity: 'success',
-              summary: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_SUCCESS_SUMMARY'),
-              detail: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_SUCCESS_DETAIL')
+              summary: this.translate.instant(
+                'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_SUCCESS_SUMMARY',
+              ),
+              detail: this.translate.instant(
+                'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_SUCCESS_DETAIL',
+              ),
             });
             this.cardVisible = false;
           },
           error: (err) => {
             this.errorHandler.handleError({
               error: err,
-              message: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_ERROR_SUMMARY') || 'Failed to delete domain',
+              message:
+                this.translate.instant(
+                  'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.DELETE_ERROR_SUMMARY',
+                ) || 'Failed to delete domain',
               location: 'DomainCardComponent.deleteDomain',
               showToast: true,
             });
-          }
+          },
         });
-      }
+      },
     });
   }
 
   copyDomainUrl() {
     const url = `https://${this.domain.domain_name}`;
     const clipboardCopyFailed = (e: Error | unknown) => {
-      this.errorHandler.handleError(
-        { error: e, message: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_ERROR'), showToast: true },
-      );
-    }
+      this.errorHandler.handleError({
+        error: e,
+        message: this.translate.instant(
+          'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_ERROR',
+        ),
+        showToast: true,
+      });
+    };
     try {
       navigator.clipboard.writeText(url).then(
         () => {
           this.globalMessageService.showMessage({
             severity: 'success',
-            summary: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_SUCCESS_SUMMARY'),
-            detail: this.translate.instant('DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_SUCCESS_DETAIL')
+            summary: this.translate.instant(
+              'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_SUCCESS_SUMMARY',
+            ),
+            detail: this.translate.instant(
+              'DOMAINS.DOMAIN_COLLECTION.GRID.CONTEXT_MENU.COPY_SUCCESS_DETAIL',
+            ),
           });
         },
         (err) => {
           clipboardCopyFailed(err);
-        }
+        },
       );
     } catch (err) {
       clipboardCopyFailed(err);

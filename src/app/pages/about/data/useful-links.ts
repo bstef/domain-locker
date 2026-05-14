@@ -1,4 +1,3 @@
-
 export interface WebTool {
   title: string;
   link: string;
@@ -13,12 +12,14 @@ export const as93Apps: WebTool[] = [
     title: 'Web Check',
     link: 'https://web-check.xyz',
     icon: 'https://github.com/Lissy93/web-check/blob/master/public/web-check.png?raw=true',
-    description: 'X-ray vision for any website, view and export all available website data in one place',
+    description:
+      'X-ray vision for any website, view and export all available website data in one place',
   },
   {
     title: 'Dashy',
     link: 'https://dashy.to',
-    description: 'A self-hostable server dashboard. Status-checking, widgets, themes, icon packs, UI editor, and more',
+    description:
+      'A self-hostable server dashboard. Status-checking, widgets, themes, icon packs, UI editor, and more',
     icon: 'https://i.ibb.co/yhbt6CY/dashy.png',
   },
   {
@@ -31,13 +32,15 @@ export const as93Apps: WebTool[] = [
     title: 'Digital Defense',
     link: 'https://digital-defense.io/',
     icon: 'https://i.ibb.co/Rb6P6h6/shield.png',
-    description: 'The ultimate security checklist, 300+ tips for protecting your data online',
+    description:
+      'The ultimate security checklist, 300+ tips for protecting your data online',
   },
   {
     title: 'Awesome Privacy',
     link: 'https://awesome-privacy.xyz/',
     icon: 'https://lissy93.github.io/awesome-privacy/awesome-privacy.png',
-    description: 'A curated list of apps, services and alternatives that respect your privacy',
+    description:
+      'A curated list of apps, services and alternatives that respect your privacy',
   },
   {
     title: 'Portainer Templates',
@@ -115,7 +118,7 @@ export const openSourceUtils = [
     title: 'EFForg/Certbot',
     link: 'https://github.com/certbot/certbot',
     icon: 'https://dashboard.snapcraft.io/site_media/appmedia/2020/09/certbot.png',
-    description: 'Automatically enable HTTPS on your website with Let\'s Encrypt',
+    description: "Automatically enable HTTPS on your website with Let's Encrypt",
   },
 ];
 
@@ -142,19 +145,21 @@ export const registrars: WebTool[] = [
     title: 'Namecheap',
     link: 'https://www.namecheap.com',
     icon: 'https://www.namecheap.com/assets/img/nc-icon/namecheap-icon-144x144.png',
-    description: 'Well established, but quite expensive registrar with many TLDs + WHOIS privacy included',
+    description:
+      'Well established, but quite expensive registrar with many TLDs + WHOIS privacy included',
   },
   {
     title: 'Cloudflare Registrar',
     link: 'https://domains.cloudflare.com/',
     icon: 'https://domains.cloudflare.com/favicon.svg',
-    description: 'Low pricing, good if you\'re already using Cloudflare for DDoS protection',
+    description:
+      "Low pricing, good if you're already using Cloudflare for DDoS protection",
   },
 ];
 
 export const sslCerts: WebTool[] = [
   {
-    title: 'Let\'s Encrypt',
+    title: "Let's Encrypt",
     link: 'https://letsencrypt.org/',
     icon: 'https://letsencrypt.org/favicon.ico',
     description: 'Industry leading free and automated SSL certs',
@@ -169,16 +174,17 @@ export const sslCerts: WebTool[] = [
     title: 'Cloudflare SSL',
     link: 'https://www.cloudflare.com/ssl/',
     icon: 'https://www.cloudflare.com/favicon.ico',
-    description: 'Free SSL via Cloudflare\'s reverse proxy',
+    description: "Free SSL via Cloudflare's reverse proxy",
   },
 ];
 
-export const domainManagementPlatforms: WebTool[] =  [
+export const domainManagementPlatforms: WebTool[] = [
   {
     title: 'Domain MOD',
     link: 'https://domainmod.org',
     icon: 'https://github.com/homarr-labs/dashboard-icons/blob/a19b2ba31117a832e496777e863943802ff7fdc9/png/domainmod.png?raw=true',
-    description: 'The self-hosted domain management platform with a data warehouse framework',
+    description:
+      'The self-hosted domain management platform with a data warehouse framework',
   },
   {
     title: 'Domain Punch',
@@ -196,7 +202,8 @@ export const domainManagementPlatforms: WebTool[] =  [
     title: 'Domain Locker',
     link: 'https://domain-locker.com',
     icon: 'https://domain-locker.com/icons/android-chrome-192x192.png',
-    description: 'The all-in-one domain management platform, for keeping track of your domain portfolio, associated assets, and more',
+    description:
+      'The all-in-one domain management platform, for keeping track of your domain portfolio, associated assets, and more',
   },
   {
     title: 'Domain Admin',
@@ -223,7 +230,8 @@ export const domainOsintTools: WebTool[] = [
     title: 'Web Check',
     link: 'https://web-check.xyz',
     icon: 'https://github.com/Lissy93/web-check/blob/master/public/web-check.png?raw=true',
-    description: 'X-ray vision for any website, view and export all available website data in one place',
+    description:
+      'X-ray vision for any website, view and export all available website data in one place',
   },
   {
     title: 'MX Toolbox',
@@ -307,7 +315,8 @@ export const domainOsintTools: WebTool[] = [
     title: 'Page Speed Insights',
     link: 'https://developers.google.com/speed/pagespeed/insights/',
     icon: 'https://i.ibb.co/k68t9bb/Page-speed-insights.png',
-    description: 'Checks the performance, accessibility and SEO of a page on mobile + desktop',
+    description:
+      'Checks the performance, accessibility and SEO of a page on mobile + desktop',
   },
   {
     title: 'Built With',
@@ -319,7 +328,7 @@ export const domainOsintTools: WebTool[] = [
     title: 'DNS Dumpster',
     link: 'https://dnsdumpster.com/',
     icon: 'https://i.ibb.co/DtQ2QXP/Trash-can-regular.png',
-    description: 'DNS recon tool, to map out a domain from it\'s DNS records',
+    description: "DNS recon tool, to map out a domain from it's DNS records",
   },
   {
     title: 'BGP Tools',
@@ -349,13 +358,14 @@ export const domainOsintTools: WebTool[] = [
     title: 'Mozilla HTTP Observatory',
     link: 'https://developer.mozilla.org/en-US/observatory',
     icon: 'https://www.mozilla.org/media/img/favicons/mozilla/favicon-196x196.png',
-    description: 'Assesses website security posture by analyzing various security headers and practices',
+    description:
+      'Assesses website security posture by analyzing various security headers and practices',
   },
   {
     title: 'AbuseIPDB',
     link: 'https://abuseipdb.com/',
     icon: 'https://www.abuseipdb.com/favicon.ico',
-    description: 'Checks a website against Zscaler\'s dynamic risk scoring engine',
+    description: "Checks a website against Zscaler's dynamic risk scoring engine",
   },
   {
     title: 'IBM X-Force Exchange',
@@ -367,13 +377,14 @@ export const domainOsintTools: WebTool[] = [
     title: 'URLVoid',
     link: 'https://urlvoid.com/',
     icon: 'https://www.urlvoid.com/favicon.ico',
-    description: 'Checks a website across 30+ blocklist engines and website reputation services',
+    description:
+      'Checks a website across 30+ blocklist engines and website reputation services',
   },
   {
     title: 'URLhaus',
     link: 'https://urlhaus.abuse.ch/',
     icon: 'https://urlhaus.abuse.ch/favicon.ico',
-    description: 'Checks if the site is in URLhaus\'s malware URL exchange',
+    description: "Checks if the site is in URLhaus's malware URL exchange",
   },
 ];
 
@@ -451,4 +462,4 @@ export const sections = [
     is available at <a href="https://as93.net">as93.net</a>.`,
     links: as93Apps,
   },
-]
+];

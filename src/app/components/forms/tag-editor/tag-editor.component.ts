@@ -20,10 +20,24 @@ export class TagEditorComponent {
 
   @Input() tag: Partial<Tag> = {};
   @Input() isAddNew = false;
-  @Input() afterSave: (p?: string) => void = () => { /* no-op */ };
+  @Input() afterSave: (p?: string) => void = () => {
+    /* no-op */
+  };
   @Output() $afterSave = new EventEmitter<string>();
 
-  tagColors: string[] = ['blue', 'green', 'yellow', 'cyan', 'pink', 'indigo', 'teal', 'orange', 'purple', 'red', 'gray'];
+  tagColors: string[] = [
+    'blue',
+    'green',
+    'yellow',
+    'cyan',
+    'pink',
+    'indigo',
+    'teal',
+    'orange',
+    'purple',
+    'red',
+    'gray',
+  ];
 
   saveTag() {
     if (!this.tag.name?.trim()) {
@@ -53,7 +67,8 @@ export class TagEditorComponent {
         this.$afterSave.emit(this.tag.name);
       },
       error: (err) => {
-        if (err.code === '23505') {  // Handle duplicate tag names
+        if (err.code === '23505') {
+          // Handle duplicate tag names
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -67,7 +82,7 @@ export class TagEditorComponent {
             showToast: true,
           });
         }
-      }
+      },
     });
   }
 
@@ -88,7 +103,7 @@ export class TagEditorComponent {
           location: 'TagEditorComponent.updateTag',
           showToast: true,
         });
-      }
+      },
     });
   }
 

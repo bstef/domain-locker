@@ -2,12 +2,15 @@
   @if (!isInModal) {
     <h2 class="text-2xl font-semibold">Add New Domain</h2>
   }
-  <p class="m-0">Enter the domain name you'd like to track, and we'll fetch the details automatically.</p>
+  <p class="m-0">
+    Enter the domain name you'd like to track, and we'll fetch the details automatically.
+  </p>
 
   <form [formGroup]="domainForm" (ngSubmit)="onSubmit()">
     <div class="field flex flex-col gap-1 mt-4">
       <p-floatLabel>
-        <input pInputText
+        <input
+          pInputText
           (blur)="onDomainNameBlur()"
           id="domainName"
           type="text"
@@ -15,13 +18,19 @@
           placeholder="e.g., example.com"
           class="w-full"
           styleClass="text-lg"
-          />
+        />
         <label for="username">Domain Name</label>
       </p-floatLabel>
 
-      @if (domainForm.get('domainName')?.invalid && domainForm.get('domainName')?.touched) {
+      @if (
+        domainForm.get('domainName')?.invalid && domainForm.get('domainName')?.touched
+      ) {
         <small class="p-error">
-          {{ domainForm.get('domainName')?.errors?.['required'] ? 'Domain name is required.' : 'Enter a valid domain name.' }}
+          {{
+            domainForm.get('domainName')?.errors?.['required']
+              ? 'Domain name is required.'
+              : 'Enter a valid domain name.'
+          }}
         </small>
       }
     </div>

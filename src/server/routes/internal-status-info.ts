@@ -1,22 +1,26 @@
-import { defineEventHandler} from 'h3';
+import { defineEventHandler } from 'h3';
 
 const timeout = 5000;
 
 export default defineEventHandler(async (event) => {
-  event.node.res.setHeader('Cache-Control', 'public, max-age=900, stale-while-revalidate=30');
+  event.node.res.setHeader(
+    'Cache-Control',
+    'public, max-age=900, stale-while-revalidate=30',
+  );
   event.node.res.setHeader('Content-Type', 'application/json');
   event.node.res.setHeader('Access-Control-Allow-Origin', '*');
   event.node.res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
   const authHeader = event.node.req.headers['Authorization'] as string | undefined;
 
-  const [scheduledCrons, databaseStatus, supabaseStatus, uptimeStatus, ghActions] = await Promise.all([
-    fetchHealthchecks(),
-    fetchDatabaseHealth(authHeader),
-    fetchSupabaseHealth(),
-    fetchUptimeStatus(),
-    fetchGitHubCIStatus(),
-  ]);
+  const [scheduledCrons, databaseStatus, supabaseStatus, uptimeStatus, ghActions] =
+    await Promise.all([
+      fetchHealthchecks(),
+      fetchDatabaseHealth(authHeader),
+      fetchSupabaseHealth(),
+      fetchUptimeStatus(),
+      fetchGitHubCIStatus(),
+    ]);
 
   return { scheduledCrons, databaseStatus, supabaseStatus, uptimeStatus, ghActions };
 });
@@ -30,7 +34,7 @@ async function fetchHealthchecks(): Promise<unknown[]> {
       signal: AbortSignal.timeout(timeout),
     });
     if (!res.ok) return [];
-    const body = await res.json() as { checks?: unknown[] };
+    const body = (await res.json()) as { checks?: unknown[] };
     return body.checks || [];
   } catch (err) {
     console.error('[external-checks] Healthchecks error:', err);
@@ -54,7 +58,6 @@ async function fetchDatabaseHealth(authHeader?: string): Promise<unknown> {
   }
 }
 
-
 async function fetchSupabaseHealth(): Promise<{ healthy?: boolean } | undefined> {
   const anonKey = import.meta.env['SUPABASE_ANON_KEY'];
   if (!anonKey) return {};
@@ -70,7 +73,7 @@ async function fetchSupabaseHealth(): Promise<{ healthy?: boolean } | undefined>
     return { healthy: body.trim() === 'Healthy' };
   } catch (err) {
     console.error('[external-checks] Supabase health error:', err);
-    return { healthy: false};
+    return { healthy: false };
   }
 }
 

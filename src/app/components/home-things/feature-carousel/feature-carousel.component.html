@@ -6,11 +6,15 @@
   [autoplayInterval]="7000"
   orientation="vertical"
   styleClass="hidden md:flex"
-  >
+>
   <ng-template pTemplate="item" let-feature>
     <div class="flex gap-2 p-card mx-2 p-0 h-full flex-wrap sm:flex-nowrap">
       <!-- Left side: text, icon, bullet points -->
-      <div class="w-full {{ feature.screenshot ?? 'sm:w-2/6' }} flex flex-col gap-2 pl-4 py-4">
+      <div
+        class="w-full {{
+          feature.screenshot ?? 'sm:w-2/6'
+        }} flex flex-col gap-2 pl-4 py-4"
+      >
         <div class="flex gap-2 items-center">
           <app-dl-icon
             [icon]="feature.icon"
@@ -36,10 +40,12 @@
             [src]="feature.screenshot || 'https://placehold.co/600x300/1f2937/fff'"
             [alt]="feature.featureTitle + ' Screenshot'"
             class="w-full h-auto m-0 p-0 rounded"
-            />
+          />
           <div
             class="absolute inset-0 pointer-events-none rounded w-1/6"
-            style="background: linear-gradient(90deg, var(--surface-e) 2%, transparent 98% );"
+            style="
+              background: linear-gradient(90deg, var(--surface-e) 2%, transparent 98%);
+            "
           ></div>
         </div>
       }

@@ -54,13 +54,16 @@ export class DomainValuationChartComponent implements OnInit {
           const dataPoint = {
             x: domain.current_value ?? domain.purchase_price,
             y: domain.renewal_cost,
-            z: Math.abs((domain.current_value ?? domain.purchase_price) - domain.purchase_price),
+            z: Math.abs(
+              (domain.current_value ?? domain.purchase_price) - domain.purchase_price,
+            ),
             domainName: domain.domain_name,
             tooltipInfo: {
               purchasePrice: domain.purchase_price,
               currentValue: domain.current_value,
               renewalCost: domain.renewal_cost,
-              profitLoss: (domain.current_value ?? domain.purchase_price) - domain.purchase_price,
+              profitLoss:
+                (domain.current_value ?? domain.purchase_price) - domain.purchase_price,
               autoRenew: domain.auto_renew,
             },
             fillColor: this.getColor(index),
@@ -83,18 +86,25 @@ export class DomainValuationChartComponent implements OnInit {
           location: 'DomainValuationChartComponent.loadDomainCostings',
           showToast: true,
         });
-      }
+      },
     });
   }
 
-  createChartOptions(autoRenewData: DomainCostingPoints, noAutoRenewData: DomainCostingPoints): ApexOptions {
+  createChartOptions(
+    autoRenewData: DomainCostingPoints,
+    noAutoRenewData: DomainCostingPoints,
+  ): ApexOptions {
     return {
       chart: {
         type: 'bubble',
         height: 450,
         toolbar: { show: false },
         events: {
-          dataPointSelection: (_event: object, _chartContext: object, config: { seriesIndex: number; dataPointIndex: number }) => {
+          dataPointSelection: (
+            _event: object,
+            _chartContext: object,
+            config: { seriesIndex: number; dataPointIndex: number },
+          ) => {
             const series = config.seriesIndex === 0 ? autoRenewData : noAutoRenewData;
             const selectedDomain = series[config.dataPointIndex];
             this.router.navigate(['/domains', selectedDomain.domainName]);
@@ -122,10 +132,17 @@ export class DomainValuationChartComponent implements OnInit {
         labels: { formatter: (val: number) => `$${val}` },
       } as ApexYAxis,
       tooltip: {
-        custom: ({ seriesIndex, dataPointIndex }: { seriesIndex: number; dataPointIndex: number }) => {
+        custom: ({
+          seriesIndex,
+          dataPointIndex,
+        }: {
+          seriesIndex: number;
+          dataPointIndex: number;
+        }) => {
           const series = seriesIndex === 0 ? autoRenewData : noAutoRenewData;
           const info = series[dataPointIndex].tooltipInfo;
-          return info ? `
+          return info
+            ? `
             <div style="padding: 10px;">
               <strong>${series[dataPointIndex].domainName}</strong><br>
               Purchase Price: $${info.purchasePrice}<br>
@@ -134,7 +151,8 @@ export class DomainValuationChartComponent implements OnInit {
               Profit/Loss: $${info.profitLoss}<br>
               Auto-Renew: ${info.autoRenew ? 'Yes' : 'No'}
             </div>
-          ` : '';
+          `
+            : '';
         },
       },
     };
@@ -142,7 +160,13 @@ export class DomainValuationChartComponent implements OnInit {
 
   // Get a color from a preset list or a color variable
   getColor(index: number): string {
-    const colors = ['var(--red-400)', 'var(--teal-400)', 'var(--blue-400)', 'var(--purple-400)', 'var(--green-400)'];
+    const colors = [
+      'var(--red-400)',
+      'var(--teal-400)',
+      'var(--blue-400)',
+      'var(--purple-400)',
+      'var(--green-400)',
+    ];
     return colors[index % colors.length];
   }
 }

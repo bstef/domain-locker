@@ -10,7 +10,7 @@ export async function updateHost(
   pgExec: string,
   domainRow: DomainRow,
   freshInfo: FreshDomainInfo,
-  changes: string[]
+  changes: string[],
 ): Promise<void> {
   const domainId = domainRow.id;
   const userId = domainRow.user_id; // must be included in SELECT
@@ -20,14 +20,21 @@ export async function updateHost(
   const existing: HostRecord = (domainRow.host as HostRecord) || {}; // from joined SELECT
 
   const fields = [
-    'ip', 'lat', 'lon',
-    'isp', 'org', 'as_number',
-    'city', 'region', 'country'
+    'ip',
+    'lat',
+    'lon',
+    'isp',
+    'org',
+    'as_number',
+    'city',
+    'region',
+    'country',
   ] as const;
 
-  const getNum = (obj: HostRecord, field: string) => obj?.[field] !== undefined ? Number(obj[field]) : null;
+  const getNum = (obj: HostRecord, field: string) =>
+    obj?.[field] !== undefined ? Number(obj[field]) : null;
 
-  const mappedFresh: Record<typeof fields[number], unknown> = {
+  const mappedFresh: Record<(typeof fields)[number], unknown> = {
     ip: fresh['query'],
     lat: getNum(fresh, 'lat'),
     lon: getNum(fresh, 'lon'),
@@ -36,17 +43,19 @@ export async function updateHost(
     as_number: fresh['as'],
     city: fresh['city'],
     region: fresh['region'] || fresh['regionName'],
-    country: fresh['country']
+    country: fresh['country'],
   };
 
   const hasChanged = fields.some((f) => {
-    const oldVal = typeof mappedFresh[f] === 'number'
-      ? Number(existing?.[f] ?? -1)
-      : normalizeStr(existing?.[f] as string | null | undefined);
+    const oldVal =
+      typeof mappedFresh[f] === 'number'
+        ? Number(existing?.[f] ?? -1)
+        : normalizeStr(existing?.[f] as string | null | undefined);
 
-    const newVal = typeof mappedFresh[f] === 'number'
-      ? Number(mappedFresh[f] ?? -1)
-      : normalizeStr(mappedFresh[f] as string | null | undefined);
+    const newVal =
+      typeof mappedFresh[f] === 'number'
+        ? Number(mappedFresh[f] ?? -1)
+        : normalizeStr(mappedFresh[f] as string | null | undefined);
 
     return oldVal !== newVal;
   });
@@ -57,7 +66,7 @@ export async function updateHost(
   const existingHost = await callPgExecutor<{ id: string }>(
     pgExec,
     `SELECT id FROM hosts WHERE user_id = $1 AND ip = $2 LIMIT 1`,
-    [userId, mappedFresh.ip]
+    [userId, mappedFresh.ip],
   );
 
   let hostId: string;
@@ -72,16 +81,16 @@ export async function updateHost(
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id
       `,
-      fields.map((f) => mappedFresh[f] ?? null)
+      fields.map((f) => mappedFresh[f] ?? null),
     );
     hostId = inserted[0].id;
   }
 
   // Update domain's host_id
-  await callPgExecutor(pgExec,
-    `UPDATE domains SET host_id = $1 WHERE id = $2`,
-    [hostId, domainId]
-  );
+  await callPgExecutor(pgExec, `UPDATE domains SET host_id = $1 WHERE id = $2`, [
+    hostId,
+    domainId,
+  ]);
 
   await recordDomainUpdate(
     pgExec,
@@ -89,7 +98,7 @@ export async function updateHost(
     'Host changed',
     'host_changed',
     String(existing['ip'] ?? ''),
-    String(mappedFresh.ip ?? '')
+    String(mappedFresh.ip ?? ''),
   );
 
   changes.push('Host');

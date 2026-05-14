@@ -15,10 +15,15 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 @Component({
   standalone: true,
   selector: 'app-tag-domains',
-  imports: [PrimeNgModule, DomainCollectionComponent, TagEditorComponent, TagPickListComponent],
+  imports: [
+    PrimeNgModule,
+    DomainCollectionComponent,
+    TagEditorComponent,
+    TagPickListComponent,
+  ],
   templateUrl: './tag.page.html',
   styleUrl: '../tags.scss',
-  providers: [ConfirmationService]
+  providers: [ConfirmationService],
 })
 export default class TagDomainsPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -37,7 +42,7 @@ export default class TagDomainsPageComponent implements OnInit {
   tag: Partial<Tag> = {};
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.tagName = params['tag'];
       this.loadDomains();
       this.loadTag();
@@ -64,7 +69,7 @@ export default class TagDomainsPageComponent implements OnInit {
         });
         this.loading = false;
         this.cdr.markForCheck();
-      }
+      },
     });
   }
 
@@ -85,14 +90,14 @@ export default class TagDomainsPageComponent implements OnInit {
         });
         this.loading = false;
         this.cdr.markForCheck();
-      }
+      },
     });
   }
 
   showEditDialog() {
     this.editDialogOpen = true;
   }
-  
+
   showAddDomainsDialog() {
     this.addDomainsDialogOpen = true;
   }
@@ -115,7 +120,7 @@ export default class TagDomainsPageComponent implements OnInit {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `Tag "${this.tag.name}" deleted successfully.`
+              detail: `Tag "${this.tag.name}" deleted successfully.`,
             });
             this.router.navigate(['/assets/tags']);
           },
@@ -126,9 +131,9 @@ export default class TagDomainsPageComponent implements OnInit {
               location: 'TagDomainsPageComponent.deleteTag',
               showToast: true,
             });
-          }
+          },
         });
-      }
+      },
     });
   }
 

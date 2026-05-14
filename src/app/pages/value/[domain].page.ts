@@ -6,4 +6,3 @@ import { Component } from '@angular/core';
   template: '<h1>Value Domain Page</h1>',
 })
 export default class TestPageComponent {}
-

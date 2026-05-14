@@ -23,8 +23,13 @@ export default class ValuationPageComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   domains: (DbDomain & {
-    purchase_price: number; current_value: number; renewal_cost: number; auto_renew: boolean;
-    purchasePriceClass?: string; currentValueClass?: string; renewalCostClass?: string;
+    purchase_price: number;
+    current_value: number;
+    renewal_cost: number;
+    auto_renew: boolean;
+    purchasePriceClass?: string;
+    currentValueClass?: string;
+    renewalCostClass?: string;
   })[] = [];
   loading = true;
   public currencySymbol = '$';
@@ -34,7 +39,12 @@ export default class ValuationPageComponent implements OnInit {
   public portfolioWorth = 0;
   public totalPurchaseCost = 0;
   public totalValue = 0;
-  public upcomingPayments: { domainName: string, expiryDate: string, renewalCost: number, autoRenew: boolean }[] = [];
+  public upcomingPayments: {
+    domainName: string;
+    expiryDate: string;
+    renewalCost: number;
+    autoRenew: boolean;
+  }[] = [];
 
   ngOnInit() {
     this.currencySymbol = this.currencyService.getCurrencySymbol();
@@ -96,14 +106,29 @@ export default class ValuationPageComponent implements OnInit {
 
   // Function to calculate percentiles for purchase price, current value, and renewal cost
   private calculatePercentiles() {
-    const purchasePrices = this.domains.map(domain => domain.purchase_price).sort((a, b) => a - b);
-    const currentValues = this.domains.map(domain => domain.current_value).sort((a, b) => a - b);
-    const renewalCosts = this.domains.map(domain => domain.renewal_cost).sort((a, b) => a - b);
+    const purchasePrices = this.domains
+      .map((domain) => domain.purchase_price)
+      .sort((a, b) => a - b);
+    const currentValues = this.domains
+      .map((domain) => domain.current_value)
+      .sort((a, b) => a - b);
+    const renewalCosts = this.domains
+      .map((domain) => domain.renewal_cost)
+      .sort((a, b) => a - b);
 
-    this.domains.forEach(domain => {
-      domain.purchasePriceClass = this.getClassForPercentile(domain.purchase_price, purchasePrices);
-      domain.currentValueClass = this.getClassForPercentile(domain.current_value, currentValues);
-      domain.renewalCostClass = this.getClassForPercentile(domain.renewal_cost, renewalCosts);
+    this.domains.forEach((domain) => {
+      domain.purchasePriceClass = this.getClassForPercentile(
+        domain.purchase_price,
+        purchasePrices,
+      );
+      domain.currentValueClass = this.getClassForPercentile(
+        domain.current_value,
+        currentValues,
+      );
+      domain.renewalCostClass = this.getClassForPercentile(
+        domain.renewal_cost,
+        renewalCosts,
+      );
     });
   }
 
@@ -131,7 +156,7 @@ export default class ValuationPageComponent implements OnInit {
     this.upcomingPayments = [];
 
     // Calculate the total renewal cost, portfolio worth, and upcoming payments
-    this.domains.forEach(domain => {
+    this.domains.forEach((domain) => {
       this.totalRenewalCost += domain.renewal_cost;
       this.totalPurchaseCost += domain.purchase_price;
       this.totalValue += domain.current_value;
@@ -143,11 +168,15 @@ export default class ValuationPageComponent implements OnInit {
     // Calculate upcoming payments (next 5 expiring domains)
     const today = new Date();
     const upcomingDomains = this.domains
-      .filter(domain => domain.expiry_date && new Date(domain.expiry_date) > today)
-      .sort((a, b) => new Date(a.expiry_date as Date).getTime() - new Date(b.expiry_date as Date).getTime())
+      .filter((domain) => domain.expiry_date && new Date(domain.expiry_date) > today)
+      .sort(
+        (a, b) =>
+          new Date(a.expiry_date as Date).getTime() -
+          new Date(b.expiry_date as Date).getTime(),
+      )
       .slice(0, 5);
 
-    this.upcomingPayments = upcomingDomains.map(domain => ({
+    this.upcomingPayments = upcomingDomains.map((domain) => ({
       domainName: domain.domain_name,
       expiryDate: this.transformDate(new Date(domain.expiry_date as Date)),
       renewalCost: domain.renewal_cost,
@@ -158,14 +187,18 @@ export default class ValuationPageComponent implements OnInit {
   private getOrdinalSuffix(day: number): string {
     if (day > 3 && day < 21) return 'th'; // Covers 11th to 20th
     switch (day % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
     }
   }
-  
-  public transformDate (date: Date | string | number): string {
+
+  public transformDate(date: Date | string | number): string {
     const dateObj = new Date(date);
     const day = dateObj.getDate();
     const suffix = this.getOrdinalSuffix(day);
@@ -173,5 +206,3 @@ export default class ValuationPageComponent implements OnInit {
     return `${day}${suffix} ${month}`;
   }
 }
-
-

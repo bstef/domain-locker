@@ -12,7 +12,14 @@ import { TableModule } from 'primeng/table';
   selector: 'app-domain-list',
   templateUrl: 'domain-list.component.html',
   styleUrl: 'domain-list.component.scss',
-  imports: [PrimeNgModule, DatePipe, CommonModule, DomainFaviconComponent, TranslateModule, TableModule]
+  imports: [
+    PrimeNgModule,
+    DatePipe,
+    CommonModule,
+    DomainFaviconComponent,
+    TranslateModule,
+    TableModule,
+  ],
 })
 export class DomainListComponent {
   domainUtils = inject(DomainUtils);

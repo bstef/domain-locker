@@ -50,7 +50,7 @@ export interface DatabaseHealth {
 
 export interface InternalStatus {
   scheduled: ScheduledCron[];
-  supabase: { healthy: boolean, undetermined?: boolean };
+  supabase: { healthy: boolean; undetermined?: boolean };
   uptime: Record<string, unknown>;
   database: DatabaseHealth;
   ghActions?: {
@@ -58,7 +58,16 @@ export interface InternalStatus {
     name: string;
     path: string;
     state: string;
-    conclusion: 'success' | 'failure' | 'cancelled' | 'skipped' | 'timed_out' | 'action_required' | 'neutral' | 'stale' | 'startup_failure';
+    conclusion:
+      | 'success'
+      | 'failure'
+      | 'cancelled'
+      | 'skipped'
+      | 'timed_out'
+      | 'action_required'
+      | 'neutral'
+      | 'stale'
+      | 'startup_failure';
     badge_url: string;
     html_url: string;
     created_at: string;
@@ -68,14 +77,14 @@ export interface InternalStatus {
     run_html_url: string;
     head_branch: string;
     run_event: string;
-  }[]
+  }[];
 }
 
 interface HeartBeat {
-  status: number,
-  time: string,
-  msg?: string,
-  ping: number,
+  status: number;
+  time: string;
+  msg?: string;
+  ping: number;
 }
 
 interface StatusMetrics {
@@ -85,25 +94,27 @@ interface StatusMetrics {
   maxPing: number;
 }
 
-
 @Component({
   standalone: true,
   imports: [CommonModule, PrimeNgModule, DomainFaviconComponent],
   templateUrl: './status.page.html',
-  styles: [`
-   li details p {
-    border-left: 4px solid var(--primary-300);
-    padding: 0.25rem 0.5rem;
-    margin: 0.25rem 0.5rem 0.75rem 0.5rem !important;
-   }  
-  `],
+  styles: [
+    `
+      li details p {
+        border-left: 4px solid var(--primary-300);
+        padding: 0.25rem 0.5rem;
+        margin: 0.25rem 0.5rem 0.75rem 0.5rem !important;
+      }
+    `,
+  ],
 })
 export default class StatusPage {
   private http = inject(HttpClient);
   private errorHandler = inject(ErrorHandlerService);
 
   readonly statusInfo$: Observable<StatusData> = this.fetchStatusData();
-  readonly internalStatusInfo$: Observable<InternalStatus> = this.fetchInternalStatusData();
+  readonly internalStatusInfo$: Observable<InternalStatus> =
+    this.fetchInternalStatusData();
   public historyChartUrl = '';
   public pieChartUrl = '';
 
@@ -122,55 +133,79 @@ export default class StatusPage {
   // public uptimeExtraInfo
 
   public uptimeChartUrl = '';
-  public currentStatuses: { id: string; name: string; status: boolean; latestPing?: number, extraInfo?: StatusMetrics | null }[] = [];
+  public currentStatuses: {
+    id: string;
+    name: string;
+    status: boolean;
+    latestPing?: number;
+    extraInfo?: StatusMetrics | null;
+  }[] = [];
 
   constructor() {
     // Generate the chart once we have API data.
-    this.statusInfo$.subscribe(data => {
-      const chartConfig = this.generateChartConfig(data, { daysBefore: 7, daysAfter: 7, title: 'Incident History' });
-      this.historyChartUrl = 'https://quickchart.io/chart?c=' + encodeURIComponent(JSON.stringify(chartConfig));
-      const servicePieConfig = this.generatePieChartConfig(data, 'service',  { title: 'Issues per Service' });
-      this.pieChartUrl = 'https://quickchart.io/chart?c=' + encodeURIComponent(JSON.stringify(servicePieConfig));
+    this.statusInfo$.subscribe((data) => {
+      const chartConfig = this.generateChartConfig(data, {
+        daysBefore: 7,
+        daysAfter: 7,
+        title: 'Incident History',
+      });
+      this.historyChartUrl =
+        'https://quickchart.io/chart?c=' +
+        encodeURIComponent(JSON.stringify(chartConfig));
+      const servicePieConfig = this.generatePieChartConfig(data, 'service', {
+        title: 'Issues per Service',
+      });
+      this.pieChartUrl =
+        'https://quickchart.io/chart?c=' +
+        encodeURIComponent(JSON.stringify(servicePieConfig));
     });
 
     this.internalStatusInfo$.subscribe(this.uptimeDataProcess.bind(this));
   }
 
   private fetchInternalStatusData(): Observable<InternalStatus> {
-    return this.http.get<{
-      scheduledCrons?: ScheduledCron[];
-      supabaseStatus?: { healthy: boolean; undetermined?: boolean };
-      uptimeStatus?: Record<string, unknown>;
-      databaseStatus?: DatabaseHealth;
-      ghActions?: InternalStatus['ghActions'];
-    }>('/api/internal-status-info').pipe(
-      map(data => ({
-        scheduled: data.scheduledCrons || [],
-        supabase: data.supabaseStatus || { healthy: false, undetermined: true },
-        uptime: data.uptimeStatus || {},
-        database: data.databaseStatus || {},
-        ghActions: data.ghActions || [],
-      })),
-      catchError(error => {
-        this.errorHandler.handleError({
-          error,
-          message: 'Failed to load internal status data',
-          location: 'internal-status-info',
-          showToast: true,
-        });
-        return of<InternalStatus>({ scheduled: [], supabase: { healthy: false }, uptime: {}, database: {}, ghActions: [] });
-      })
-    )
+    return this.http
+      .get<{
+        scheduledCrons?: ScheduledCron[];
+        supabaseStatus?: { healthy: boolean; undetermined?: boolean };
+        uptimeStatus?: Record<string, unknown>;
+        databaseStatus?: DatabaseHealth;
+        ghActions?: InternalStatus['ghActions'];
+      }>('/api/internal-status-info')
+      .pipe(
+        map((data) => ({
+          scheduled: data.scheduledCrons || [],
+          supabase: data.supabaseStatus || { healthy: false, undetermined: true },
+          uptime: data.uptimeStatus || {},
+          database: data.databaseStatus || {},
+          ghActions: data.ghActions || [],
+        })),
+        catchError((error) => {
+          this.errorHandler.handleError({
+            error,
+            message: 'Failed to load internal status data',
+            location: 'internal-status-info',
+            showToast: true,
+          });
+          return of<InternalStatus>({
+            scheduled: [],
+            supabase: { healthy: false },
+            uptime: {},
+            database: {},
+            ghActions: [],
+          });
+        }),
+      );
   }
 
   private fetchStatusData(): Observable<StatusData> {
     return this.http.get<StatusData>('/api/external-status-info').pipe(
-      map(data => ({
+      map((data) => ({
         summary: this.enrichList(data.summary),
         history: this.enrichList(data.history),
         scheduled: this.enrichList(data.scheduled),
       })),
-      catchError(error => {
+      catchError((error) => {
         this.errorHandler.handleError({
           error,
           message: 'Failed to load status data',
@@ -178,15 +213,15 @@ export default class StatusPage {
           showToast: true,
         });
         return of({ summary: [], history: [], scheduled: [] });
-      })
+      }),
     );
   }
 
   private enrichList<T extends { service: string }>(list: T[]): T[] {
-    return list.map(item => ({
+    return list.map((item) => ({
       ...item,
-      serviceMeta: serviceLinks.find(link =>
-        link.provider.toLowerCase() === item.service.toLowerCase()
+      serviceMeta: serviceLinks.find(
+        (link) => link.provider.toLowerCase() === item.service.toLowerCase(),
       ),
     }));
   }
@@ -198,13 +233,15 @@ export default class StatusPage {
     const rootStyles = getComputedStyle(document.documentElement);
     const value = rootStyles.getPropertyValue(cssVarName)?.trim();
     return /^#([0-9A-F]{3}){1,2}$/i.test(value) ? value : fallback;
-  }
+  };
 
-  private calculateStatusMetrics(heartbeats: HeartBeat[] | undefined): StatusMetrics | null {
+  private calculateStatusMetrics(
+    heartbeats: HeartBeat[] | undefined,
+  ): StatusMetrics | null {
     if (!heartbeats || heartbeats.length === 0) return null;
 
-    const successful = heartbeats.filter(h => h.status === 1);
-    const pings = successful.map(h => h.ping).filter(p => typeof p === 'number');
+    const successful = heartbeats.filter((h) => h.status === 1);
+    const pings = successful.map((h) => h.ping).filter((p) => typeof p === 'number');
 
     if (pings.length === 0) return null;
 
@@ -228,7 +265,7 @@ export default class StatusPage {
    */
   private generateChartConfig(
     statusData: StatusData,
-    options?: { daysBefore?: number; daysAfter?: number; title?: string; }
+    options?: { daysBefore?: number; daysAfter?: number; title?: string },
   ): Record<string, unknown> {
     // Configurable options.
     const DAYS_BEFORE = options?.daysBefore ?? 7;
@@ -269,7 +306,7 @@ export default class StatusPage {
     };
 
     // Process history items (past and present only).
-    statusData.history.forEach(item => {
+    statusData.history.forEach((item) => {
       const d = new Date(item.date);
       d.setHours(0, 0, 0, 0);
       const idx = getDayIndex(d);
@@ -286,7 +323,7 @@ export default class StatusPage {
     });
 
     // Process scheduled items (future only).
-    statusData.scheduled.forEach(item => {
+    statusData.scheduled.forEach((item) => {
       const d = new Date(item.date);
       d.setHours(0, 0, 0, 0);
       const idx = getDayIndex(d);
@@ -356,26 +393,27 @@ export default class StatusPage {
           yAxes: [{ stacked: true }],
         },
         annotation: {
-          annotations: [{
-            type: 'line',
-            mode: 'vertical',
-            scaleID: 'x-axis-0',
-            value: DAYS_BEFORE,
-            borderColor: upcomingColor,
-            borderWidth: 3,
-            backgroundColor: 'rgba(109, 109, 109, 0.2)',
-            label: {
-              enabled: true,
-              content: 'Today'
-            }
-          }],
+          annotations: [
+            {
+              type: 'line',
+              mode: 'vertical',
+              scaleID: 'x-axis-0',
+              value: DAYS_BEFORE,
+              borderColor: upcomingColor,
+              borderWidth: 3,
+              backgroundColor: 'rgba(109, 109, 109, 0.2)',
+              label: {
+                enabled: true,
+                content: 'Today',
+              },
+            },
+          ],
         },
       },
     };
     return config;
   }
 
-  
   /**
    * Generates a Pie Chart configuration.
    *
@@ -389,7 +427,7 @@ export default class StatusPage {
   private generatePieChartConfig(
     statusData: StatusData,
     breakdownType: 'service' | 'severity',
-    options?: { title?: string }
+    options?: { title?: string },
   ): Record<string, unknown> {
     // Combine both history and scheduled items.
     const allItems = [...statusData.history, ...statusData.scheduled];
@@ -397,12 +435,12 @@ export default class StatusPage {
 
     if (breakdownType === 'service') {
       // Count total issues per service.
-      allItems.forEach(item => {
+      allItems.forEach((item) => {
         const key = item.service;
         counts[key] = (counts[key] || 0) + 1;
       });
       const labels = Object.keys(counts);
-      const data = labels.map(label => counts[label]);
+      const data = labels.map((label) => counts[label]);
       // Default palette for services.
       const palette = [
         this.getCssVariableColor('--blue-400', '#36A2EB'),
@@ -424,140 +462,152 @@ export default class StatusPage {
         type: 'pie',
         data: {
           labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: backgroundColor,
-          }]
+          datasets: [
+            {
+              data: data,
+              backgroundColor: backgroundColor,
+            },
+          ],
         },
         options: {
           title: {
             display: true,
             text: options?.title || 'Issues per Service',
             fontColor: this.getCssVariableColor('--text-color', '#6d6d6d'),
-          }
-        }
+          },
+        },
       };
     } else if (breakdownType === 'severity') {
       // Count issues per severity.
-      allItems.forEach(item => {
+      allItems.forEach((item) => {
         const key = item.severity.toLowerCase();
         counts[key] = (counts[key] || 0) + 1;
       });
       const labels = Object.keys(counts);
-      const data = labels.map(label => counts[label]);
+      const data = labels.map((label) => counts[label]);
       // Map severity keys to fixed colors.
       const severityColors: Record<string, string> = {
-        'critical': '#E92546',
-        'minor': '#EF9126',
-        'info': '#36A2EB',
-        'operational': '#4BC0C0',
-        'unknown': '#999999',
-        'upcoming': '#a78bfa'
+        critical: '#E92546',
+        minor: '#EF9126',
+        info: '#36A2EB',
+        operational: '#4BC0C0',
+        unknown: '#999999',
+        upcoming: '#a78bfa',
       };
-      const backgroundColor = labels.map(label => severityColors[label] || '#FFD700');
+      const backgroundColor = labels.map((label) => severityColors[label] || '#FFD700');
 
       return {
         type: 'pie',
         data: {
           labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: backgroundColor,
-          }]
+          datasets: [
+            {
+              data: data,
+              backgroundColor: backgroundColor,
+            },
+          ],
         },
         options: {
           title: {
             display: true,
             text: options?.title || 'Issues by Severity',
             fontColor: this.getCssVariableColor('--text-color', '#6d6d6d'),
-          }
-        }
+          },
+        },
       };
     }
     return {};
   }
 
-private uptimeDataProcess(internal: InternalStatus): void {
-  const rawHeartbeats = ((internal.uptime as { heartbeatList?: Record<string, HeartBeat[]> })?.heartbeatList) || {};
-  const statusData: typeof this.currentStatuses = [];
+  private uptimeDataProcess(internal: InternalStatus): void {
+    const rawHeartbeats =
+      (internal.uptime as { heartbeatList?: Record<string, HeartBeat[]> })
+        ?.heartbeatList || {};
+    const statusData: typeof this.currentStatuses = [];
 
-  const chartColors = [
-    '--purple-400', '--teal-400', '--pink-400', '--blue-400', '--yellow-400', '--green-400',
-  ];
+    const chartColors = [
+      '--purple-400',
+      '--teal-400',
+      '--pink-400',
+      '--blue-400',
+      '--yellow-400',
+      '--green-400',
+    ];
 
-  const datasets = Object.entries(rawHeartbeats).map(([id, heartbeats], i) => {
-    const serviceName = this.uptimeServiceMap[id] || `Service ${id}`;
-    const latest = (heartbeats as HeartBeat[]).at(-1);
+    const datasets = Object.entries(rawHeartbeats).map(([id, heartbeats], i) => {
+      const serviceName = this.uptimeServiceMap[id] || `Service ${id}`;
+      const latest = (heartbeats as HeartBeat[]).at(-1);
 
-    statusData.push({
-      id,
-      name: serviceName,
-      status: latest?.status === 1,
-      latestPing: latest?.ping,
-      extraInfo: this.calculateStatusMetrics(heartbeats as HeartBeat[]),
+      statusData.push({
+        id,
+        name: serviceName,
+        status: latest?.status === 1,
+        latestPing: latest?.ping,
+        extraInfo: this.calculateStatusMetrics(heartbeats as HeartBeat[]),
+      });
+
+      return {
+        label: serviceName,
+        data: (heartbeats as HeartBeat[]).map((h) => ({
+          x: h.time.replace(' ', 'T') + 'Z',
+          y: h.ping,
+        })),
+        borderColor: this.getCssVariableColor(
+          chartColors[i % chartColors.length],
+          '#36A2EB',
+        ),
+        fill: false,
+        spanGaps: false,
+        tension: 0.4,
+      };
     });
 
-    return {
-      label: serviceName,
-      data: (heartbeats as HeartBeat[]).map(h => ({
-        x: h.time.replace(' ', 'T') + 'Z',
-        y: h.ping
-      })),
-      borderColor: this.getCssVariableColor(chartColors[i % chartColors.length], '#36A2EB'),
-      fill: false,
-      spanGaps: false,
-      tension: 0.4,
-    };
-  });
+    this.currentStatuses = statusData;
 
-  this.currentStatuses = statusData;
+    // Just using the first dataset's timestamps to generate HH:mm labels
+    const firstDataset = datasets[0]?.data || [];
+    const labels = firstDataset.map((point: { x: string }) => {
+      const date = new Date(point.x);
+      return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    });
 
-  // Just using the first dataset's timestamps to generate HH:mm labels
-  const firstDataset = datasets[0]?.data || [];
-  const labels = firstDataset.map((point: { x: string }) => {
-    const date = new Date(point.x);
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  });
-
-  const chartConfig = {
-    type: 'line',
-    data: {
-      labels,
-      datasets
-    },
-    options: {
-      title: {
-        display: true,
-        text: 'Domain Locker Uptime',
-        color: this.getCssVariableColor('--text-color', '#333'),
+    const chartConfig = {
+      type: 'line',
+      data: {
+        labels,
+        datasets,
       },
-      responsive: true,
-      plugins: {
+      options: {
         title: {
           display: true,
-          text: 'Service Response Time',
+          text: 'Domain Locker Uptime',
           color: this.getCssVariableColor('--text-color', '#333'),
-        }
-      },
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Time'
-          }
         },
-        y: {
+        responsive: true,
+        plugins: {
           title: {
             display: true,
-            text: 'Ping (ms)'
-          }
-        }
-      }
-    }
-  };
+            text: 'Service Response Time',
+            color: this.getCssVariableColor('--text-color', '#333'),
+          },
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Time',
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Ping (ms)',
+            },
+          },
+        },
+      },
+    };
 
-  this.uptimeChartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
-}
-
-
+    this.uptimeChartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
+  }
 }

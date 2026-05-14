@@ -1,4 +1,12 @@
-import { Component, OnInit, ElementRef, ViewChild, HostListener, OnDestroy, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  HostListener,
+  OnDestroy,
+  inject,
+} from '@angular/core';
 import * as d3 from 'd3';
 import cloud from 'd3-cloud';
 
@@ -24,15 +32,17 @@ interface CloudWord {
   selector: 'app-tag-cloud',
   imports: [PrimeNgModule, TranslateModule],
   templateUrl: './tag-cloud.component.html',
-  styles: [`
-    ::ng-deep svg g text {
-      cursor: pointer;
-      transition: all 0.2s;
-      &:hover {
-        opacity: 0.8;
+  styles: [
+    `
+      ::ng-deep svg g text {
+        cursor: pointer;
+        transition: all 0.2s;
+        &:hover {
+          opacity: 0.8;
+        }
       }
-    }
-  `],
+    `,
+  ],
 })
 export class DomainTagCloudComponent implements OnInit, OnDestroy {
   private databaseService = inject(DatabaseService);
@@ -65,29 +75,32 @@ export class DomainTagCloudComponent implements OnInit, OnDestroy {
 
   loadTagsWithCounts(): void {
     this.loading = true;
-    const sub = this.databaseService.instance.tagQueries.getTagsWithDomainCounts().pipe(
-      debounceTime(300) // Debounce incoming data
-    ).subscribe({
-      next: (tagsWithCounts) => {
-        const words = tagsWithCounts.map(tag => ({
-          text: tag.name,
-          size: (tag.domain_count + 2) * 10,
-          color: tag.color ? `var(--${tag.color}-400)` : 'var(--text-color)'
-        }));
-        this.words = words;
-        this.renderCloud(words);
-        this.loading = false;
-      },
-      error: (error) => {
-        this.errorHandler.handleError({
-          error,
-          message: 'Failed to fetch tags with domain counts',
-          location: 'DomainTagCloudComponent.loadTagsWithCounts',
-          showToast: true,
-        });
-        this.loading = false;
-      }
-    });
+    const sub = this.databaseService.instance.tagQueries
+      .getTagsWithDomainCounts()
+      .pipe(
+        debounceTime(300), // Debounce incoming data
+      )
+      .subscribe({
+        next: (tagsWithCounts) => {
+          const words = tagsWithCounts.map((tag) => ({
+            text: tag.name,
+            size: (tag.domain_count + 2) * 10,
+            color: tag.color ? `var(--${tag.color}-400)` : 'var(--text-color)',
+          }));
+          this.words = words;
+          this.renderCloud(words);
+          this.loading = false;
+        },
+        error: (error) => {
+          this.errorHandler.handleError({
+            error,
+            message: 'Failed to fetch tags with domain counts',
+            location: 'DomainTagCloudComponent.loadTagsWithCounts',
+            showToast: true,
+          });
+          this.loading = false;
+        },
+      });
     this.subscription.add(sub); // Manage subscriptions to avoid memory leaks
   }
 
@@ -131,17 +144,19 @@ export class DomainTagCloudComponent implements OnInit, OnDestroy {
 
     if (!element) return;
 
-    const svg = d3.select(element)
+    const svg = d3
+      .select(element)
       .append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
       .append('g')
       .attr('transform', `translate(${this.width / 2},${this.height / 2})`);
 
-    const wordSelection = svg.selectAll('text')
-      .data(words);
+    const wordSelection = svg.selectAll('text').data(words);
 
-    wordSelection.enter().append('text')
+    wordSelection
+      .enter()
+      .append('text')
       .style('font-size', (d: CloudWord) => `${d.size}px`)
       .style('fill', (d: CloudWord) => d.color)
       .attr('text-anchor', 'middle')

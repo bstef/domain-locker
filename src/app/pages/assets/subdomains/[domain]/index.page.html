@@ -33,10 +33,7 @@
 
 <!-- Results -->
 @if (!loading && subdomains.length) {
-  <app-subdomain-list
-    [domain]="domain"
-    [subdomains]="subdomains"
-  ></app-subdomain-list>
+  <app-subdomain-list [domain]="domain" [subdomains]="subdomains"></app-subdomain-list>
 }
 
 <!-- Not found message -->
@@ -46,7 +43,7 @@
     [name]="this.domain"
     message="either doesn't exist or hasn't yet got any associated subdomains"
     [actionLink]="false"
-    >
+  >
     @if (validDomain) {
       <p-button
         label="Search for Subdomains"

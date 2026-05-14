@@ -24,7 +24,7 @@ type WorkerResult<R> = R | { domain: string; error: string };
 async function runWithConcurrency<T, R>(
   items: T[],
   workerFn: (item: T) => Promise<R>,
-  limit = CONCURRENCY_LIMIT
+  limit = CONCURRENCY_LIMIT,
 ): Promise<WorkerResult<R>[]> {
   const results: WorkerResult<R>[] = [];
   const queue = [...items];
@@ -61,14 +61,17 @@ export default defineEventHandler(async (event) => {
 
   try {
     domains = await withTimeout(
-      callPgExecutor<DomainRow>(pgExecUrl, `
+      callPgExecutor<DomainRow>(
+        pgExecUrl,
+        `
         SELECT d.id, d.domain_name, d.expiry_date,
                jsonb_build_object('name', r.name, 'url', r.url) as registrar
         FROM domains d
         LEFT JOIN registrars r ON d.registrar_id = r.id
         ORDER BY d.domain_name
-      `),
-      DOMAIN_FETCH_TIMEOUT
+      `,
+      ),
+      DOMAIN_FETCH_TIMEOUT,
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -81,12 +84,26 @@ export default defineEventHandler(async (event) => {
 
   const results = await runWithConcurrency(domains, async (row) => {
     try {
-      const fresh = await withTimeout(fetchDomainInfo(domainInfoUrl, row.domain_name), DOMAIN_FETCH_TIMEOUT);
-      const { domain, changes } = await withTimeout(compareAndUpdateDomain(pgExecUrl, row, fresh), DOMAIN_UPDATE_TIMEOUT);
+      const fresh = await withTimeout(
+        fetchDomainInfo(domainInfoUrl, row.domain_name),
+        DOMAIN_FETCH_TIMEOUT,
+      );
+      const { domain, changes } = await withTimeout(
+        compareAndUpdateDomain(pgExecUrl, row, fresh),
+        DOMAIN_UPDATE_TIMEOUT,
+      );
 
       return changes.length > 0
-        ? { domain, changes, note: `✅ ${changes.length} changes were found and saved for ${domain}` }
-        : { domain, changes: [], note: `ℹ️ No changes for ${domain}, all data is up-to-date` };
+        ? {
+            domain,
+            changes,
+            note: `✅ ${changes.length} changes were found and saved for ${domain}`,
+          }
+        : {
+            domain,
+            changes: [],
+            note: `ℹ️ No changes for ${domain}, all data is up-to-date`,
+          };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       return { domain: row.domain_name, error: msg };

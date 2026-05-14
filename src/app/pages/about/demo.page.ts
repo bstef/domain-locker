@@ -14,10 +14,11 @@ import { screenshots } from '~/app/pages/about/data/feature-comparison';
     <p-card styleClass="mt-4 mx-2 mb-0">
       <h3>About the Demo</h3>
       <p class="m-0">
-        Try before you buy (or self-host). The live demo will give you an idea of what Domain Locker can do for you.
+        Try before you buy (or self-host). The live demo will give you an idea of what
+        Domain Locker can do for you.
       </p>
       <p class="text-sm text-orange-400 my-2 opacity-80">
-        Note that any data written to the demo database will be reset every 24 hours.  
+        Note that any data written to the demo database will be reset every 24 hours.
         <br />
         Some features on the live demo have been disabled for security reasons.
       </p>
@@ -33,7 +34,7 @@ import { screenshots } from '~/app/pages/about/data/feature-comparison';
     <app-cta />
   `,
   standalone: true,
-  imports: [PrimeNgModule, DemoComponent, CtaComponent, ScreenshotsComponent]
+  imports: [PrimeNgModule, DemoComponent, CtaComponent, ScreenshotsComponent],
 })
 export default class DemoPage {
   public screenshots = screenshots;

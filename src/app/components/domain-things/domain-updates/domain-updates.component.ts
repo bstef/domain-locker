@@ -17,7 +17,14 @@ import { DomainUpdateRow } from '~/app/services/db-query-services/pg/db-history.
   selector: 'app-domain-updates',
   templateUrl: './domain-updates.component.html',
   styleUrls: ['./domain-updates.component.scss'],
-  imports: [PrimeNgModule, PaginatorModule, DropdownModule, InputTextModule, SelectButtonModule, CommonModule],
+  imports: [
+    PrimeNgModule,
+    PaginatorModule,
+    DropdownModule,
+    InputTextModule,
+    SelectButtonModule,
+    CommonModule,
+  ],
 })
 export class DomainUpdatesComponent implements OnInit {
   private databaseService = inject(DatabaseService);
@@ -54,7 +61,14 @@ export class DomainUpdatesComponent implements OnInit {
     const to = from + limit - 1;
 
     this.databaseService.instance.historyQueries
-      .getDomainUpdates(this.domainName, from, to, this.selectedCategory, this.selectedChangeType, this.filterDomain)
+      .getDomainUpdates(
+        this.domainName,
+        from,
+        to,
+        this.selectedCategory,
+        this.selectedChangeType,
+        this.filterDomain,
+      )
       .subscribe({
         next: (updates) => {
           this.updates$ = of(updates);
@@ -68,25 +82,26 @@ export class DomainUpdatesComponent implements OnInit {
             showToast: true,
           });
           this.loading = false;
-        }
+        },
       });
   }
 
-
   private fetchTotalCount() {
-    this.databaseService.instance.historyQueries.getTotalUpdateCount(this.domainName).subscribe({
-      next: (total) => {
-        this.totalRecords = total;
-      },
-      error: (error) => {
-        this.errorHandler.handleError({
-          error,
-          message: 'Failed to fetch total updates count',
-          location: 'DomainUpdatesComponent.fetchTotalCount',
-          showToast: true,
-        });
-      },
-    });
+    this.databaseService.instance.historyQueries
+      .getTotalUpdateCount(this.domainName)
+      .subscribe({
+        next: (total) => {
+          this.totalRecords = total;
+        },
+        error: (error) => {
+          this.errorHandler.handleError({
+            error,
+            message: 'Failed to fetch total updates count',
+            location: 'DomainUpdatesComponent.fetchTotalCount',
+            showToast: true,
+          });
+        },
+      });
   }
 
   onPageChange(event: PaginatorState) {

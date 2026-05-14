@@ -25,7 +25,7 @@ export default class DatabaseConnectionPage implements OnInit {
   private databaseService = inject(DatabaseService);
 
   dbForm!: FormGroup;
-  initialServiceType = 'none'
+  initialServiceType = 'none';
   dbConfigEnabled$ = this.featureService.isFeatureEnabled('allowLocalDbConfig');
 
   DB_TYPES = [
@@ -62,8 +62,9 @@ export default class DatabaseConnectionPage implements OnInit {
     this.setValidatorsBasedOnType(defaultType);
 
     // Listen for changes only if type actually changes
-    this.dbForm.get('dbType')?.valueChanges
-      .pipe(distinctUntilChanged())
+    this.dbForm
+      .get('dbType')
+      ?.valueChanges.pipe(distinctUntilChanged())
       .subscribe((type) => {
         this.setValidatorsBasedOnType(type);
       });
@@ -103,7 +104,7 @@ export default class DatabaseConnectionPage implements OnInit {
   }
 
   async onSave() {
-    if (!await this.featureService.isFeatureEnabledPromise('allowLocalDbConfig')) {
+    if (!(await this.featureService.isFeatureEnabledPromise('allowLocalDbConfig'))) {
       this.messagingService.showWarn(
         'Operation Cancelled',
         'Connection to external databases is disallowed on this instance.',
@@ -111,7 +112,10 @@ export default class DatabaseConnectionPage implements OnInit {
       return;
     }
     if (this.dbForm.invalid) {
-      this.messagingService.showError('Invalid Inputs', 'Please fill out all required fields.');
+      this.messagingService.showError(
+        'Invalid Inputs',
+        'Please fill out all required fields.',
+      );
       return;
     }
 
@@ -127,7 +131,10 @@ export default class DatabaseConnectionPage implements OnInit {
       localStorage.removeItem('DL_PG_PASSWORD');
       localStorage.removeItem('DL_PG_NAME');
 
-      this.messagingService.showSuccess('Supabase Config Saved', 'Your Supabase credentials have been updated.');
+      this.messagingService.showSuccess(
+        'Supabase Config Saved',
+        'Your Supabase credentials have been updated.',
+      );
     } else {
       localStorage.setItem('DL_PG_HOST', this.dbForm.value.pgHost);
       localStorage.setItem('DL_PG_PORT', this.dbForm.value.pgPort);
@@ -138,7 +145,10 @@ export default class DatabaseConnectionPage implements OnInit {
       localStorage.removeItem('SUPABASE_URL');
       localStorage.removeItem('SUPABASE_ANON_KEY');
 
-      this.messagingService.showSuccess('Postgres Config Saved', 'Your Postgres credentials have been updated.');
+      this.messagingService.showSuccess(
+        'Postgres Config Saved',
+        'Your Postgres credentials have been updated.',
+      );
     }
   }
 
@@ -149,7 +159,10 @@ export default class DatabaseConnectionPage implements OnInit {
       supabaseUrl: '',
       supabaseAnon: '',
     });
-    this.messagingService.showInfo('Supabase Reset', 'Supabase keys have been removed from local storage.');
+    this.messagingService.showInfo(
+      'Supabase Reset',
+      'Supabase keys have been removed from local storage.',
+    );
   }
 
   onResetPostgres() {
@@ -165,7 +178,10 @@ export default class DatabaseConnectionPage implements OnInit {
       pgPassword: '',
       pgDatabase: '',
     });
-    this.messagingService.showInfo('Postgres Reset', 'Postgres keys have been removed from local storage.');
+    this.messagingService.showInfo(
+      'Postgres Reset',
+      'Postgres keys have been removed from local storage.',
+    );
   }
 
   onTestConnection() {

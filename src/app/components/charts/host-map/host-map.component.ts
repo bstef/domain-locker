@@ -1,4 +1,12 @@
-import { Component, OnInit, AfterViewInit, PLATFORM_ID, ViewEncapsulation, ChangeDetectorRef, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  PLATFORM_ID,
+  ViewEncapsulation,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import DatabaseService from '~/app/services/database.service';
 import { Host } from '~/app/../types/Database';
@@ -34,11 +42,11 @@ export class HostMapComponent implements OnInit, AfterViewInit {
       this.loadHosts();
     }
     this.subscriptions.add(
-      this.themeService.isDarkTheme$.subscribe(isDark => {
+      this.themeService.isDarkTheme$.subscribe((isDark) => {
         this.isDarkTheme = isDark;
         this.cdr.detectChanges();
         this.setTheme();
-      })
+      }),
     );
   }
 
@@ -54,23 +62,23 @@ export class HostMapComponent implements OnInit, AfterViewInit {
 
   private loadHosts() {
     this.databaseService.instance.hostsQueries.getHostsWithDomainCounts().subscribe(
-      hosts => {
-        this.hosts = hosts.map(host => ({
+      (hosts) => {
+        this.hosts = hosts.map((host) => ({
           ...host,
-          domainCount: host.domain_count
+          domainCount: host.domain_count,
         }));
         if (this.map) {
           this.addMarkers();
         }
       },
-      error => {
+      (error) => {
         this.errorHandler.handleError({
           error,
           message: 'Failed to load hosts',
           location: 'HostMapComponent.loadHosts',
           showToast: true,
         });
-      }
+      },
     );
   }
 
@@ -99,14 +107,16 @@ export class HostMapComponent implements OnInit, AfterViewInit {
 
   private addMarkers() {
     if (!this.L || !this.map) return;
-    this.hosts.forEach(host => {
+    this.hosts.forEach((host) => {
       if (host.lat && host.lon) {
         // Make marker
-        const marker = this.L.marker([host.lat, host.lon], { icon: this.getCustomIcon() });
+        const marker = this.L.marker([host.lat, host.lon], {
+          icon: this.getCustomIcon(),
+        });
         // Make marker popup
         marker.bindPopup(`
           <b>${host.isp}</b><br>
-          ${host.org !== host.isp ? ' <i class="opacity-60">'+host.org +'</i><br>' : ''}
+          ${host.org !== host.isp ? ' <i class="opacity-60">' + host.org + '</i><br>' : ''}
           Domains: ${host.domain_count} (<a href="/assets/hosts/${host.isp}">View</a>)<br>
           Location: ${host.city}, ${host.country}
         `);
@@ -116,7 +126,10 @@ export class HostMapComponent implements OnInit, AfterViewInit {
     });
 
     // Adjust the map bounds to fit all markers
-    const markerBounds: [number, number][] = this.hosts.map(host => [host.lat, host.lon]);
+    const markerBounds: [number, number][] = this.hosts.map((host) => [
+      host.lat,
+      host.lon,
+    ]);
     if (markerBounds.length > 0) {
       const bounds = this.L.latLngBounds(markerBounds);
       this.map.fitBounds(bounds, { padding: [10, 10] });
@@ -146,7 +159,7 @@ export class HostMapComponent implements OnInit, AfterViewInit {
       className: 'custom-marker-icon',
       iconSize: [24, 30],
       iconAnchor: [15, 40],
-      popupAnchor: [0, -30]
+      popupAnchor: [0, -30],
     });
     return customIcon;
   }

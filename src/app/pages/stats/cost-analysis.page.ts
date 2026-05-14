@@ -10,8 +10,7 @@ import { DomainValuationChartComponent } from '~/app/components/charts/domain-va
       <app-tag-cloud />
     </div> -->
   `,
-  imports: [ DomainValuationChartComponent ],
-  styles: []
+  imports: [DomainValuationChartComponent],
+  styles: [],
 })
 export default class CostAnalysisPage {}
-

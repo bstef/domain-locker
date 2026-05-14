@@ -3,7 +3,7 @@ import { getEnvVar } from './utils';
 export async function sendWebhookNotification(
   message: string,
   title = 'Domain Locker',
-  tags?: string[]
+  tags?: string[],
 ): Promise<void> {
   const base = getEnvVar('NOTIFY_WEBHOOK_BASE');
   const topic = getEnvVar('NOTIFY_WEBHOOK_TOPIC');
@@ -21,9 +21,9 @@ export async function sendWebhookNotification(
         'Content-Type': 'text/plain',
         'X-Title': title,
         'X-Tags': tags?.join(',') ?? '',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: message
+      body: message,
     });
 
     if (!res.ok) {

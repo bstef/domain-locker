@@ -18,10 +18,13 @@ export class NotificationQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
     private handleError: (error: unknown) => void,
-    private getCurrentUser: () => Promise<{ id: string } | null>
+    private getCurrentUser: () => Promise<{ id: string } | null>,
   ) {}
 
-  async saveNotifications(domainId: string, notifications: { type: string; isEnabled: boolean }[]): Promise<void> {
+  async saveNotifications(
+    domainId: string,
+    notifications: { type: string; isEnabled: boolean }[],
+  ): Promise<void> {
     if (notifications.length === 0) return;
 
     const dbNotifications = notifications.map((n) => ({
@@ -34,12 +37,19 @@ export class NotificationQueries {
       INSERT INTO notification_preferences (domain_id, notification_type, is_enabled)
       VALUES ${dbNotifications.map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(', ')}
     `;
-    const params = dbNotifications.flatMap((n) => [n.domain_id, n.notification_type, n.is_enabled]);
+    const params = dbNotifications.flatMap((n) => [
+      n.domain_id,
+      n.notification_type,
+      n.is_enabled,
+    ]);
 
     await this.pgApiUtil.postToPgExecutor(query, params).toPromise();
   }
 
-  async updateNotificationTypes(domainId: string, notifications: { type: string; isEnabled: boolean }[]): Promise<void> {
+  async updateNotificationTypes(
+    domainId: string,
+    notifications: { type: string; isEnabled: boolean }[],
+  ): Promise<void> {
     if (!notifications.length) return;
 
     const upsertQuery = `
@@ -49,7 +59,10 @@ export class NotificationQueries {
       DO UPDATE SET is_enabled = EXCLUDED.is_enabled
     `;
 
-    const queryParams = [domainId, ...notifications.flatMap(n => [n.type, n.isEnabled])];
+    const queryParams = [
+      domainId,
+      ...notifications.flatMap((n) => [n.type, n.isEnabled]),
+    ];
 
     try {
       await this.pgApiUtil.postToPgExecutor(upsertQuery, queryParams).toPromise();
@@ -66,7 +79,9 @@ export class NotificationQueries {
     const query = `SELECT notification_channels FROM user_info WHERE id = $1`;
     const params = [userId];
 
-    const { data } = await this.pgApiUtil.postToPgExecutor<{ notification_channels: NotificationChannels }>(query, params).toPromise() as { data: { notification_channels: NotificationChannels }[] };
+    const { data } = (await this.pgApiUtil
+      .postToPgExecutor<{ notification_channels: NotificationChannels }>(query, params)
+      .toPromise()) as { data: { notification_channels: NotificationChannels }[] };
     return data?.[0]?.notification_channels || null;
   }
 
@@ -85,19 +100,29 @@ export class NotificationQueries {
     return true;
   }
 
-  getNotificationPreferences(): Observable<{ domain_id: string; notification_type: string; is_enabled: boolean }[]> {
+  getNotificationPreferences(): Observable<
+    { domain_id: string; notification_type: string; is_enabled: boolean }[]
+  > {
     const query = `SELECT domain_id, notification_type, is_enabled FROM notification_preferences`;
 
-    return this.pgApiUtil.postToPgExecutor<{ domain_id: string; notification_type: string; is_enabled: boolean }>(query).pipe(
-      map(({ data }) => data),
-      catchError((error) => {
-        this.handleError(error);
-        return throwError(() => error);
-      }),
-    );
+    return this.pgApiUtil
+      .postToPgExecutor<{
+        domain_id: string;
+        notification_type: string;
+        is_enabled: boolean;
+      }>(query)
+      .pipe(
+        map(({ data }) => data),
+        catchError((error) => {
+          this.handleError(error);
+          return throwError(() => error);
+        }),
+      );
   }
 
-  updateBulkNotificationPreferences(preferences: { domain_id: string; notification_type: string; is_enabled: boolean }[]): Observable<void> {
+  updateBulkNotificationPreferences(
+    preferences: { domain_id: string; notification_type: string; is_enabled: boolean }[],
+  ): Observable<void> {
     const updates = preferences.map((pref) => {
       const query = `
         INSERT INTO notification_preferences (domain_id, notification_type, is_enabled)
@@ -117,7 +142,13 @@ export class NotificationQueries {
     );
   }
 
-  getUserNotifications(limit = 25, offset = 0): Observable<{ notifications: (Notification & { domain_name: string })[]; total: number }> {
+  getUserNotifications(
+    limit = 25,
+    offset = 0,
+  ): Observable<{
+    notifications: (Notification & { domain_name: string })[];
+    total: number;
+  }> {
     const query = `
       SELECT n.id, n.change_type, n.message, n.sent, n.read, n.created_at, n.domain_id, d.domain_name
       FROM notifications n
@@ -148,7 +179,10 @@ export class NotificationQueries {
     );
   }
 
-  markNotificationReadStatus(notificationId: string, readStatus: boolean): Observable<void> {
+  markNotificationReadStatus(
+    notificationId: string,
+    readStatus: boolean,
+  ): Observable<void> {
     const query = `UPDATE notifications SET read = $1 WHERE id = $2`;
     const params = [readStatus, notificationId];
 
@@ -174,25 +208,24 @@ export class NotificationQueries {
   }
 
   async markAllNotificationsRead(read = true): Promise<Observable<void>> {
-    const userId = await this.getCurrentUser().then(user => user?.id);
+    const userId = await this.getCurrentUser().then((user) => user?.id);
     if (!userId) {
       throw new Error('User must be authenticated to mark notifications as read.');
     }
-  
+
     const query = `
       UPDATE notifications
       SET read = $1
       WHERE user_id = $2
     `;
     const params = [read, userId];
-  
+
     return this.pgApiUtil.postToPgExecutor(query, params).pipe(
       map(() => undefined),
-      catchError(error => {
+      catchError((error) => {
         this.handleError(error);
         return throwError(() => error);
-      })
+      }),
     );
   }
-  
 }

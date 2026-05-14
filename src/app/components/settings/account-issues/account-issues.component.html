@@ -20,20 +20,34 @@
             @if (issue.type === 'error') {
               <i class="pi pi-times-circle"></i>
             }
-            @if (issue.type !== 'success' && issue.type !== 'info' && issue.type !== 'warn' && issue.type !== 'error') {
+            @if (
+              issue.type !== 'success' &&
+              issue.type !== 'info' &&
+              issue.type !== 'warn' &&
+              issue.type !== 'error'
+            ) {
               <i class="pi pi-arrow-circle-right"></i>
             }
             <div class="ml-2 flex flex-1 items-center justify-between">
               {{ issue.message }}
               @if (issue.action) {
-                <button pButton
+                <button
+                  pButton
                   class="ml-2 min-w-52"
                   styleClass="w-full"
-                  [severity]="issue.type === 'warn' ? 'warning' : issue.type === 'error' ? 'danger' : issue.type === 'info' ? 'info' : 'primary'"
+                  [severity]="
+                    issue.type === 'warn'
+                      ? 'warning'
+                      : issue.type === 'error'
+                        ? 'danger'
+                        : issue.type === 'info'
+                          ? 'info'
+                          : 'primary'
+                  "
                   [label]="issue.action.label"
                   (click)="issue.action.callback ? issue.action.callback() : null"
-                  [routerLink]="issue.action.route || null">
-                </button>
+                  [routerLink]="issue.action.route || null"
+                ></button>
               }
             </div>
           </div>

@@ -11,9 +11,11 @@ import { SupabaseService } from '~/app/services/supabase.service';
 import { TranslationService } from '~/app/services/translation.service';
 import DatabaseService from '~/app/services/database.service';
 import { FeatureService } from '~/app/services/features.service';
-import { AccessibilityOptions, AccessibilityService } from '~/app/services/accessibility-options.service';
+import {
+  AccessibilityOptions,
+  AccessibilityService,
+} from '~/app/services/accessibility-options.service';
 import { GlobalMessageService } from '~/app/services/messaging.service';
-
 
 declare const __APP_VERSION__: string;
 // Similarly for app name
@@ -114,16 +116,23 @@ export default class DebugInfoPage implements OnInit {
     // 3) Only gather certain data in browser
     if (isPlatformBrowser(this.platformId)) {
       this.localStorageKeys = Object.keys(window.localStorage).join('\n');
-      const authTokenKey = Object.keys(window.localStorage).find(key => key.includes('sb-') && key.includes('-auth-token'));
-      this.userInfo = authTokenKey ? (JSON.parse(window.localStorage.getItem(authTokenKey) || '{}'))?.user || {} : {};
-      this.cookies = document.cookie ? document.cookie.replaceAll('; ', '\n') : 'No cookies found';
+      const authTokenKey = Object.keys(window.localStorage).find(
+        (key) => key.includes('sb-') && key.includes('-auth-token'),
+      );
+      this.userInfo = authTokenKey
+        ? JSON.parse(window.localStorage.getItem(authTokenKey) || '{}')?.user || {}
+        : {};
+      this.cookies = document.cookie
+        ? document.cookie.replaceAll('; ', '\n')
+        : 'No cookies found';
       this.gatherDomainAndBrowserInfo();
       this.gatherExtendedNavigatorInfo();
       this.fetchUserIpAddress();
     }
 
     // 4) Feature checks
-    this.featureService.featureReportForDebug()
+    this.featureService
+      .featureReportForDebug()
       .then((features) => {
         this.featureChecks = features;
       })
@@ -169,7 +178,9 @@ export default class DebugInfoPage implements OnInit {
       this.screenInfo = {
         width: window.screen.width,
         height: window.screen.height,
-        devicePixelRatio: window.devicePixelRatio ? parseFloat(window.devicePixelRatio.toFixed(4)) : 1,
+        devicePixelRatio: window.devicePixelRatio
+          ? parseFloat(window.devicePixelRatio.toFixed(4))
+          : 1,
       };
 
       // cookies
@@ -196,9 +207,9 @@ export default class DebugInfoPage implements OnInit {
       this.doNotTrack = navigator.doNotTrack;
       this.isOnline = navigator.onLine;
       this.hardwareConcurrency = navigator.hardwareConcurrency || 1;
-      this.deviceMemory = (navigator as unknown as { deviceMemory?: number }).deviceMemory || undefined;
-      this.timeZone =
-        Intl.DateTimeFormat().resolvedOptions().timeZone || 'UnknownZone';
+      this.deviceMemory =
+        (navigator as unknown as { deviceMemory?: number }).deviceMemory || undefined;
+      this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UnknownZone';
       this.orientation = window.screen.orientation?.type || 'UnknownOrientation';
     } catch (err) {
       console.warn('Extended navigator info fetch failed:', err);
@@ -206,13 +217,18 @@ export default class DebugInfoPage implements OnInit {
   }
 
   private async getUserAgentData() {
-    interface UABrand { brand: string; version: string }
+    interface UABrand {
+      brand: string;
+      version: string;
+    }
     interface UAData {
       brands: UABrand[];
       mobile: boolean;
       platform: string;
       uaFullVersion?: string;
-      getHighEntropyValues?: (hints: string[]) => Promise<{ platform: string; uaFullVersion: string }>;
+      getHighEntropyValues?: (
+        hints: string[],
+      ) => Promise<{ platform: string; uaFullVersion: string }>;
     }
     const nav = navigator as unknown as { userAgentData?: UAData };
 
@@ -285,37 +301,51 @@ export default class DebugInfoPage implements OnInit {
 
   copyAllToClipboard(): void {
     // 1) Safely get each pre element by ID
-    const envPre = document.getElementById('debug_environmentInfo') as HTMLPreElement | null;
+    const envPre = document.getElementById(
+      'debug_environmentInfo',
+    ) as HTMLPreElement | null;
     const errPre = document.getElementById('debug_errorLogs') as HTMLPreElement | null;
     const diagPre = document.getElementById('debug_diagnostics') as HTMLPreElement | null;
     const userPre = document.getElementById('debug_userInfo') as HTMLPreElement | null;
-  
+
     // 2) Extract text content, fallback to empty string if not found
     const envText = envPre?.innerText ?? '';
     const errText = errPre?.innerText ?? '';
     const diagText = diagPre?.innerText ?? '';
     const userText = userPre?.innerText ?? '';
-  
+
     // 3) Concatenate them with blank lines separating each
     const combinedText = [
       envText.trim(),
       errText.trim(),
       diagText.trim(),
-      userText.trim()
-    ].filter(section => section.length > 0).join('\n\n');
-  
+      userText.trim(),
+    ]
+      .filter((section) => section.length > 0)
+      .join('\n\n');
+
     // 4) Copy to clipboard, if available
     if (navigator?.clipboard && combinedText) {
-      navigator.clipboard.writeText(combinedText)
+      navigator.clipboard
+        .writeText(combinedText)
         .then(() => {
-          this.messagingService.showSuccess('Copied', 'All debug data has been copied to your clipboard.');
+          this.messagingService.showSuccess(
+            'Copied',
+            'All debug data has been copied to your clipboard.',
+          );
         })
-        .catch(err => {
-          this.errorHandler.handleError({ error: err, message: 'Failed to copy debug data to clipboard', showToast: true });
+        .catch((err) => {
+          this.errorHandler.handleError({
+            error: err,
+            message: 'Failed to copy debug data to clipboard',
+            showToast: true,
+          });
         });
     } else {
-      this.errorHandler.handleError({ message: 'Browser does not support clipboard.', showToast: true });
+      this.errorHandler.handleError({
+        message: 'Browser does not support clipboard.',
+        showToast: true,
+      });
     }
   }
-  
 }

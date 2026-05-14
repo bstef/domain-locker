@@ -10,23 +10,22 @@ export class HostsQueries {
   ) {}
 
   getHosts(): Observable<Host[]> {
-    return from(this.supabase
-      .from('hosts')
-      .select('*')
-      .order('isp', { ascending: true })
+    return from(
+      this.supabase.from('hosts').select('*').order('isp', { ascending: true }),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
         return data as Host[];
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
   getDomainCountsByHost(): Observable<Record<string, number>> {
-    return from(this.supabase
-      .from('domain_hosts')
-      .select('hosts(isp), domain_id', { count: 'exact' })
+    return from(
+      this.supabase
+        .from('domain_hosts')
+        .select('hosts(isp), domain_id', { count: 'exact' }),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
@@ -40,14 +39,16 @@ export class HostsQueries {
         });
         return counts;
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
   getDomainsByHost(hostIsp: string): Observable<DbDomain[]> {
-    return from(this.supabase
-      .from('domains')
-      .select(`
+    return from(
+      this.supabase
+        .from('domains')
+        .select(
+          `
         *,
         registrars (name, url),
         ip_addresses (ip_address, is_ipv6),
@@ -62,38 +63,39 @@ export class HostsQueries {
         domain_tags (
           tags (name)
         )
-      `)
-      .eq('domain_hosts.hosts.isp', hostIsp)
+      `,
+        )
+        .eq('domain_hosts.hosts.isp', hostIsp),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return (data as unknown as Record<string, unknown>[]).map(domain => this.formatDomainData(domain));
+        return (data as unknown as Record<string, unknown>[]).map((domain) =>
+          this.formatDomainData(domain),
+        );
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
   getHostsWithDomainCounts(): Observable<(Host & { domain_count: number })[]> {
-    return from(this.supabase
-      .from('hosts')
-      .select(`
+    return from(
+      this.supabase.from('hosts').select(`
         *,
         domain_hosts (domain_id),
         domains!inner(user_id)
-      `)
+      `),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(host => ({
+        return data.map((host) => ({
           ...host,
           domain_count: host.domain_hosts.length,
         }));
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
-  
   async saveHost(domainId: string, host?: Host): Promise<void> {
     if (!host || !host?.isp) return;
     // First, try to find an existing host with the same ISP
@@ -102,14 +104,14 @@ export class HostsQueries {
       .select('id')
       .eq('isp', host.isp)
       .single();
-  
+
     if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
-  
+
     let hostId: string;
-  
+
     if (existingHost) {
       hostId = existingHost.id;
-      
+
       // Update the existing host with the new information
       const { error: updateError } = await this.supabase
         .from('hosts')
@@ -121,10 +123,10 @@ export class HostsQueries {
           as_number: host.asNumber,
           city: host.city,
           region: host.region,
-          country: host.country
+          country: host.country,
         })
         .eq('id', hostId);
-  
+
       if (updateError) throw updateError;
     } else {
       // If no existing host found, insert a new one
@@ -139,22 +141,21 @@ export class HostsQueries {
           as_number: host.asNumber,
           city: host.city,
           region: host.region,
-          country: host.country
+          country: host.country,
         })
         .select('id')
         .single();
-  
+
       if (insertError) throw insertError;
       if (!newHost) throw new Error('Failed to insert host');
       hostId = newHost.id;
     }
-  
+
     // Link the host to the domain
     const { error: linkError } = await this.supabase
       .from('domain_hosts')
       .insert({ domain_id: domainId, host_id: hostId });
-  
+
     if (linkError) throw linkError;
   }
-
 }

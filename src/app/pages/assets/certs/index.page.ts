@@ -21,13 +21,21 @@ interface SslIssuer {
     <p-table [value]="sslIssuers" [loading]="loading" styleClass="p-datatable-striped">
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="issuer">Issuer <p-sortIcon field="issuer"></p-sortIcon></th>
-          <th pSortableColumn="domainCount">Domain Count <p-sortIcon field="domainCount"></p-sortIcon></th>
+          <th pSortableColumn="issuer">
+            Issuer <p-sortIcon field="issuer"></p-sortIcon>
+          </th>
+          <th pSortableColumn="domainCount">
+            Domain Count <p-sortIcon field="domainCount"></p-sortIcon>
+          </th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-issuer>
         <tr>
-          <td><a [routerLink]="['/assets/certs', issuer.issuer]" class="text-primary">{{ issuer.issuer }}</a></td>
+          <td>
+            <a [routerLink]="['/assets/certs', issuer.issuer]" class="text-primary">{{
+              issuer.issuer
+            }}</a>
+          </td>
           <td>{{ issuer.domain_count }}</td>
         </tr>
       </ng-template>
@@ -50,10 +58,12 @@ export default class SslIssuersIndexPageComponent implements OnInit {
     this.loading = true;
     this.databaseService.instance.sslQueries.getSslIssuersWithDomainCounts().subscribe({
       next: (issuers) => {
-        this.sslIssuers = issuers.map(issuer => ({
-          issuer: issuer.issuer,
-          domainCount: issuer.domain_count
-        })).sort((a, b) => b.domainCount - a.domainCount);
+        this.sslIssuers = issuers
+          .map((issuer) => ({
+            issuer: issuer.issuer,
+            domainCount: issuer.domain_count,
+          }))
+          .sort((a, b) => b.domainCount - a.domainCount);
         this.loading = false;
       },
       error: (error) => {
@@ -61,10 +71,10 @@ export default class SslIssuersIndexPageComponent implements OnInit {
           message: 'Failed to load SSL issuers',
           error,
           showToast: true,
-          location: 'SslIssuersIndexPageComponent.loadSslIssuers'
+          location: 'SslIssuersIndexPageComponent.loadSslIssuers',
         });
         this.loading = false;
-      }
+      },
     });
   }
 }

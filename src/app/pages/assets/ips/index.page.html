@@ -7,11 +7,14 @@
       [paginator]="true"
       [rows]="10"
       sortable="true"
-      [tableStyle]="{'min-width': '50rem'}"
-      class="p-datatable">
+      [tableStyle]="{ 'min-width': '50rem' }"
+      class="p-datatable"
+    >
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="ip_address" style="width: 300px;">IP Address <p-sortIcon field="ip_address"></p-sortIcon></th>
+          <th pSortableColumn="ip_address" style="width: 300px">
+            IP Address <p-sortIcon field="ip_address"></p-sortIcon>
+          </th>
           <th>Associated Domains</th>
         </tr>
       </ng-template>
@@ -20,9 +23,7 @@
           <td>{{ ip.ip_address }}</td>
           <td>
             @for (domain of ip.domains; track domain; let last = $last) {
-              <a
-                [routerLink]="'/domains/'+domain"
-                class="text-primary">
+              <a [routerLink]="'/domains/' + domain" class="text-primary">
                 {{ domain }}{{ last ? '' : ', ' }}
               </a>
             }
@@ -39,11 +40,14 @@
       [paginator]="true"
       [rows]="10"
       sortable="true"
-      [tableStyle]="{'min-width': '50rem'}"
-      class="p-datatable">
+      [tableStyle]="{ 'min-width': '50rem' }"
+      class="p-datatable"
+    >
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="ip_address" style="width: 300px;">IP Address <p-sortIcon field="ip_address"></p-sortIcon></th>
+          <th pSortableColumn="ip_address" style="width: 300px">
+            IP Address <p-sortIcon field="ip_address"></p-sortIcon>
+          </th>
           <th>Associated Domains</th>
         </tr>
       </ng-template>
@@ -52,84 +56,90 @@
           <td>{{ ip.ip_address }}</td>
           <td>
             @for (domain of ip.domains; track domain; let last = $last) {
-              <a
-                [routerLink]="'/domains/'+domain"
-                class="text-primary">
-                {{ domain }}@if (!last) {
-                <br/>
-              }
-            </a>
-          }
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</p-tabPanel>
+              <a [routerLink]="'/domains/' + domain" class="text-primary">
+                {{ domain }}
+                @if (!last) {
+                  <br />
+                }
+              </a>
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
 
-<p-tabPanel header="Domains (IPv4)">
-  <p-table
-    [value]="ipv4Domains"
-    [loading]="loadingIpv4"
-    [paginator]="true"
-    [rows]="10"
-    sortable="true"
-    [tableStyle]="{'min-width': '50rem'}"
-    selectionMode="single"
-    class="p-datatable">
-    <ng-template pTemplate="header">
-      <tr>
-        <th pSortableColumn="domain" style="width: 300px;">Domain <p-sortIcon field="domain"></p-sortIcon></th>
-        <th>IPs</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-domain>
-      <tr (click)="navigateToDomain(domain.domain)" class="cursor-pointer">
-        <td>{{ domain.domain }}</td>
-        <td>
-          @for (ip of domain.ipAddresses; track ip; let last = $last) {
-            <span>{{ ip }}
-              @if (!last) {
-                <br/>
-              }
-            </span>
-          }
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</p-tabPanel>
+  <p-tabPanel header="Domains (IPv4)">
+    <p-table
+      [value]="ipv4Domains"
+      [loading]="loadingIpv4"
+      [paginator]="true"
+      [rows]="10"
+      sortable="true"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      selectionMode="single"
+      class="p-datatable"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="domain" style="width: 300px">
+            Domain <p-sortIcon field="domain"></p-sortIcon>
+          </th>
+          <th>IPs</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-domain>
+        <tr (click)="navigateToDomain(domain.domain)" class="cursor-pointer">
+          <td>{{ domain.domain }}</td>
+          <td>
+            @for (ip of domain.ipAddresses; track ip; let last = $last) {
+              <span
+                >{{ ip }}
+                @if (!last) {
+                  <br />
+                }
+              </span>
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
 
-<p-tabPanel header="Domains (IPv6)">
-  <p-table
-    [value]="ipv6Domains"
-    [loading]="loadingIpv6"
-    [paginator]="true"
-    [rows]="10"
-    sortable="true"
-    [tableStyle]="{'min-width': '50rem'}"
-    selectionMode="single"
-    class="p-datatable">
-    <ng-template pTemplate="header">
-      <tr>
-        <th pSortableColumn="domain" style="width: 300px;">Domain <p-sortIcon field="domain"></p-sortIcon></th>
-        <th>IPs</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-domain>
-      <tr (click)="navigateToDomain(domain.domain)" class="cursor-pointer">
-        <td>{{ domain.domain }}</td>
-        <td>
-          @for (ip of domain.ipAddresses; track ip; let last = $last) {
-            <span>
-              {{ ip }}
-              @if (!last) {
-                <br/>
-              }
-            </span>
-          }
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</p-tabPanel>
+  <p-tabPanel header="Domains (IPv6)">
+    <p-table
+      [value]="ipv6Domains"
+      [loading]="loadingIpv6"
+      [paginator]="true"
+      [rows]="10"
+      sortable="true"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      selectionMode="single"
+      class="p-datatable"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="domain" style="width: 300px">
+            Domain <p-sortIcon field="domain"></p-sortIcon>
+          </th>
+          <th>IPs</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-domain>
+        <tr (click)="navigateToDomain(domain.domain)" class="cursor-pointer">
+          <td>{{ domain.domain }}</td>
+          <td>
+            @for (ip of domain.ipAddresses; track ip; let last = $last) {
+              <span>
+                {{ ip }}
+                @if (!last) {
+                  <br />
+                }
+              </span>
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
 </p-tabView>

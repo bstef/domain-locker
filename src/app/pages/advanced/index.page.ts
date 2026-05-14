@@ -19,40 +19,41 @@ interface Section {
   standalone: true,
   imports: [PrimeNgModule],
   templateUrl: './index.page.html',
-  styles: [`
-  :host ::ng-deep {
-  .p-accordion {
-    margin-top: 1rem;
-    .p-accordion-header {
-      .p-accordion-header-link {
-        padding: 1.5rem 0 1rem 0;
-        border: none;
-        .p-accordion-header-text {
-          font-size: 1.5rem;
+  styles: [
+    `
+      :host ::ng-deep {
+        .p-accordion {
+          margin-top: 1rem;
+          .p-accordion-header {
+            .p-accordion-header-link {
+              padding: 1.5rem 0 1rem 0;
+              border: none;
+              .p-accordion-header-text {
+                font-size: 1.5rem;
+              }
+            }
+            a {
+              background-color: var(--surface-0);
+              color: var(--text-color);
+              font-weight: 600;
+
+              &:hover {
+                background-color: var(--surface-0);
+                opacity: 0.8;
+              }
+            }
+          }
+
+          .p-accordion-content {
+            background-color: var(--surface-0);
+            color: var(--text-color);
+            border: none;
+            padding: 0;
+          }
         }
       }
-      a {
-        background-color: var(--surface-0);
-        color: var(--text-color);
-        font-weight: 600;
-        
-        &:hover {
-          background-color: var(--surface-0);
-          opacity: 0.8;
-        }
-      }
-    }
-    
-    .p-accordion-content {
-      background-color: var(--surface-0);
-      color: var(--text-color);
-      border: none;
-      padding: 0;
-    }
-  }
-}  
-    
-  `],
+    `,
+  ],
 })
 export default class AdvancedIndexPage {
   public sections: Section[] = [

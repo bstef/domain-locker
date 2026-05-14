@@ -11,13 +11,12 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   standalone: true,
   selector: 'app-tag-edit',
   imports: [PrimeNgModule, TagPickListComponent],
-  template: `
-  <h2 class="mb-4 ml-4">Add Domains: {{ tagName }}</h2>
-  @if (tag && tag.id) {
-    <div class="p-card p-4 m-4">
-      <app-domain-tag-picklist [tagId]="tag.id" ($afterSave)="afterSave()" />
-    </div>
-  }`,
+  template: ` <h2 class="mb-4 ml-4">Add Domains: {{ tagName }}</h2>
+    @if (tag && tag.id) {
+      <div class="p-card p-4 m-4">
+        <app-domain-tag-picklist [tagId]="tag.id" ($afterSave)="afterSave()" />
+      </div>
+    }`,
 })
 export default class TagDomainsPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -33,7 +32,7 @@ export default class TagDomainsPageComponent implements OnInit {
   tag: Partial<Tag> = {};
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.tagName = params['tag'];
       this.loadTag();
     });
@@ -56,7 +55,7 @@ export default class TagDomainsPageComponent implements OnInit {
           location: 'TagDomainsPageComponent.loadTag',
         });
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -65,7 +64,6 @@ export default class TagDomainsPageComponent implements OnInit {
       this.router.navigate([`/assets/tags/${this.tagName}`]);
     } else {
       this.router.navigate([`/assets/tags`]);
-    } 
+    }
   }
-
 }

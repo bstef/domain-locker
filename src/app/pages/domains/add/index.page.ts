@@ -1,5 +1,11 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
@@ -28,7 +34,7 @@ import { RegistrarAutocompleteService } from '~/app/services/registrar-autocompl
   imports: [PrimeNgModule, ReactiveFormsModule, CommonModule, TableModule],
   providers: [ConfirmationService],
   templateUrl: './add.page.html',
-  styleUrls: ['./add.page.scss']
+  styleUrls: ['./add.page.scss'],
 })
 export default class AddDomainComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
@@ -68,13 +74,13 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
     {
       label: 'Save and Add New',
       icon: 'pi pi-plus',
-      command: () => this.saveAndAddNew()
+      command: () => this.saveAndAddNew(),
     },
     {
       label: 'Discard',
       icon: 'pi pi-trash',
-      command: () => this.confirmDiscard()
-    }
+      command: () => this.confirmDiscard(),
+    },
   ];
 
   ngOnInit(): void {
@@ -85,14 +91,15 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
     this.registrarAutocomplete.loadRegistrars();
 
     // Subscribe to registrar error state for reactivity
-    this.registrarAutocomplete.getHasError$().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (hasError) => {
-        this.registrarLoadFailed = hasError;
-        this.cdr.markForCheck();
-      }
-    });
+    this.registrarAutocomplete
+      .getHasError$()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (hasError) => {
+          this.registrarLoadFailed = hasError;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   ngOnDestroy(): void {
@@ -101,29 +108,38 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   }
 
   private initializeForm(): void {
-    const notificationControls = this.notificationOptions.reduce((acc, option) => {
-      acc[option.key] = [option.default || false];
-      return acc;
-    }, {} as Record<string, [boolean]>);
+    const notificationControls = this.notificationOptions.reduce(
+      (acc, option) => {
+        acc[option.key] = [option.default || false];
+        return acc;
+      },
+      {} as Record<string, [boolean]>,
+    );
 
     this.domainForm = this.fb.group({
-      domainName: [this.initialDomain, [
-        Validators.required,
-        Validators.pattern(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i),
-        this.domainExistsValidator()
-      ]],
+      domainName: [
+        this.initialDomain,
+        [
+          Validators.required,
+          Validators.pattern(
+            /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i,
+          ),
+          this.domainExistsValidator(),
+        ],
+      ],
       registrar: ['', Validators.required],
       expiryDate: ['', Validators.required],
       tags: [[], [this.tagsValidator()]],
-      notes: ['', [Validators.maxLength(255), Validators.pattern(/^[a-zA-Z0-9\s.,!?'"()-]+$/)]],
+      notes: [
+        '',
+        [Validators.maxLength(255), Validators.pattern(/^[a-zA-Z0-9\s.,!?'"()-]+$/)],
+      ],
       notifications: this.fb.group(notificationControls),
       subdomains: [[]],
     });
 
     // Revalidate domainName when existingDomains is updated
-    this.domainForm.get('domainName')?.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    );
+    this.domainForm.get('domainName')?.valueChanges.pipe(takeUntil(this.destroy$));
 
     if (this.initialDomain) {
       this.onNextStep();
@@ -133,43 +149,39 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   private setupDomainValidation(): void {
     const domainControl = this.domainForm.get('domainName');
     if (domainControl) {
-      domainControl.valueChanges.pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      ).subscribe(() => {
-        if (domainControl.valid) {
-          this.showDomainError = false;
-        } else if (domainControl.touched) {
-          this.showDomainError = true;
-        }
-      });
-      domainControl.statusChanges.pipe(
-        takeUntil(this.destroy$)
-      ).subscribe(() => {
+      domainControl.valueChanges
+        .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (domainControl.valid) {
+            this.showDomainError = false;
+          } else if (domainControl.touched) {
+            this.showDomainError = true;
+          }
+        });
+      domainControl.statusChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
         this.showDomainError = domainControl.touched && domainControl.invalid;
       });
     }
   }
 
-
   private fetchExistingDomains(): void {
-    this.databaseService.instance.listDomainNames().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (domains) => {
-        this.existingDomains = domains;
-        this.domainForm.get('domainName')?.updateValueAndValidity();
-      },
-      error: (error) => {
-        this.errorHandler.handleError({
-          error,
-          message: 'Failed to fetch existing domains',
-          location: 'AddDomainComponent.fetchExistingDomains',
-        });
-        this.existingDomains = [];
-      }
-    });
+    this.databaseService.instance
+      .listDomainNames()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (domains) => {
+          this.existingDomains = domains;
+          this.domainForm.get('domainName')?.updateValueAndValidity();
+        },
+        error: (error) => {
+          this.errorHandler.handleError({
+            error,
+            message: 'Failed to fetch existing domains',
+            location: 'AddDomainComponent.fetchExistingDomains',
+          });
+          this.existingDomains = [];
+        },
+      });
   }
 
   /**
@@ -183,7 +195,7 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
     return (control: AbstractControl): Record<string, boolean> | null => {
       const domain = control.value?.toLowerCase();
       if (domain && this.existingDomains.includes(domain)) {
-        return { 'domainExists': true };
+        return { domainExists: true };
       }
       return null;
     };
@@ -228,34 +240,39 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   private async fetchDomainInfo(): Promise<void> {
     const domainName = this.domainForm.get('domainName')?.value;
     if (!domainName) return;
-    const domainInfoEndpoint = this.envService.getEnvVar('DL_DOMAIN_INFO_API', '/api/domain-info');
-    this.http.get<{ domainInfo: DomainInfo}>(`${domainInfoEndpoint}?domain=${domainName}`).pipe(
-      catchError(this.handleHttpError.bind(this))
-    ).subscribe({
-      next: async (fetchedDomainInfo) => {
-        const domainInfo = fetchedDomainInfo.domainInfo;
-        if (this.isDomainInfoValid(domainInfo)) {
-          this.domainInfo = domainInfo;
-          this.updateFormWithDomainInfo();
-          this.prepareTableData();
-          this.domainForm.patchValue({ statuses: domainInfo.status || [] });
+    const domainInfoEndpoint = this.envService.getEnvVar(
+      'DL_DOMAIN_INFO_API',
+      '/api/domain-info',
+    );
+    this.http
+      .get<{ domainInfo: DomainInfo }>(`${domainInfoEndpoint}?domain=${domainName}`)
+      .pipe(catchError(this.handleHttpError.bind(this)))
+      .subscribe({
+        next: async (fetchedDomainInfo) => {
+          const domainInfo = fetchedDomainInfo.domainInfo;
+          if (this.isDomainInfoValid(domainInfo)) {
+            this.domainInfo = domainInfo;
+            this.updateFormWithDomainInfo();
+            this.prepareTableData();
+            this.domainForm.patchValue({ statuses: domainInfo.status || [] });
 
-        // At this point, domain is valid, and we fetch subdomains in the background
-        await this.fetchSubdomains(domainName);
-        } else {
-          this.incompleteDomainInfo = true;
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Warning',
-            detail: 'Domain information could not be found, you\'ll need to enter it manually'
-          });
-          throw new Error('Invalid domain information received');
-        }
-      },
-      error: (error) => {
-        this.handleError(error);
-      }
-    });
+            // At this point, domain is valid, and we fetch subdomains in the background
+            await this.fetchSubdomains(domainName);
+          } else {
+            this.incompleteDomainInfo = true;
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Warning',
+              detail:
+                "Domain information could not be found, you'll need to enter it manually",
+            });
+            throw new Error('Invalid domain information received');
+          }
+        },
+        error: (error) => {
+          this.handleError(error);
+        },
+      });
   }
 
   /**
@@ -263,8 +280,13 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
    */
   private async fetchSubdomains(domainName: string): Promise<void> {
     try {
-      const domainSubsEndpoint = this.envService.getEnvVar('DL_DOMAIN_SUBS_API', '/api/domain-subs');
-      const response = await this.http.get(`${domainSubsEndpoint}?domain=${domainName}`).toPromise();
+      const domainSubsEndpoint = this.envService.getEnvVar(
+        'DL_DOMAIN_SUBS_API',
+        '/api/domain-subs',
+      );
+      const response = await this.http
+        .get(`${domainSubsEndpoint}?domain=${domainName}`)
+        .toPromise();
       if (Array.isArray(response)) {
         this.subdomainInfo = response;
         const subdomainNames = response.map((sub) => sub.subdomain);
@@ -287,7 +309,6 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
     }
   }
 
-
   /**
    * Checks if the fetched domain info is valid
    */
@@ -301,8 +322,10 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   private updateFormWithDomainInfo(): void {
     if (!this.domainInfo) return;
 
-    const expiration = this.domainInfo.dates.expiry_date && this.domainInfo.dates.expiry_date !== 'Unknown'
-      ? new Date(this.domainInfo.dates.expiry_date) : null;
+    const expiration =
+      this.domainInfo.dates.expiry_date && this.domainInfo.dates.expiry_date !== 'Unknown'
+        ? new Date(this.domainInfo.dates.expiry_date)
+        : null;
 
     this.domainForm.patchValue({
       registrar: this.domainInfo.registrar.name,
@@ -316,7 +339,7 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Warning',
-        detail: 'Couldn\'t determine domain expiration date, please enter it manually'
+        detail: "Couldn't determine domain expiration date, please enter it manually",
       });
     }
   }
@@ -327,15 +350,19 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
   private prepareTableData(): void {
     if (!this.domainInfo) return;
 
-    this.tableData = Object.entries(this.domainInfo).flatMap(([key, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        return Object.entries(value).map(([subKey, subValue]) => ({
-          key: `${key} ${subKey}`,
-          value: Array.isArray(subValue) ? subValue.join(', ') : subValue?.toString() || ''
-        }));
-      }
-      return [{ key, value: value?.toString() || '' }];
-    }).filter(entry => entry.value && entry.value !== 'Unknown');
+    this.tableData = Object.entries(this.domainInfo)
+      .flatMap(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          return Object.entries(value).map(([subKey, subValue]) => ({
+            key: `${key} ${subKey}`,
+            value: Array.isArray(subValue)
+              ? subValue.join(', ')
+              : subValue?.toString() || '',
+          }));
+        }
+        return [{ key, value: value?.toString() || '' }];
+      })
+      .filter((entry) => entry.value && entry.value !== 'Unknown');
   }
 
   private makeDateOrUndefined(date: string | undefined): Date | undefined {
@@ -344,10 +371,10 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
 
   private formatDomainName(domainName: string): string {
     return domainName
-        .replace(/^https?:\/\//, '')
-        .replace(/^www\./, '')
-        .replace(/\/.*$/, '');
-}
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/.*$/, '');
+  }
 
   /**
    * Handles form submission
@@ -357,20 +384,32 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
       try {
         const formValue = this.domainForm.value;
 
-        const subdomains = subdomainsReadyForSave(formValue.subdomains, this.subdomainInfo);
+        const subdomains = subdomainsReadyForSave(
+          formValue.subdomains,
+          this.subdomainInfo,
+        );
 
         const domainData: SaveDomainData = {
           domain: {
             domain_name: this.formatDomainName(formValue.domainName),
-            registration_date: this.makeDateOrUndefined(this.domainInfo?.dates.creation_date),
+            registration_date: this.makeDateOrUndefined(
+              this.domainInfo?.dates.creation_date,
+            ),
             updated_date: this.makeDateOrUndefined(this.domainInfo?.dates.updated_date),
             registrar: formValue.registrar,
             expiry_date: formValue.expiryDate,
             notes: formValue.notes,
           },
           statuses: this.domainInfo?.status || [],
-          ipAddresses: this.domainInfo?.ip_addresses.ipv4.map(ip => ({ ipAddress: ip, isIpv6: false }))
-            .concat(this.domainInfo?.ip_addresses.ipv6.map(ip => ({ ipAddress: ip, isIpv6: true }))) || [],
+          ipAddresses:
+            this.domainInfo?.ip_addresses.ipv4
+              .map((ip) => ({ ipAddress: ip, isIpv6: false }))
+              .concat(
+                this.domainInfo?.ip_addresses.ipv6.map((ip) => ({
+                  ipAddress: ip,
+                  isIpv6: true,
+                })),
+              ) || [],
           tags: formValue.tags,
           notifications: Object.entries(formValue.notifications)
             .filter(([_, isEnabled]) => isEnabled)
@@ -390,13 +429,21 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
         await this.databaseService.instance.saveDomain(domainData);
         const name = domainData.domain.domain_name;
         this.hitCountingService.trackEvent('add_domain', { location: 'full' });
-        this.messageService.add({ severity: 'success', summary: 'Success', detail: `Domain ${name} added successfully` });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Domain ${name} added successfully`,
+        });
         this.router.navigate(['/domains', name], { queryParams: { update: true } });
       } catch (error) {
         this.handleError(error);
       }
     } else {
-      this.messageService.add({ severity: 'warn', summary: 'Warning', detail: 'Please fill in all required fields correctly.' });
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please fill in all required fields correctly.',
+      });
     }
   }
 
@@ -414,11 +461,12 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
    */
   public confirmDiscard(): void {
     this.confirmationService.confirm({
-      message: 'Are you sure you want to discard this domain? All entered information will be lost.',
+      message:
+        'Are you sure you want to discard this domain? All entered information will be lost.',
       accept: () => {
         this.domainForm.reset();
         this.activeIndex = 0;
-      }
+      },
     });
   }
 
@@ -430,18 +478,18 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
       const tags = control.value as string[];
 
       if (tags.length > 8) {
-        return { 'maxTags': true };
+        return { maxTags: true };
       }
 
       const uniqueTags = new Set(tags);
       if (uniqueTags.size !== tags.length) {
-        return { 'duplicateTags': true };
+        return { duplicateTags: true };
       }
 
       const validTagRegex = /^[a-zA-Z0-9]+$/;
-      const invalidTags = tags.filter(tag => !validTagRegex.test(tag));
+      const invalidTags = tags.filter((tag) => !validTagRegex.test(tag));
       if (invalidTags.length > 0) {
-        return { 'invalidTags': invalidTags };
+        return { invalidTags: invalidTags };
       }
 
       return null;
@@ -504,7 +552,9 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
    */
   public hasEnabledNotifications(): boolean {
     const notificationsGroup = this.domainForm.get('notifications');
-    return notificationsGroup ? Object.values(notificationsGroup.value).some(value => value === true) : false;
+    return notificationsGroup
+      ? Object.values(notificationsGroup.value).some((value) => value === true)
+      : false;
   }
 
   /**
@@ -545,7 +595,6 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
    * Handles general errors
    */
   private handleError(error: unknown): void {
-
     this.errorHandler.handleError({
       error,
       showToast: true,
@@ -554,7 +603,7 @@ export default class AddDomainComponent implements OnInit, OnDestroy {
     });
     this.domainForm.patchValue({
       registrar: '',
-      expiryDate: null
+      expiryDate: null,
     });
   }
 }

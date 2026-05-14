@@ -1,4 +1,3 @@
-
 export interface UptimeData {
   checked_at: string;
   is_up: boolean;
@@ -30,16 +29,18 @@ export function getPerformanceColor(
   value: number,
   type: 'ssl' | 'dns' | 'response',
   prefix = 'text-',
-  postfix = '-400'): string {
+  postfix = '-400',
+): string {
   if (typeof value !== 'number' || value < 0 || !type) {
     return 'grey';
   }
 
   // Define ranges for each type
-  const thresholds = { // in ms
+  const thresholds = {
+    // in ms
     ssl: { green: 100, yellow: 200, orange: 400 },
     dns: { green: 40, yellow: 80, orange: 150 },
-    response: { green: 250, yellow: 500, orange: 1000 }
+    response: { green: 250, yellow: 500, orange: 1000 },
   };
 
   // Ensure the type exists in thresholds

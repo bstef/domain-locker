@@ -13,7 +13,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 export default class DeveloperOptionsPageComponent {
   private fb = inject(FormBuilder);
 
-
   form: FormGroup = this.fb.group({
     restApi: [false],
     graphQl: [false],

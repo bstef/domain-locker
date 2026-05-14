@@ -19,7 +19,6 @@ export default class AuthCallbackComponent implements OnInit {
   private hitCountingService = inject(HitCountingService);
   private platformId = inject<object>(PLATFORM_ID);
 
-
   private errorHappened(error: Error | unknown) {
     this.errorHandlerService.handleError({
       message: 'Unable to authenticate with your social account',
@@ -33,9 +32,12 @@ export default class AuthCallbackComponent implements OnInit {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    
+
     try {
-    const { data: _data, error } = await this.supabaseService.supabase.auth.exchangeCodeForSession(window.location.href);
+      const { data: _data, error } =
+        await this.supabaseService.supabase.auth.exchangeCodeForSession(
+          window.location.href,
+        );
       if (error) {
         this.errorHappened(error);
         return;
@@ -44,7 +46,7 @@ export default class AuthCallbackComponent implements OnInit {
       this.errorHappened(error);
       return;
     }
-    
+
     // Successfully logged in
     this.hitCountingService.trackEvent('auth_login_done', { method: 'social' });
     this.messagingService.showSuccess('Authenticated', 'Successfully logged in');

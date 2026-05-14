@@ -41,7 +41,10 @@ export class HistoryQueries {
       map((response) => {
         const data = response.data as { date: string; change_type: string }[];
 
-        const historyMap: Record<string, { added: number; removed: number; updated: number }> = {};
+        const historyMap: Record<
+          string,
+          { added: number; removed: number; updated: number }
+        > = {};
         data.forEach((entry: { date: string; change_type: string }) => {
           const date = new Date(entry.date).toISOString().split('T')[0]; // Extract day
           if (!historyMap[date]) {
@@ -64,7 +67,7 @@ export class HistoryQueries {
       catchError((error) => {
         this.handleError(error);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -82,7 +85,7 @@ export class HistoryQueries {
       catchError((error) => {
         this.handleError(error);
         return of(0);
-      })
+      }),
     );
   }
 
@@ -92,7 +95,7 @@ export class HistoryQueries {
     end = 24,
     category?: string,
     changeType?: string,
-    filterDomain?: string
+    filterDomain?: string,
   ): Observable<DomainUpdateRow[]> {
     let query = `SELECT domain_updates.*, domains.domain_name 
                  FROM domain_updates 
@@ -129,7 +132,7 @@ export class HistoryQueries {
       catchError((error) => {
         this.handleError(error);
         return of([]);
-      })
+      }),
     );
   }
 }

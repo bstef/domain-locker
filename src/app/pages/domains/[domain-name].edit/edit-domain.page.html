@@ -1,10 +1,13 @@
-
 <p-blockUI [target]="editDomainForm" [blocked]="isLoading">
   <p-progressSpinner />
 </p-blockUI>
 
 <h2>Edit Domain: {{ domain?.domain_name }}</h2>
-<p-panel #editDomainForm class="p-4 mx-auto my-4" [header]="'Edit Domain: '+domain?.domain_name">
+<p-panel
+  #editDomainForm
+  class="p-4 mx-auto my-4"
+  [header]="'Edit Domain: ' + domain?.domain_name"
+>
   <form [formGroup]="domainForm" (ngSubmit)="onSubmit()">
     <div class="field">
       <label for="registrar">Registrar</label>
@@ -19,7 +22,7 @@
             [forceSelection]="false"
             placeholder="Select or type registrar name..."
             styleClass="w-full"
-            [inputStyle]="{'width':'100%'}"
+            [inputStyle]="{ width: '100%' }"
           ></p-autoComplete>
         }
         @if (registrarLoadFailed) {
@@ -30,7 +33,7 @@
             formControlName="registrar"
             class="w-full"
             placeholder="Enter registrar name"
-            >
+          />
         }
       </div>
     </div>
@@ -38,28 +41,52 @@
     <div class="field">
       <label for="expiryDate">Expiry Date</label>
       <div class="input-wrap">
-        <p-calendar id="expiryDate" formControlName="expiryDate" [showIcon]="true" class="w-full"></p-calendar>
+        <p-calendar
+          id="expiryDate"
+          formControlName="expiryDate"
+          [showIcon]="true"
+          class="w-full"
+        ></p-calendar>
       </div>
     </div>
 
     <div class="field">
       <label for="tags">Tags</label>
       <div class="input-wrap">
-        <p-chips id="tags" formControlName="tags" separator="," [addOnBlur]="true" class="w-full"></p-chips>
+        <p-chips
+          id="tags"
+          formControlName="tags"
+          separator=","
+          [addOnBlur]="true"
+          class="w-full"
+        ></p-chips>
       </div>
     </div>
 
     <div class="field">
       <label for="notes">Notes</label>
       <div class="input-wrap">
-        <textarea id="notes" pInputTextarea formControlName="notes" [rows]="5" [cols]="30" class="w-full"></textarea>
+        <textarea
+          id="notes"
+          pInputTextarea
+          formControlName="notes"
+          [rows]="5"
+          [cols]="30"
+          class="w-full"
+        ></textarea>
       </div>
     </div>
 
     <div class="field">
       <label for="subdomains">Subdomains</label>
       <div class="input-wrap">
-        <p-chips id="subdomains" formControlName="subdomains" separator="," [addOnBlur]="true" class="w-full"></p-chips>
+        <p-chips
+          id="subdomains"
+          formControlName="subdomains"
+          separator=","
+          [addOnBlur]="true"
+          class="w-full"
+        ></p-chips>
       </div>
     </div>
 
@@ -71,16 +98,49 @@
           <div formArrayName="links">
             <div [formGroupName]="i" class="flex flex-col gap-2 mb-2 items-center">
               <div class="flex gap-2 items-center">
-                <input type="text" pInputText formControlName="link_name" placeholder="Link Name" class="w-1/3" />
-                <input type="text" pInputText formControlName="link_url" placeholder="Link URL" class="w-2/3" />
-                <button pButton icon="pi pi-trash" aria-label="Remove link" class="p-button-danger" (click)="removeLink(i)" type="button"></button>
+                <input
+                  type="text"
+                  pInputText
+                  formControlName="link_name"
+                  placeholder="Link Name"
+                  class="w-1/3"
+                />
+                <input
+                  type="text"
+                  pInputText
+                  formControlName="link_url"
+                  placeholder="Link URL"
+                  class="w-2/3"
+                />
+                <button
+                  pButton
+                  icon="pi pi-trash"
+                  aria-label="Remove link"
+                  class="p-button-danger"
+                  (click)="removeLink(i)"
+                  type="button"
+                ></button>
               </div>
-              <textarea pInputTextarea formControlName="link_description" [rows]="2" [cols]="30" class="w-full" placeholder="Description (optional)"></textarea>
+              <textarea
+                pInputTextarea
+                formControlName="link_description"
+                [rows]="2"
+                [cols]="30"
+                class="w-full"
+                placeholder="Description (optional)"
+              ></textarea>
             </div>
           </div>
         }
       </div>
-      <button pButton label="Add Link" aria-label="Add link" class="mt-2" (click)="addLink()" type="button"></button>
+      <button
+        pButton
+        label="Add Link"
+        aria-label="Add link"
+        class="mt-2"
+        (click)="addLink()"
+        type="button"
+      ></button>
     </fieldset>
 
     <fieldset formGroupName="notifications" class="border-none p-0 m-0">
@@ -100,7 +160,12 @@
     </fieldset>
 
     <div class="flex justify-content-between mt-4">
-      <p-button type="button" label="Cancel" styleClass="p-button-secondary mr-2" [routerLink]="'/domains/'+(domain?.domain_name || '')"></p-button>
+      <p-button
+        type="button"
+        label="Cancel"
+        styleClass="p-button-secondary mr-2"
+        [routerLink]="'/domains/' + (domain?.domain_name || '')"
+      ></p-button>
       <p-button type="submit" label="Save Changes" [loading]="isLoading"></p-button>
     </div>
   </form>

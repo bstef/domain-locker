@@ -15,7 +15,9 @@ interface NotificationChannelField {
   label: string;
   name: string;
   placeholder?: string;
-  validator?: import('@angular/forms').ValidatorFn | import('@angular/forms').ValidatorFn[];
+  validator?:
+    | import('@angular/forms').ValidatorFn
+    | import('@angular/forms').ValidatorFn[];
   defaultValue?: string;
 }
 
@@ -36,7 +38,13 @@ interface NotificationChannel {
   selector: 'app-notification-preferences',
   templateUrl: './notification-preferences.page.html',
   standalone: true,
-  imports: [CommonModule, PrimeNgModule, ReactiveFormsModule, DlIconComponent, FeatureNotEnabledComponent],
+  imports: [
+    CommonModule,
+    PrimeNgModule,
+    ReactiveFormsModule,
+    DlIconComponent,
+    FeatureNotEnabledComponent,
+  ],
   providers: [],
   styles: ['::ng-deep .p-card-content { padding: 0; } '],
 })
@@ -48,43 +56,42 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
   private featureService = inject(FeatureService);
   private errorHandler = inject(ErrorHandlerService);
 
-  
-  notificationFeatureEnabled$ = this.featureService.isFeatureEnabled('notificationChannels');
-  
+  notificationFeatureEnabled$ =
+    this.featureService.isFeatureEnabled('notificationChannels');
+
   notificationForm!: FormGroup;
   notificationChannels: NotificationChannel[] = [
     {
       name: 'Email',
       formControlName: 'email',
       requires: [
-        { label: 'Notification Email', name: 'address', placeholder: 'Enter email', validator: [Validators.required, Validators.email] }
-      ]
+        {
+          label: 'Notification Email',
+          name: 'address',
+          placeholder: 'Enter email',
+          validator: [Validators.required, Validators.email],
+        },
+      ],
     },
     {
       name: 'Push Notifications',
       formControlName: 'pushNotification',
-      requires: []
+      requires: [],
     },
     {
       name: 'Web Hook',
       formControlName: 'webHook',
-      requires: [
-        { label: 'Webhook URL', name: 'url', placeholder: 'Enter webhook URL' }
-      ],
+      requires: [{ label: 'Webhook URL', name: 'url', placeholder: 'Enter webhook URL' }],
       providers: [
         {
           label: 'Ntfy',
           value: 'ntfy',
-          fields: [
-            { label: 'Topic', name: 'topic', placeholder: 'Enter topic' },
-          ]
+          fields: [{ label: 'Topic', name: 'topic', placeholder: 'Enter topic' }],
         },
         {
           label: 'Gotify',
           value: 'gotify',
-          fields: [
-            { label: 'Token', name: 'token', placeholder: 'Enter token' }
-          ]
+          fields: [{ label: 'Token', name: 'token', placeholder: 'Enter token' }],
         },
         {
           label: 'Pushbits',
@@ -92,22 +99,26 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
           fields: [
             { label: 'Token', name: 'token', placeholder: 'Enter token' },
             { label: 'User ID', name: 'userId', placeholder: 'Enter user ID' },
-          ]
+          ],
         },
         {
           label: 'Pushbullet',
           value: 'pushbullet',
           fields: [
-            { label: 'Access Token', name: 'accessToken', placeholder: 'Enter access token' }
-          ]
+            {
+              label: 'Access Token',
+              name: 'accessToken',
+              placeholder: 'Enter access token',
+            },
+          ],
         },
         {
           label: 'Custom',
           value: 'custom',
           fields: [
-            { label: 'Headers', name: 'headers', placeholder: 'Specified as valid JSON' }
-          ]
-        }
+            { label: 'Headers', name: 'headers', placeholder: 'Specified as valid JSON' },
+          ],
+        },
       ],
     },
     {
@@ -115,45 +126,61 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
       formControlName: 'signal',
       requires: [
         { label: 'Signal Number', name: 'number', placeholder: 'Enter Signal number' },
-        { label: 'API Key', name: 'apiKey', placeholder: 'Enter API key' }
-      ]
+        { label: 'API Key', name: 'apiKey', placeholder: 'Enter API key' },
+      ],
     },
     {
       name: 'Telegram',
       formControlName: 'telegram',
       requires: [
-        { label: 'Chat ID', name: 'chatId', placeholder: 'Once you\'ve messaged our bot, share the chat ID' }
-      ]
+        {
+          label: 'Chat ID',
+          name: 'chatId',
+          placeholder: "Once you've messaged our bot, share the chat ID",
+        },
+      ],
     },
     {
       name: 'Slack',
       formControlName: 'slack',
       requires: [
-        { label: 'Webhook URL', name: 'webhookUrl', placeholder: 'Enter webhook URL' }
-      ]
+        { label: 'Webhook URL', name: 'webhookUrl', placeholder: 'Enter webhook URL' },
+      ],
     },
     {
       name: 'Matrix',
       formControlName: 'matrix',
       requires: [
-        { label: 'Homeserver URL', name: 'homeserverUrl', placeholder: 'Enter homeserver URL' },
-        { label: 'Access Token', name: 'accessToken', placeholder: 'Enter access token' }
-      ]
+        {
+          label: 'Homeserver URL',
+          name: 'homeserverUrl',
+          placeholder: 'Enter homeserver URL',
+        },
+        { label: 'Access Token', name: 'accessToken', placeholder: 'Enter access token' },
+      ],
     },
     {
       name: 'WhatsApp',
       formControlName: 'whatsapp',
       requires: [
-        { label: 'Mobile number', name: 'number', placeholder: 'Enter the mobile number you use on WhatsApp' },
-      ]
+        {
+          label: 'Mobile number',
+          name: 'number',
+          placeholder: 'Enter the mobile number you use on WhatsApp',
+        },
+      ],
     },
     {
       name: 'SMS Texting',
       formControlName: 'sms',
       requires: [
-        { label: 'Mobile number', name: 'number', placeholder: 'Enter your mobile number with area code' },
-      ]
-    }
+        {
+          label: 'Mobile number',
+          name: 'number',
+          placeholder: 'Enter your mobile number with area code',
+        },
+      ],
+    },
   ];
 
   ngOnInit() {
@@ -162,23 +189,26 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
   }
 
   private initializeForm() {
-    const formGroupConfig: Record<string, FormGroup> = this.notificationChannels.reduce((config, channel) => {
+    const formGroupConfig: Record<string, FormGroup> = this.notificationChannels.reduce(
+      (config, channel) => {
         const channelConfig: Record<string, unknown> = { enabled: [false] };
-        channel.requires.forEach(requirement => {
-            channelConfig[requirement.name] = ['', requirement.validator || []];
+        channel.requires.forEach((requirement) => {
+          channelConfig[requirement.name] = ['', requirement.validator || []];
         });
 
         if (channel.providers) {
-            channelConfig['provider'] = [''];
-            channel.providers.forEach((provider: NotificationChannelProvider) => {
-                provider.fields.forEach((field: NotificationChannelField) => {
-                    channelConfig[field.name] = ['', field.validator || []];
-                });
+          channelConfig['provider'] = [''];
+          channel.providers.forEach((provider: NotificationChannelProvider) => {
+            provider.fields.forEach((field: NotificationChannelField) => {
+              channelConfig[field.name] = ['', field.validator || []];
             });
+          });
         }
         config[channel.formControlName] = this.fb.group(channelConfig) as FormGroup;
         return config;
-    }, {} as Record<string, FormGroup>);
+      },
+      {} as Record<string, FormGroup>,
+    );
 
     this.notificationForm = this.fb.group(formGroupConfig);
   }
@@ -186,24 +216,32 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
   private async loadNotificationPreferences() {
     const userEmail = (await this.supabaseService.getCurrentUser())?.email || '';
     try {
-      const preferences = await this.databaseService.instance.notificationQueries.getNotificationChannels();
+      const preferences =
+        await this.databaseService.instance.notificationQueries.getNotificationChannels();
 
       if (preferences) {
         this.notificationForm.patchValue(preferences);
       } else {
         // Set default: Email enabled with user's auth email if it exists
-        this.notificationForm.get('email')?.patchValue({ enabled: true, address: userEmail });
+        this.notificationForm
+          .get('email')
+          ?.patchValue({ enabled: true, address: userEmail });
       }
     } catch {
-      this.notificationForm.get('email')?.patchValue({ enabled: true, address: userEmail });
+      this.notificationForm
+        .get('email')
+        ?.patchValue({ enabled: true, address: userEmail });
     }
   }
   private onProviderChange() {
-    this.notificationForm.get('webHook')?.get('provider')?.valueChanges.subscribe(() => {
-      this.setDefaultWebhookNotificationUrls();
-    });
+    this.notificationForm
+      .get('webHook')
+      ?.get('provider')
+      ?.valueChanges.subscribe(() => {
+        this.setDefaultWebhookNotificationUrls();
+      });
   }
-  
+
   ngAfterViewInit() {
     this.onProviderChange();
   }
@@ -225,12 +263,12 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
 
   savePreferences() {
     let isValid = true;
-    this.notificationChannels.forEach(channel => {
+    this.notificationChannels.forEach((channel) => {
       const channelForm = this.notificationForm.get(channel.formControlName) as FormGroup;
       const isEnabled = channelForm.get('enabled')?.value;
 
       if (isEnabled) {
-        channel.requires.forEach(field => {
+        channel.requires.forEach((field) => {
           const control = channelForm.get(field.name);
           if (control) {
             control.setValidators([Validators.required].concat(field.validator || []));
@@ -244,9 +282,9 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
 
         if (channel.providers) {
           const selectedProvider = channelForm.get('provider')?.value;
-          const provider = channel.providers.find(p => p.value === selectedProvider);
+          const provider = channel.providers.find((p) => p.value === selectedProvider);
 
-          provider?.fields.forEach(field => {
+          provider?.fields.forEach((field) => {
             const control = channelForm.get(field.name);
             if (control) {
               control.setValidators([Validators.required].concat(field.validator || []));
@@ -262,15 +300,16 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
     });
 
     if (isValid) {
-      this.databaseService.instance.notificationQueries.updateNotificationChannels(this.notificationForm.value)
+      this.databaseService.instance.notificationQueries
+        .updateNotificationChannels(this.notificationForm.value)
         .then(() => {
           this.globalMessageService.showMessage({
             severity: 'success',
             summary: 'Success',
-            detail: 'Preferences saved successfully'
+            detail: 'Preferences saved successfully',
           });
         })
-        .catch(error => {
+        .catch((error) => {
           this.errorHandler.handleError({
             message: 'Failed to save notification preferences',
             error,
@@ -282,7 +321,7 @@ export default class NotificationPreferencesPage implements OnInit, AfterViewIni
       this.globalMessageService.showMessage({
         severity: 'error',
         summary: 'Error',
-        detail: 'Please complete all required fields for enabled notifications'
+        detail: 'Please complete all required fields for enabled notifications',
       });
     }
   }

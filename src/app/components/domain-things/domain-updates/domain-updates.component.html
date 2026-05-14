@@ -12,25 +12,46 @@
           styleClass="w-full md:w-2/6 flex-1"
         ></p-dropdown>
         @if (!domainName) {
-          <input pInputText type="text" placeholder="Domain" [(ngModel)]="filterDomain" styleClass="w-full md:w-2/6 flex-1" />
+          <input
+            pInputText
+            type="text"
+            placeholder="Domain"
+            [(ngModel)]="filterDomain"
+            styleClass="w-full md:w-2/6 flex-1"
+          />
         }
         <p-selectButton
           [options]="changeTypes"
           [(ngModel)]="selectedChangeType"
           styleClass="w-full md:w-2/6 flex-none"
         ></p-selectButton>
-        <button pButton label="Apply Filters" (click)="applyFilters()" icon="pi pi-check-circle" aria-label="Apply filters"></button>
-        <button pButton pTooltip="Clear Filters" aria-label="Clear filters" (click)="clearFilters()" icon="pi pi-times-circle" severity="secondary"></button>
+        <button
+          pButton
+          label="Apply Filters"
+          (click)="applyFilters()"
+          icon="pi pi-check-circle"
+          aria-label="Apply filters"
+        ></button>
+        <button
+          pButton
+          pTooltip="Clear Filters"
+          aria-label="Clear filters"
+          (click)="clearFilters()"
+          icon="pi pi-times-circle"
+          severity="secondary"
+        ></button>
       </div>
     }
     @if (updates.length > 0 || showFilters) {
-      <button pButton
+      <button
+        pButton
         [label]="(showFilters ? 'Hide' : 'Show') + 'Filters'"
         [attr.aria-label]="(showFilters ? 'Hide' : 'Show') + ' filters'"
         (click)="toggleFilters()"
         size="small"
-        [class]="(showFilters ? 'mb-4' : 'float-right my-4 filter-button')"
-      icon="pi pi-sliders-h"></button>
+        [class]="showFilters ? 'mb-4' : 'float-right my-4 filter-button'"
+        icon="pi pi-sliders-h"
+      ></button>
     }
     <div class="flex flex-col gap-1">
       @for (update of updates; track update.id) {
@@ -44,12 +65,21 @@
               <i pTooltip="Update" class="pi pi-pencil text-blue-700 mx-2"></i>
             }
           </p>
-          <p class="m-0">{{ formatDate(update.date) }}</p> -
+          <p class="m-0">{{ formatDate(update.date) }}</p>
+          -
           @if (!domainName) {
             @if (update.domains) {
-              <a class="m-0 text-default" [routerLink]="'/domains/'+update.domains.domain_name">{{ update.domains.domain_name }}</a>
+              <a
+                class="m-0 text-default"
+                [routerLink]="'/domains/' + update.domains.domain_name"
+                >{{ update.domains.domain_name }}</a
+              >
             } @else {
-              <a class="m-0 text-default" [routerLink]="'/domains/'+update.domain_name">{{ update.domain_name }}</a>
+              <a
+                class="m-0 text-default"
+                [routerLink]="'/domains/' + update.domain_name"
+                >{{ update.domain_name }}</a
+              >
             }
             -
           }
@@ -82,7 +112,13 @@
           No updates recorded yet
         </p>
         @if (this.selectedCategory || this.selectedChangeType || this.filterDomain) {
-          <button pButton label="Clear Filters" aria-label="Clear filters" (click)="clearFilters()" class="mx-auto"></button>
+          <button
+            pButton
+            label="Clear Filters"
+            aria-label="Clear filters"
+            (click)="clearFilters()"
+            class="mx-auto"
+          ></button>
         }
       </div>
     }

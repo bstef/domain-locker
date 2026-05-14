@@ -13,11 +13,15 @@ interface BuildLogChoice {
   standalone: true,
   imports: [CommonModule, PrimeNgModule],
   templateUrl: './error-logs.page.html',
-  styles: [`
-    :host ::ng-deep {
-      .p-tabview-nav { gap: 0.5rem; }
-    }
-  `],
+  styles: [
+    `
+      :host ::ng-deep {
+        .p-tabview-nav {
+          gap: 0.5rem;
+        }
+      }
+    `,
+  ],
 })
 export default class ErrorLogs implements OnInit {
   private errorHandler = inject(ErrorHandlerService);
@@ -34,22 +38,26 @@ export default class ErrorLogs implements OnInit {
       {
         file: 'docker.yml',
         name: '🐳 Build & Push Docker Image',
-        description: 'Tests, compiles and publishes the cross-platform Docker image to registries.',
+        description:
+          'Tests, compiles and publishes the cross-platform Docker image to registries.',
       },
       {
         file: 'tag.yml',
         name: '🏷️ Tag new versions',
-        description: "Create and push a new Git tag when the app's semantic version is updated.",
+        description:
+          "Create and push a new Git tag when the app's semantic version is updated.",
       },
       {
         file: 'release.yml',
         name: '🥏 Create GitHub Release',
-        description: 'Builds the app and creates a new GitHub release with the compiled files.',
+        description:
+          'Builds the app and creates a new GitHub release with the compiled files.',
       },
       {
         file: 'mirror.yml',
         name: '🪞 Mirror to Codeberg',
-        description: "Mirrors the repository and it's contents to Codeberg, to provide a backup and alternative access.",
+        description:
+          "Mirrors the repository and it's contents to Codeberg, to provide a backup and alternative access.",
       },
     ];
   }
@@ -57,7 +65,9 @@ export default class ErrorLogs implements OnInit {
   public fetchBuildLogs(action: BuildLogChoice): void {
     this.currentAction = action;
     this.currentLogs = 'Loading...';
-    fetch(`https://ghlogs.as93.workers.dev/?owner=lissy93&repo=domain-locker&workflow=${action.file}`)
+    fetch(
+      `https://ghlogs.as93.workers.dev/?owner=lissy93&repo=domain-locker&workflow=${action.file}`,
+    )
       .then(async (res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch logs: ${res.statusText}`);
@@ -67,6 +77,5 @@ export default class ErrorLogs implements OnInit {
       .catch((err) => {
         this.currentLogs = `Error fetching logs: ${err.message}`;
       });
-
   }
 }

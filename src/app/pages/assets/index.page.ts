@@ -4,9 +4,7 @@ import AssetListComponent from '~/app/components/misc/asset-list.component';
 @Component({
   standalone: true,
   selector: 'app-index-page',
-  template: `
-    <app-asset-list></app-asset-list>
-  `,
-  imports: [AssetListComponent]
+  template: ` <app-asset-list></app-asset-list> `,
+  imports: [AssetListComponent],
 })
 export default class AssetsIndexPageComponent {}

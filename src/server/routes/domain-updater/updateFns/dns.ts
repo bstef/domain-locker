@@ -8,7 +8,7 @@ export async function updateDNS(
   pgExec: string,
   domainRow: DomainRow,
   freshInfo: FreshDomainInfo,
-  changes: string[]
+  changes: string[],
 ): Promise<void> {
   const dns = freshInfo?.dns;
   if (!dns) return;
@@ -18,29 +18,41 @@ export async function updateDNS(
 
   for (const type of types) {
     const key = type.toLowerCase() as 'txt' | 'ns' | 'mx';
-    const freshRecords = Array.isArray(dns[key]) ? dns[key] as string[] : [];
+    const freshRecords = Array.isArray(dns[key]) ? (dns[key] as string[]) : [];
 
     // Skip if no fresh data for this type - don't assume records were deleted
     if (freshRecords.length === 0) continue;
 
-    const freshSet = new Set(freshRecords.map((r: string) => normalizeStr(r)).filter(Boolean));
+    const freshSet = new Set(
+      freshRecords.map((r: string) => normalizeStr(r)).filter(Boolean),
+    );
 
     const existing = await callPgExecutor<{ id: string; record_value: string }>(
       pgExec,
       `SELECT id, record_value FROM dns_records WHERE domain_id = $1 AND record_type = $2`,
-      [domainId, type]
+      [domainId, type],
     );
 
-    const existingSet = new Set(existing.map((row) => normalizeStr(row.record_value)).filter(Boolean));
+    const existingSet = new Set(
+      existing.map((row) => normalizeStr(row.record_value)).filter(Boolean),
+    );
 
     // Add new records
     for (const record of freshSet) {
       if (!existingSet.has(record)) {
-        await callPgExecutor(pgExec,
+        await callPgExecutor(
+          pgExec,
           `INSERT INTO dns_records (domain_id, record_type, record_value) VALUES ($1, $2, $3)`,
-          [domainId, type, record]
+          [domainId, type, record],
         );
-        await recordDomainUpdate(pgExec, domainId, `DNS ${type} record added`, `dns_${type.toLowerCase()}_added`, '', record);
+        await recordDomainUpdate(
+          pgExec,
+          domainId,
+          `DNS ${type} record added`,
+          `dns_${type.toLowerCase()}_added`,
+          '',
+          record,
+        );
         changes.push(`DNS ${type}+`);
       }
     }
@@ -50,7 +62,14 @@ export async function updateDNS(
       const normalized = normalizeStr(row.record_value);
       if (!freshSet.has(normalized)) {
         await callPgExecutor(pgExec, `DELETE FROM dns_records WHERE id = $1`, [row.id]);
-        await recordDomainUpdate(pgExec, domainId, `DNS ${type} record removed`, `dns_${type.toLowerCase()}_removed`, row.record_value, '');
+        await recordDomainUpdate(
+          pgExec,
+          domainId,
+          `DNS ${type} record removed`,
+          `dns_${type.toLowerCase()}_removed`,
+          row.record_value,
+          '',
+        );
         changes.push(`DNS ${type}-`);
       }
     }
@@ -58,8 +77,18 @@ export async function updateDNS(
 
   // Handle DNSSEC flag
   if (typeof dns.dnssec === 'boolean' && domainRow.dnssec_enabled !== dns.dnssec) {
-    await callPgExecutor(pgExec, `UPDATE domains SET dnssec_enabled = $1 WHERE id = $2`, [dns.dnssec, domainId]);
-    await recordDomainUpdate(pgExec, domainId, `DNSSEC changed`, 'dnssec', String(domainRow.dnssec_enabled), String(dns.dnssec));
+    await callPgExecutor(pgExec, `UPDATE domains SET dnssec_enabled = $1 WHERE id = $2`, [
+      dns.dnssec,
+      domainId,
+    ]);
+    await recordDomainUpdate(
+      pgExec,
+      domainId,
+      `DNSSEC changed`,
+      'dnssec',
+      String(domainRow.dnssec_enabled),
+      String(dns.dnssec),
+    );
     changes.push('DNSSEC toggled');
   }
 }

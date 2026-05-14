@@ -45,9 +45,11 @@ export class SponsorMessageComponent implements OnInit {
         provider: string;
         identity_data?: Record<string, string>;
       }
-      const identities: Identity[] = (sessionData as { session?: { user?: { identities?: Identity[] } } })?.session?.user?.identities || [];
+      const identities: Identity[] =
+        (sessionData as { session?: { user?: { identities?: Identity[] } } })?.session
+          ?.user?.identities || [];
       const githubIdentity = identities.find(
-        (identity) => identity.provider === 'github'
+        (identity) => identity.provider === 'github',
       );
 
       this.githubUsername = githubIdentity?.identity_data?.['user_name'] || null;
@@ -59,7 +61,7 @@ export class SponsorMessageComponent implements OnInit {
           .subscribe({
             next: (sponsors) => {
               this.isSponsor = sponsors.some(
-                (sponsor) => sponsor.login === this.githubUsername
+                (sponsor) => sponsor.login === this.githubUsername,
               );
             },
             error: (error) => this.errorHandler.handleError({ error }),
@@ -73,7 +75,10 @@ export class SponsorMessageComponent implements OnInit {
   hideSponsorThanks(): void {
     if (this.isBrowser()) {
       localStorage.setItem('hideSponsorThanks', 'true');
-      this.messageService.showInfo('Sponsor Section Deactivated', 'No problem! We won\'t mention this again!');
+      this.messageService.showInfo(
+        'Sponsor Section Deactivated',
+        "No problem! We won't mention this again!",
+      );
     }
     this.isHidden = true;
   }

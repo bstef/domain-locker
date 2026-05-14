@@ -14,7 +14,13 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, PrimeNgModule, MultiSelectModule, ReactiveFormsModule, FeatureNotEnabledComponent],
+  imports: [
+    CommonModule,
+    PrimeNgModule,
+    MultiSelectModule,
+    ReactiveFormsModule,
+    FeatureNotEnabledComponent,
+  ],
   templateUrl: './index.page.html',
 })
 export default class BulkNotificationPreferencesPage implements OnInit {
@@ -26,11 +32,16 @@ export default class BulkNotificationPreferencesPage implements OnInit {
 
   notificationTypes = notificationTypes;
   domains: DbDomain[] = [];
-  notificationPreferences: { domain_id: string; notification_type: string; is_enabled: boolean }[] = [];
+  notificationPreferences: {
+    domain_id: string;
+    notification_type: string;
+    is_enabled: boolean;
+  }[] = [];
   notificationForm: FormGroup = this.fb.group({});
   loading = true;
 
-  changeNotificationsFeatureEnabled$ = this.featureService.isFeatureEnabled('changeNotifications');
+  changeNotificationsFeatureEnabled$ =
+    this.featureService.isFeatureEnabled('changeNotifications');
 
   ngOnInit() {
     this.loadDomainsAndPreferences();
@@ -39,22 +50,23 @@ export default class BulkNotificationPreferencesPage implements OnInit {
   private loadDomainsAndPreferences() {
     forkJoin({
       domains: this.databaseService.instance.listDomains(),
-      preferences: this.databaseService.instance.notificationQueries.getNotificationPreferences()
+      preferences:
+        this.databaseService.instance.notificationQueries.getNotificationPreferences(),
     }).subscribe({
       next: ({ domains, preferences }) => {
         this.domains = domains;
         this.notificationPreferences = preferences;
-  
+
         // Set up form controls for each notification type
-        this.notificationTypes.forEach(type => {
+        this.notificationTypes.forEach((type) => {
           this.notificationForm.addControl(type.key, this.fb.control([]));
         });
-  
+
         // Populate form values based on preferences
-        this.notificationTypes.forEach(type => {
+        this.notificationTypes.forEach((type) => {
           const enabledDomains = this.notificationPreferences
-            .filter(pref => pref.notification_type === type.key && pref.is_enabled)
-            .map(pref => pref.domain_id);
+            .filter((pref) => pref.notification_type === type.key && pref.is_enabled)
+            .map((pref) => pref.domain_id);
           this.notificationForm.get(type.key)?.setValue(enabledDomains);
         });
 
@@ -67,16 +79,17 @@ export default class BulkNotificationPreferencesPage implements OnInit {
           showToast: true,
           location: 'bulk-notification-preferences.page',
         });
-      }
+      },
     });
   }
 
   async savePreferences() {
     try {
       // Collect notification preferences based on form values
-      const preferences = this.notificationTypes.flatMap(type => {
-        const selectedDomains: string[] = this.notificationForm.get(type.key)?.value || [];
-        return this.domains.map(domain => ({
+      const preferences = this.notificationTypes.flatMap((type) => {
+        const selectedDomains: string[] =
+          this.notificationForm.get(type.key)?.value || [];
+        return this.domains.map((domain) => ({
           domain_id: domain.id,
           notification_type: type.key,
           is_enabled: selectedDomains.includes(domain.id),
@@ -84,13 +97,14 @@ export default class BulkNotificationPreferencesPage implements OnInit {
       });
 
       // Update preferences in the database
-      await this.databaseService.instance.notificationQueries.updateBulkNotificationPreferences(preferences)
+      await this.databaseService.instance.notificationQueries
+        .updateBulkNotificationPreferences(preferences)
         .subscribe({
           next: () => {
             this.globalMessageService.showMessage({
               severity: 'success',
               summary: 'Success',
-              detail: 'Notification Preferences Updated'
+              detail: 'Notification Preferences Updated',
             });
           },
           error: (error) => {
@@ -100,7 +114,7 @@ export default class BulkNotificationPreferencesPage implements OnInit {
               showToast: true,
               location: 'bulk-notification-preferences.page',
             });
-          }
+          },
         });
     } catch (error) {
       this.errorHandler.handleError({

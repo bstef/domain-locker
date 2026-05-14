@@ -9,7 +9,7 @@ export class WhoisQueries {
     private handleError: (error: unknown) => Observable<never>,
     private getCurrentUser: () => Promise<User | null>,
   ) {}
-  
+
   async saveWhoisInfo(domainId: string, whois: SaveDomainData['whois']): Promise<void> {
     if (!whois) return;
 
@@ -23,12 +23,9 @@ export class WhoisQueries {
       state: whois.state,
       postal_code: whois.postal_code,
     };
-  
-    const { error } = await this.supabase
-      .from('whois_info')
-      .insert(whoisData);
-  
+
+    const { error } = await this.supabase.from('whois_info').insert(whoisData);
+
     if (error) throw error;
   }
-
 }

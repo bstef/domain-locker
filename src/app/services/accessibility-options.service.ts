@@ -20,7 +20,7 @@ export const defaultAccessibilityOptions: AccessibilityOptions = {
   removeIcons: false,
   grayscale: false,
   nightShift: false,
-}
+};
 
 /**
  * List of accessibility options, with a description, used for building the UI form
@@ -31,14 +31,17 @@ export const accessibilityOptionsInfo: readonly {
   className: string;
 }[] = [
   { key: 'reducedMotion', label: 'Reduced Motion', className: 'a11y_reduced-motion' },
-  { key: 'touchTargetExpand', label: 'Touch Target Expand', className: 'a11y_touch-target-expanded' },
+  {
+    key: 'touchTargetExpand',
+    label: 'Touch Target Expand',
+    className: 'a11y_touch-target-expanded',
+  },
   { key: 'highContrast', label: 'High Contrast', className: 'a11y_high-contrast' },
   { key: 'largeText', label: 'Large Type', className: 'a11y_large-type' },
   { key: 'removeIcons', label: 'Remove Icons', className: 'a11y_remove-icons' },
   { key: 'grayscale', label: 'No Color', className: 'a11y_grayscale' },
   { key: 'nightShift', label: 'Night Shift', className: 'a11y_no-blue-light' },
 ];
-
 
 @Injectable({ providedIn: 'root' })
 export class AccessibilityService {
@@ -77,7 +80,9 @@ export class AccessibilityService {
    * Retrieve a single property with type inference
    * e.g. getAccessibilityProp('reducedMotion') => boolean
    */
-  public getAccessibilityProp<K extends keyof AccessibilityOptions>(prop: K): AccessibilityOptions[K] {
+  public getAccessibilityProp<K extends keyof AccessibilityOptions>(
+    prop: K,
+  ): AccessibilityOptions[K] {
     const allOptions = this.getAccessibilityOptions();
     return allOptions[prop];
   }
@@ -86,7 +91,10 @@ export class AccessibilityService {
    * Update a single property and persist to localStorage
    * e.g. updateAccessibilityProp('highContrast', true)
    */
-  public updateAccessibilityProp<K extends keyof AccessibilityOptions>(prop: K, value: AccessibilityOptions[K]): void {
+  public updateAccessibilityProp<K extends keyof AccessibilityOptions>(
+    prop: K,
+    value: AccessibilityOptions[K],
+  ): void {
     const current = this.getAccessibilityOptions();
     const updated = { ...current, [prop]: value };
     this.setAccessibilityOptions(updated);
@@ -100,7 +108,7 @@ export class AccessibilityService {
   public applyAccessibilityClasses(): void {
     const options = this.getAccessibilityOptions();
     const htmlEl = document.documentElement;
-  
+
     accessibilityOptionsInfo.forEach(({ key, className }) => {
       if (options[key]) {
         htmlEl.classList.add(className);

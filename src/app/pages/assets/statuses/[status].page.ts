@@ -15,7 +15,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   imports: [PrimeNgModule, DomainCollectionComponent],
   template: `
     <h1>Domains with status "{{ statusInfo ? statusInfo.label : statusCode }}"</h1>
-    
+
     @if (statusInfo) {
       <div class="flex gap-2 items-center">
         @if (statusInfo.severity === 'good') {
@@ -25,7 +25,9 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
         } @else {
           <p-tag icon="pi pi-info-circle" severity="info" />
         }
-        <p class="my-0 italic text-surface-500 text-lg opacity-90">{{ statusInfo.description }}</p>
+        <p class="my-0 italic text-surface-500 text-lg opacity-90">
+          {{ statusInfo.description }}
+        </p>
       </div>
       @if (statusInfo.actionToTake && statusInfo.severity === 'bad') {
         <p class="my-0 text-red-400">{{ statusInfo.actionToTake }}</p>
@@ -35,18 +37,18 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
         <p class="my-0 text-green-400">This is a good status, no action is needed</p>
       }
     }
-    
+
     @if (!loading) {
       <app-domain-view
         [domains]="domains"
-        [preFilteredText]="'with status '+statusCode+''"
+        [preFilteredText]="'with status ' + statusCode + ''"
         [showAddButton]="false"
-        />
+      />
     }
     @if (loading) {
       <p-progressSpinner></p-progressSpinner>
     }
-    `,
+  `,
 })
 export default class StatusDomainsPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -60,7 +62,7 @@ export default class StatusDomainsPageComponent implements OnInit {
   statusInfo: SecurityCategory | undefined;
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.statusCode = params['status'];
       this.statusInfo = getByEppCode(this.statusCode);
       this.loadDomains();
@@ -79,10 +81,10 @@ export default class StatusDomainsPageComponent implements OnInit {
           message: 'Failed to load domains for this status',
           error,
           showToast: true,
-          location: 'StatusesDomainPageComponent.loadDomains'
+          location: 'StatusesDomainPageComponent.loadDomains',
         });
         this.loading = false;
-      }
+      },
     });
   }
 }

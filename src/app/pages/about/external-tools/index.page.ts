@@ -19,7 +19,7 @@ export default class ExternalToolsPage implements OnInit {
     return title.toLowerCase().replace(/\s/g, '-');
   }
 
-    ngOnInit() {
+  ngOnInit() {
     this.metaTagsService.setCustomMeta(
       'Domain Tools and Resources',
       'A directory of free, useful tools and resources for domain owners, including WHOIS lookups, DNS checks, SSL validation, and more.',

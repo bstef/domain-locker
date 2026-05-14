@@ -10,10 +10,7 @@ import { DlIconComponent } from '~/app/components/misc/svg-icon.component';
   imports: [RouterOutlet, PrimeNgModule, DlIconComponent],
   selector: 'app-tools-layout-page',
   templateUrl: './tools/layout.html',
-  styles: [
-    '::ng-deep .content-container { max-width: 1600px; }',
-    ``,
-  ]
+  styles: ['::ng-deep .content-container { max-width: 1600px; }', ``],
 })
 export default class ToolsIndexPageComponent {
   toolsLinks: ExtendedMenuItem[] = toolsLinks;

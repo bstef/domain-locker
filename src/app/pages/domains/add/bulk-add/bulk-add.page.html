@@ -1,6 +1,14 @@
 <div class="card bulk-add-wrap">
   <h2>Bulk Add Domains</h2>
-  <p-steps [model]="[{label: 'Domain List'}, {label: 'Domain Details'}, {label: 'Notifications'}, {label: 'Summary'}]" [activeIndex]="step - 1"></p-steps>
+  <p-steps
+    [model]="[
+      { label: 'Domain List' },
+      { label: 'Domain Details' },
+      { label: 'Notifications' },
+      { label: 'Summary' },
+    ]"
+    [activeIndex]="step - 1"
+  ></p-steps>
   <form [formGroup]="bulkAddForm">
     <p-card>
       @switch (step) {
@@ -10,20 +18,26 @@
             <div class="field">
               <label for="domainList">
                 Domain List
-                <small>Enter or paste a list of domains, separated by commas or new lines</small>
+                <small
+                  >Enter or paste a list of domains, separated by commas or new
+                  lines</small
+                >
               </label>
               <textarea
                 id="domainList"
                 pInputTextarea
                 formControlName="domainList"
                 [rows]="10"
-              [autoResize]="true"></textarea>
+                [autoResize]="true"
+              ></textarea>
             </div>
             <div class="button-wrap single">
               <p-button
                 label="Process Domains"
                 (onClick)="processDomains()"
-                [disabled]="bulkAddForm.get('domainList')?.invalid || processingDomains" [loading]="processingDomains" />
+                [disabled]="bulkAddForm.get('domainList')?.invalid || processingDomains"
+                [loading]="processingDomains"
+              />
             </div>
           </div>
         }
@@ -42,26 +56,48 @@
                     <div class="flex-1">
                       <label class="block font-semibold mb-2">
                         Registrar
-                        <input pInputText formControlName="registrar" class="w-full p-inputtext">
+                        <input
+                          pInputText
+                          formControlName="registrar"
+                          class="w-full p-inputtext"
+                        />
                       </label>
                     </div>
                     <!-- Expiry Date -->
                     <div class="flex-1">
-                      <label [for]="'expiryDate-' + i" class="block font-semibold mb-2">Expiry Date</label>
-                      <p-calendar [inputId]="'expiryDate-' + i" formControlName="expiryDate" class="w-full"></p-calendar>
+                      <label [for]="'expiryDate-' + i" class="block font-semibold mb-2"
+                        >Expiry Date</label
+                      >
+                      <p-calendar
+                        [inputId]="'expiryDate-' + i"
+                        formControlName="expiryDate"
+                        class="w-full"
+                      ></p-calendar>
                     </div>
                   </div>
                   <div class="flex flex-1 flex-wrap gap-4 flex-col">
                     <!-- Tags -->
                     <div class="">
-                      <label [for]="'tags-' + i" class="block font-semibold mb-2">Tags</label>
-                      <p-chips [inputId]="'tags-' + i" formControlName="tags" separator="," [addOnBlur]="true" class="w-full"></p-chips>
+                      <label [for]="'tags-' + i" class="block font-semibold mb-2"
+                        >Tags</label
+                      >
+                      <p-chips
+                        [inputId]="'tags-' + i"
+                        formControlName="tags"
+                        separator=","
+                        [addOnBlur]="true"
+                        class="w-full"
+                      ></p-chips>
                     </div>
                     <!-- Notes -->
                     <div class="">
                       <label class="block font-semibold mb-2">
                         Notes
-                        <textarea pInputTextarea formControlName="notes" class="w-full"></textarea>
+                        <textarea
+                          pInputTextarea
+                          formControlName="notes"
+                          class="w-full"
+                        ></textarea>
                       </label>
                     </div>
                   </div>
@@ -69,7 +105,11 @@
               </div>
             }
             <div class="button-wrap mt-4">
-              <p-button label="Previous" (onClick)="step = 1" styleClass="p-button-secondary"></p-button>
+              <p-button
+                label="Previous"
+                (onClick)="step = 1"
+                styleClass="p-button-secondary"
+              ></p-button>
               <p-button label="Next" (onClick)="goToNotifications()"></p-button>
             </div>
           </div>
@@ -78,7 +118,10 @@
         @case (3) {
           <div>
             <h3>Setup Notifications</h3>
-            <p>Choose the notifications you want to receive for all domains. You can always change these settings later for individual domains.</p>
+            <p>
+              Choose the notifications you want to receive for all domains. You can always
+              change these settings later for individual domains.
+            </p>
             <div formGroupName="notifications">
               @for (option of notificationOptions; track option) {
                 <div class="field">
@@ -94,8 +137,17 @@
               }
             </div>
             <div class="button-wrap">
-              <p-button label="Previous" (onClick)="step = 2" styleClass="p-button-secondary"></p-button>
-              <p-button label="Save All Domains" (onClick)="saveDomains()" [disabled]="bulkAddForm.invalid || savingDomains" [loading]="savingDomains"></p-button>
+              <p-button
+                label="Previous"
+                (onClick)="step = 2"
+                styleClass="p-button-secondary"
+              ></p-button>
+              <p-button
+                label="Save All Domains"
+                (onClick)="saveDomains()"
+                [disabled]="bulkAddForm.invalid || savingDomains"
+                [loading]="savingDomains"
+              ></p-button>
             </div>
           </div>
         }
@@ -108,7 +160,11 @@
                   @for (domain of savedDomains; track domain) {
                     <li>
                       <i class="pi pi-check-circle text-green-400 mr-2"></i>
-                      <a [routerLink]="'/domains/'+domain" class="text-default hover:text-primary">{{ domain }}</a>
+                      <a
+                        [routerLink]="'/domains/' + domain"
+                        class="text-default hover:text-primary"
+                        >{{ domain }}</a
+                      >
                     </li>
                   }
                 </ul>
@@ -121,14 +177,22 @@
                   @for (domain of failedDomains; track domain) {
                     <li>
                       <i class="pi pi-times-circle text-red-400 mr-2"></i>
-                      <a [routerLink]="'/domains/'+domain" class="text-default no-underline hover:text-primary">{{ domain }}</a>
+                      <a
+                        [routerLink]="'/domains/' + domain"
+                        class="text-default no-underline hover:text-primary"
+                        >{{ domain }}</a
+                      >
                     </li>
                   }
                 </ul>
               </div>
             }
             <div class="button-wrap mt-4">
-              <p-button label="Go to Homepage" (onClick)="goToHomePage()" styleClass="p-button-primary"></p-button>
+              <p-button
+                label="Go to Homepage"
+                (onClick)="goToHomePage()"
+                styleClass="p-button-primary"
+              ></p-button>
             </div>
           </div>
         }

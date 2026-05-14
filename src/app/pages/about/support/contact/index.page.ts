@@ -7,17 +7,20 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HelpfulLinksComponent } from '~/app/components/misc/helpful-links.component';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
-type QueryInfo = Record<string, {
+type QueryInfo = Record<
+  string,
+  {
     allow: boolean;
-    info?: string,
-    warn?: string,
+    info?: string;
+    warn?: string;
     links?: {
-      location: string,
-      title: string,
-      icon: string,
-      body: string
-    }[]
-  }>;
+      location: string;
+      title: string;
+      icon: string;
+      body: string;
+    }[];
+  }
+>;
 
 @Component({
   standalone: true,
@@ -42,10 +45,16 @@ export default class ContactPageComponent implements OnInit, OnDestroy {
     },
     'Bug/Issue': {
       allow: true,
-      info: 'Please include diagnostic debug info in your bug report. '
-        + 'Then describe the issue, expected results, actual results and steps to reproduce.',
+      info:
+        'Please include diagnostic debug info in your bug report. ' +
+        'Then describe the issue, expected results, actual results and steps to reproduce.',
       links: [
-        { location: '/advanced/debug-info', title: 'Debug Info', icon: 'info-circle', body: 'Get diagnostic data' },
+        {
+          location: '/advanced/debug-info',
+          title: 'Debug Info',
+          icon: 'info-circle',
+          body: 'Get diagnostic data',
+        },
       ],
     },
     Security: {
@@ -68,12 +77,42 @@ export default class ContactPageComponent implements OnInit, OnDestroy {
       allow: false,
       info: 'Have questions about your data? Let us know.',
       links: [
-        { location: '/about/data', title: 'Privacy Policy', icon: 'info-circle', body: 'Read what data is collected and how it\'s stored and used' },
-        { location: '/settings/privacy', title: 'Privacy Options', icon: 'lock-open', body: 'Update preferences for 3rd party services' },
-        { location: '/domains/export', title: 'Export Data', icon: 'download', body: 'Export your data in a machine-readable format' },
-        { location: '/domains/add', title: 'Add Domain(s)', icon: 'upload', body: 'Add domains and associated assets to your account' },
-        { location: '/settings/delete-account', title: 'Delete Account', icon: 'ban', body: 'Delete your account, and all associated data' },
-        { location: '/settings/developer-options', title: 'Data Interoperability', icon: 'code', body: 'Access your data programmatically via our API' },
+        {
+          location: '/about/data',
+          title: 'Privacy Policy',
+          icon: 'info-circle',
+          body: "Read what data is collected and how it's stored and used",
+        },
+        {
+          location: '/settings/privacy',
+          title: 'Privacy Options',
+          icon: 'lock-open',
+          body: 'Update preferences for 3rd party services',
+        },
+        {
+          location: '/domains/export',
+          title: 'Export Data',
+          icon: 'download',
+          body: 'Export your data in a machine-readable format',
+        },
+        {
+          location: '/domains/add',
+          title: 'Add Domain(s)',
+          icon: 'upload',
+          body: 'Add domains and associated assets to your account',
+        },
+        {
+          location: '/settings/delete-account',
+          title: 'Delete Account',
+          icon: 'ban',
+          body: 'Delete your account, and all associated data',
+        },
+        {
+          location: '/settings/developer-options',
+          title: 'Data Interoperability',
+          icon: 'code',
+          body: 'Access your data programmatically via our API',
+        },
         // { location: '', title: '', icon: '', body: '' },
       ],
     },
@@ -89,7 +128,6 @@ export default class ContactPageComponent implements OnInit, OnDestroy {
   private freshdeskScript?: HTMLScriptElement;
 
   async ngOnInit(): Promise<void> {
-
     // Init chat widget
     this.registerFreshChat();
 
@@ -107,11 +145,10 @@ export default class ContactPageComponent implements OnInit, OnDestroy {
 
     // Autofill user details
     if (user) {
-
       const name = user.user_metadata?.['name'] || '';
       const email = user.email || '';
 
-      this.contactForm.patchValue({name, email});
+      this.contactForm.patchValue({ name, email });
 
       // Determine user type
       this.userType = user.user_metadata?.['user_type'] || 'Free'; // Default to Free
@@ -122,7 +159,9 @@ export default class ContactPageComponent implements OnInit, OnDestroy {
 
       // Init Fresh widget with user details
       if (isPlatformBrowser(this.platformId)) {
-        (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('identify', 'ticketForm', {name, email});
+        (
+          window as unknown as { FreshworksWidget: (...args: unknown[]) => void }
+        ).FreshworksWidget('identify', 'ticketForm', { name, email });
       }
     }
   }
@@ -163,15 +202,16 @@ export default class ContactPageComponent implements OnInit, OnDestroy {
     }
   }
 
-
   openFreshChat(): void {
     if (isPlatformBrowser(this.platformId)) {
-      (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('open');
+      (
+        window as unknown as { FreshworksWidget: (...args: unknown[]) => void }
+      ).FreshworksWidget('open');
     }
   }
 
   registerFreshChat(): void {
-    if (!isPlatformBrowser(this.platformId)) return; 
+    if (!isPlatformBrowser(this.platformId)) return;
 
     this.initScript = document.createElement('script');
     this.initScript.innerHTML = `
@@ -188,16 +228,21 @@ export default class ContactPageComponent implements OnInit, OnDestroy {
 
     this.freshdeskScript = document.createElement('script');
     this.freshdeskScript.type = 'text/javascript';
-    this.freshdeskScript.src = 'https://euc-widget.freshworks.com/widgets/204000000781.js';
+    this.freshdeskScript.src =
+      'https://euc-widget.freshworks.com/widgets/204000000781.js';
     this.freshdeskScript.async = true;
     this.freshdeskScript.defer = true;
     document.body.appendChild(this.freshdeskScript);
 
-    (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('hide');
+    (
+      window as unknown as { FreshworksWidget: (...args: unknown[]) => void }
+    ).FreshworksWidget('hide');
   }
 
   deregisterFreshChat(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    (window as unknown as { FreshworksWidget: (...args: unknown[]) => void }).FreshworksWidget('hide');
+    (
+      window as unknown as { FreshworksWidget: (...args: unknown[]) => void }
+    ).FreshworksWidget('hide');
   }
 }

@@ -17,9 +17,9 @@ import { Subscription } from 'rxjs';
         [loading]="loading"
         [domains]="domains"
         ($triggerReload)="newDomainAdded()"
-        />
+      />
     }
-    `,
+  `,
 })
 export default class DomainAllPageComponent implements OnInit, OnDestroy {
   private databaseService = inject(DatabaseService);
@@ -55,14 +55,14 @@ export default class DomainAllPageComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.errorHandlerService.handleError({
             error,
-            message: 'Couldn\'t fetch domains from database',
+            message: "Couldn't fetch domains from database",
             showToast: true,
             location: 'DomainAllPageComponent.loadDomains',
           });
           this.loading = false;
           this.cdr.markForCheck();
-        }
-      })
+        },
+      }),
     );
   }
 }

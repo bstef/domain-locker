@@ -8,7 +8,7 @@ export async function updateExpiryDate(
   pgExec: string,
   domainRow: DomainRow,
   freshInfo: FreshDomainInfo,
-  changes: string[]
+  changes: string[],
 ): Promise<void> {
   const oldRaw = domainRow.expiry_date;
   const newRaw = freshInfo?.dates?.expiry_date;
@@ -25,12 +25,13 @@ export async function updateExpiryDate(
       'Expiry date changed',
       'expiry_domain',
       oldDateStr,
-      newDateStr
+      newDateStr,
     );
 
-    await callPgExecutor(pgExec,
+    await callPgExecutor(
+      pgExec,
       `UPDATE domains SET expiry_date = $1::date WHERE id = $2::uuid`,
-      [newDateStr, domainRow.id]
+      [newDateStr, domainRow.id],
     );
 
     changes.push('Expiry Date');

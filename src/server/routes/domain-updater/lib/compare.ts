@@ -12,10 +12,14 @@ type UpdateFn = (
   pgExec: string,
   domainRow: DomainRow,
   freshInfo: FreshDomainInfo,
-  changes: string[]
+  changes: string[],
 ) => Promise<void>;
 
-export async function compareAndUpdateDomain(pgExec: string, domainRow: DomainRow, freshInfo: FreshDomainInfo) {
+export async function compareAndUpdateDomain(
+  pgExec: string,
+  domainRow: DomainRow,
+  freshInfo: FreshDomainInfo,
+) {
   const changes: string[] = [];
 
   const fns: UpdateFn[] = [

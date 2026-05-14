@@ -22,7 +22,9 @@
         }
         {{ r.isPublic ? '🔓' : '🔒' }}
         @if (r.path && !r.path.includes('sitemap')) {
-          <a [href]="'https://github.com/Lissy93/domain-locker/blob/HEAD/'+r.path">📄</a>
+          <a [href]="'https://github.com/Lissy93/domain-locker/blob/HEAD/' + r.path"
+            >📄</a
+          >
         }
         @if (r.children?.length) {
           <ng-template

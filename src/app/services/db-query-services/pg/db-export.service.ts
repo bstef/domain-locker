@@ -30,10 +30,13 @@ export class ExportQueries {
   constructor(
     private pgApiUtil: PgApiUtilService,
     private handleError: (error: unknown) => Observable<never>,
-    private getCurrentUser: () => Promise<{ id: string } | null>
+    private getCurrentUser: () => Promise<{ id: string } | null>,
   ) {}
 
-  fetchAllForExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Observable<Record<string, unknown>[]> {
+  fetchAllForExport(
+    domainNames: string,
+    includeFields: string[] | { label: string; value: string }[],
+  ): Observable<Record<string, unknown>[]> {
     return new Observable((observer) => {
       this.executeExport(domainNames, includeFields)
         .then((data) => {
@@ -44,7 +47,10 @@ export class ExportQueries {
     });
   }
 
-  private async executeExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Promise<Record<string, unknown>[]> {
+  private async executeExport(
+    domainNames: string,
+    includeFields: string[] | { label: string; value: string }[],
+  ): Promise<Record<string, unknown>[]> {
     // Ensure includeFields is an array
     const fields = Array.isArray(includeFields) ? includeFields : [];
 
@@ -134,11 +140,11 @@ export class ExportQueries {
           'renewal_cost', domain_costings.renewal_cost,
           'auto_renew', domain_costings.auto_renew
         ) AS domain_costings
-      `
+      `,
     };
 
     const selectedRelations = fields
-      .map(field => {
+      .map((field) => {
         // Handle both string values and objects with {label, value} structure
         const fieldValue = typeof field === 'string' ? field : field?.value;
         return fieldMap[fieldValue];
@@ -153,9 +159,10 @@ export class ExportQueries {
       ) AS registrar
     `;
 
-    const selectQuery = selectedRelations.length > 0
-      ? `domains.*, ${registrarField}, ${selectedRelations.join(', ')}`
-      : `domains.*, ${registrarField}`;
+    const selectQuery =
+      selectedRelations.length > 0
+        ? `domains.*, ${registrarField}, ${selectedRelations.join(', ')}`
+        : `domains.*, ${registrarField}`;
 
     // Handle empty domain filter (export all) vs specific domains
     const whereClause = domainFilter
@@ -163,7 +170,7 @@ export class ExportQueries {
       : 'WHERE domains.user_id = $1';
 
     const params = domainFilter
-      ? [domainFilter.split(',').map(d => d.trim()), userId]
+      ? [domainFilter.split(',').map((d) => d.trim()), userId]
       : [userId];
 
     const query = `
@@ -186,7 +193,9 @@ export class ExportQueries {
       LIMIT 10000
     `;
 
-    const result = await this.pgApiUtil.postToPgExecutor<ExportDomainRow>(query, params).toPromise();
+    const result = await this.pgApiUtil
+      .postToPgExecutor<ExportDomainRow>(query, params)
+      .toPromise();
 
     if (!result || !result.data) {
       return [];
@@ -220,7 +229,9 @@ export class ExportQueries {
         ? domain.hosts.map((host) => host.isp).join(', ')
         : '',
       dns_records: Array.isArray(domain.dns_records)
-        ? domain.dns_records.map((record) => `${record.record_type}: ${record.record_value}`).join('; ')
+        ? domain.dns_records
+            .map((record) => `${record.record_type}: ${record.record_value}`)
+            .join('; ')
         : '',
       purchase_price: domain.domain_costings?.purchase_price || 0,
       current_value: domain.domain_costings?.current_value || 0,

@@ -1,4 +1,13 @@
-import { Component, OnInit, ViewChild, ElementRef, PLATFORM_ID, inject, AfterViewInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  PLATFORM_ID,
+  inject,
+  AfterViewInit,
+  OnDestroy,
+} from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { PrimeNgModule } from '~/app/prime-ng.module';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -12,7 +21,13 @@ import DatabaseService from '~/app/services/database.service';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterOutlet, PrimeNgModule, ProfilePictureComponent, FeatureNotEnabledComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    PrimeNgModule,
+    ProfilePictureComponent,
+    FeatureNotEnabledComponent,
+  ],
   templateUrl: './settings/index.page.html',
 })
 export default class SettingsIndexPage implements OnInit, AfterViewInit, OnDestroy {
@@ -55,7 +70,7 @@ export default class SettingsIndexPage implements OnInit, AfterViewInit, OnDestr
     }
   }
 
-  ngOnDestroy() { 
+  ngOnDestroy() {
     if (isPlatformBrowser(this.platformId)) {
       window.removeEventListener('resize', this.checkWindowSize.bind(this));
     }

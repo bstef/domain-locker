@@ -1,7 +1,23 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '~/app/services/supabase.service';
-import { DatabaseService, DbDomain, SaveDomainData, DomainExpiration } from '~/app/../types/Database';
-import { catchError, from, map, Observable, throwError, retry, switchMap, toArray, of, concatMap } from 'rxjs';
+import {
+  DatabaseService,
+  DbDomain,
+  SaveDomainData,
+  DomainExpiration,
+} from '~/app/../types/Database';
+import {
+  catchError,
+  from,
+  map,
+  Observable,
+  throwError,
+  retry,
+  switchMap,
+  toArray,
+  of,
+  concatMap,
+} from 'rxjs';
 import { makeEppArrayFromLabels } from '~/app/constants/security-categories';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 import { GlobalMessageService } from '~/app/services/messaging.service';
@@ -33,12 +49,15 @@ export default class MainDatabaseService extends DatabaseService {
   private globalMessagingService = inject(GlobalMessageService);
   private featureService = inject(FeatureService);
 
-
   constructor() {
     super();
 
     type SubserviceCtor = new (...args: never[]) => unknown;
-    const subservices: { property: string; cls: SubserviceCtor; args: readonly unknown[] }[] = [
+    const subservices: {
+      property: string;
+      cls: SubserviceCtor;
+      args: readonly unknown[];
+    }[] = [
       {
         property: 'tagQueries',
         cls: TagQueries,
@@ -69,18 +88,12 @@ export default class MainDatabaseService extends DatabaseService {
       {
         property: 'historyQueries',
         cls: HistoryQueries,
-        args: [
-          this.supabase.supabase,
-          this.handleError.bind(this),
-        ],
+        args: [this.supabase.supabase, this.handleError.bind(this)],
       },
       {
         property: 'valuationQueries',
         cls: ValuationQueries,
-        args: [
-          this.supabase.supabase,
-          this.handleError.bind(this),
-        ],
+        args: [this.supabase.supabase, this.handleError.bind(this)],
       },
       {
         property: 'registrarQueries',
@@ -162,7 +175,11 @@ export default class MainDatabaseService extends DatabaseService {
     // Instantiate each subservice, wrap it in write protection proxy
     subservices.forEach(({ property, cls, args }) => {
       const real = new (cls as new (...a: unknown[]) => unknown)(...args);
-      const proxied = createDbProxy(real as object, this.featureService, this.globalMessagingService);
+      const proxied = createDbProxy(
+        real as object,
+        this.featureService,
+        this.globalMessagingService,
+      );
       (this as unknown as Record<string, unknown>)[property] = proxied;
     });
   }
@@ -174,7 +191,9 @@ export default class MainDatabaseService extends DatabaseService {
       location: 'database.service',
       showToast: false,
     });
-    return throwError(() => error || new Error('An error occurred while processing your request.'));
+    return throwError(
+      () => error || new Error('An error occurred while processing your request.'),
+    );
   }
 
   async getCurrentUser() {
@@ -184,8 +203,8 @@ export default class MainDatabaseService extends DatabaseService {
   async domainExists(inputUserId: string | null, domainName: string): Promise<boolean> {
     let userId = inputUserId;
     if (!inputUserId) {
-      userId = await this.supabase.getCurrentUser().then((user) => user?.id) || '';
-    };
+      userId = (await this.supabase.getCurrentUser().then((user) => user?.id)) || '';
+    }
     const { data, error } = await this.supabase.supabase
       .from('domains')
       .select('id')
@@ -201,15 +220,15 @@ export default class MainDatabaseService extends DatabaseService {
 
   saveDomain(data: SaveDomainData): Observable<DbDomain> {
     return from(this.saveDomainInternal(data)).pipe(
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
-  
+
   // saveDomain(data: SaveDomainData): Observable<DbDomain> {
   //   if (!this.featureService.isFeatureEnabled('writePermissions')) {
   //     return throwError(() => new Error('Write permissions disabled'));
   //   }
-  
+
   //   // Fetch the current domain list => check plan’s domainLimit => duplicates
   //   return this.listDomainNames().pipe(
   //     switchMap((existingDomains) => {
@@ -218,18 +237,18 @@ export default class MainDatabaseService extends DatabaseService {
   //       if (existingDomains.includes(newDomain)) {
   //         return throwError(() => new Error(`Domain "${newDomain}" already exists.`));
   //       }
-  
+
   //       // Get domainLimit from featureService
   //       return this.featureService.getFeatureValue<number>('domainLimit').pipe(
   //         switchMap((limit) => {
   //           // If limit is not a number or 0 => fallback to big number
   //           const domainLimit = typeof limit === 'number' ? limit : 10000;
-  
+
   //           // If user already has domainLimit or more => throw
   //           if (existingDomains.length >= domainLimit) {
   //             return throwError(() => new Error(`You have reached your limit of ${domainLimit} domains. Please upgrade.`));
   //           }
-  
+
   //           // Save the domain
   //           return from(this.saveDomainInternal(data));
   //         })
@@ -238,11 +257,10 @@ export default class MainDatabaseService extends DatabaseService {
   //     catchError(error => this.handleError(error))
   //   );
   // }
-  
 
   private async saveDomainInternal(data: SaveDomainData): Promise<DbDomain> {
-
-    const isWriteEnabled = await this.featureService.isFeatureEnabledPromise('writePermissions');
+    const isWriteEnabled =
+      await this.featureService.isFeatureEnabledPromise('writePermissions');
     if (!isWriteEnabled) {
       throw new Error('Write permissions disabled');
     }
@@ -260,7 +278,7 @@ export default class MainDatabaseService extends DatabaseService {
       statuses,
       subdomains,
     } = data;
-  
+
     const dbDomain: Partial<DbDomain> = {
       domain_name: domain.domain_name,
       expiry_date: domain.expiry_date,
@@ -269,7 +287,7 @@ export default class MainDatabaseService extends DatabaseService {
       notes: domain.notes,
       user_id: await this.supabase.getCurrentUser().then((user) => user?.id),
     };
-  
+
     const { data: insertedDomain, error: domainError } = await this.supabase.supabase
       .from('domains')
       .insert(dbDomain)
@@ -278,7 +296,7 @@ export default class MainDatabaseService extends DatabaseService {
 
     if (domainError) this.handleError(domainError);
     if (!insertedDomain) this.handleError(new Error('Failed to insert domain'));
-  
+
     await Promise.all([
       this.ipQueries.saveIpAddresses(insertedDomain.id, ipAddresses),
       this.tagQueries.saveTags(insertedDomain.id, tags),
@@ -291,7 +309,7 @@ export default class MainDatabaseService extends DatabaseService {
       this.statusQueries.saveStatuses(insertedDomain.id, statuses),
       this.subdomainsQueries.saveSubdomains(insertedDomain.id, subdomains),
     ]);
-  
+
     return this.getDomainById(insertedDomain.id);
   }
 
@@ -324,29 +342,35 @@ export default class MainDatabaseService extends DatabaseService {
       domain_links (link_name, link_url, link_description)
     `;
   }
-  
+
   deleteDomain(domainId: string): Observable<void> {
     return this.featureService.isFeatureEnabled('writePermissions').pipe(
-      map(isEnabled => {
+      map((isEnabled) => {
         if (!isEnabled) {
-          this.globalMessagingService.showWarn('Write permissions are disabled', 'Skipping delete operation');
+          this.globalMessagingService.showWarn(
+            'Write permissions are disabled',
+            'Skipping delete operation',
+          );
           throw new Error('Write permissions disabled');
         }
       }),
-      switchMap(() => from(this.supabase.supabase.rpc('delete_domain', { domain_id: domainId }))),
+      switchMap(() =>
+        from(this.supabase.supabase.rpc('delete_domain', { domain_id: domainId })),
+      ),
       map(() => void 0),
-      catchError(error => {
+      catchError((error) => {
         return throwError(() => error || new Error('Failed to delete domain'));
-      })
+      }),
     );
   }
 
   getDomain(domainName: string): Observable<DbDomain> {
-    return from(this.supabase.supabase
-      .from('domains')
-      .select(this.getFullDomainQuery())
-      .eq('domain_name', domainName)
-      .single()
+    return from(
+      this.supabase.supabase
+        .from('domains')
+        .select(this.getFullDomainQuery())
+        .eq('domain_name', domainName)
+        .single(),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
@@ -354,7 +378,7 @@ export default class MainDatabaseService extends DatabaseService {
         return this.formatDomainData(data as unknown as Record<string, unknown>);
       }),
       retry(3),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -371,10 +395,16 @@ export default class MainDatabaseService extends DatabaseService {
   }
 
   private formatDomainData(data: Record<string, unknown>): DbDomain {
-    const sslCerts = (data['ssl_certificates'] as Record<string, unknown>[] | undefined) || [];
-    const dnsRecords = (data['dns_records'] as { record_type: string; record_value: string }[] | undefined) || [];
-    const domainHosts = (data['domain_hosts'] as { hosts: Record<string, unknown> }[] | undefined) || [];
-    const domainStatuses = (data['domain_statuses'] as { status_code: string }[] | undefined) || [];
+    const sslCerts =
+      (data['ssl_certificates'] as Record<string, unknown>[] | undefined) || [];
+    const dnsRecords =
+      (data['dns_records'] as
+        | { record_type: string; record_value: string }[]
+        | undefined) || [];
+    const domainHosts =
+      (data['domain_hosts'] as { hosts: Record<string, unknown> }[] | undefined) || [];
+    const domainStatuses =
+      (data['domain_statuses'] as { status_code: string }[] | undefined) || [];
     return {
       ...data,
       tags: this.extractTags(data),
@@ -383,53 +413,63 @@ export default class MainDatabaseService extends DatabaseService {
       registrar: data['registrars'],
       host: domainHosts.length > 0 ? domainHosts[0].hosts : null,
       dns: {
-        mxRecords: dnsRecords.filter((r) => r.record_type === 'MX').map((r) => r.record_value),
-        txtRecords: dnsRecords.filter((r) => r.record_type === 'TXT').map((r) => r.record_value),
-        nameServers: dnsRecords.filter((r) => r.record_type === 'NS').map((r) => r.record_value),
+        mxRecords: dnsRecords
+          .filter((r) => r.record_type === 'MX')
+          .map((r) => r.record_value),
+        txtRecords: dnsRecords
+          .filter((r) => r.record_type === 'TXT')
+          .map((r) => r.record_value),
+        nameServers: dnsRecords
+          .filter((r) => r.record_type === 'NS')
+          .map((r) => r.record_value),
       },
       statuses: makeEppArrayFromLabels(domainStatuses.map((s) => s.status_code)),
     } as unknown as DbDomain;
   }
 
   listDomainNames(): Observable<string[]> {
-    return from(this.supabase.supabase
-      .from('domains')
-      .select('domain_name')
-    ).pipe(
+    return from(this.supabase.supabase.from('domains').select('domain_name')).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return (data || []).map(d => d.domain_name.toLowerCase());
+        return (data || []).map((d) => d.domain_name.toLowerCase());
       }),
       retry(3),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
   listDomains(): Observable<DbDomain[]> {
-    return from(this.supabase.supabase
-      .from('domains')
-      .select(this.getFullDomainQuery())
+    return from(
+      this.supabase.supabase.from('domains').select(this.getFullDomainQuery()),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return (data as unknown as Record<string, unknown>[]).map(domain => this.formatDomainData(domain));
+        return (data as unknown as Record<string, unknown>[]).map((domain) =>
+          this.formatDomainData(domain),
+        );
       }),
       retry(3),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
   updateDomain(domainId: string, domainData: SaveDomainData): Observable<DbDomain> {
     return from(this.updateDomainInternal(domainId, domainData)).pipe(
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
-  
-  private async updateDomainInternal(domainId: string, data: SaveDomainData): Promise<DbDomain> {
+
+  private async updateDomainInternal(
+    domainId: string,
+    data: SaveDomainData,
+  ): Promise<DbDomain> {
     const { domain, tags, notifications, subdomains, links } = data;
 
-    const registrarValue = (domain as unknown as { registrar?: string | { name?: string } }).registrar;
-    const registrarName = typeof registrarValue === 'string' ? registrarValue : (registrarValue?.name || '');
+    const registrarValue = (
+      domain as unknown as { registrar?: string | { name?: string } }
+    ).registrar;
+    const registrarName =
+      typeof registrarValue === 'string' ? registrarValue : registrarValue?.name || '';
 
     // Update domain's basic information
     const { data: updatedDomain, error: updateError } = await this.supabase.supabase
@@ -437,7 +477,7 @@ export default class MainDatabaseService extends DatabaseService {
       .update({
         expiry_date: domain.expiry_date,
         notes: domain.notes,
-        registrar_id: await this.registrarQueries.getOrInsertRegistrarId(registrarName)
+        registrar_id: await this.registrarQueries.getOrInsertRegistrarId(registrarName),
       })
       .eq('id', domainId)
       .select()
@@ -464,58 +504,70 @@ export default class MainDatabaseService extends DatabaseService {
 
     return this.getDomainById(domainId);
   }
-    
-  getStatusesWithDomainCounts(): Observable<{ eppCode: string; description: string; domainCount: number }[]> {
-    return from(this.supabase.supabase
-      .rpc('get_statuses_with_domain_counts')  // Use the updated RPC function
+
+  getStatusesWithDomainCounts(): Observable<
+    { eppCode: string; description: string; domainCount: number }[]
+  > {
+    return from(
+      this.supabase.supabase.rpc('get_statuses_with_domain_counts'), // Use the updated RPC function
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map((item: { status_code: string, domain_count: number }) => ({
+        return data.map((item: { status_code: string; domain_count: number }) => ({
           eppCode: item.status_code,
           description: '',
           // description: this.getDescriptionForStatus(item.status_code),
-          domainCount: item.domain_count
+          domainCount: item.domain_count,
         }));
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
-  }  
+  }
 
   // Method to get the total number of domains
   getTotalDomains(): Observable<number> {
-    return from(this.supabase.supabase
-      .from('domains')
-      .select('id', { count: 'exact' })
+    return from(
+      this.supabase.supabase.from('domains').select('id', { count: 'exact' }),
     ).pipe(
       map(({ count, error }) => {
         if (error) throw error;
         return count || 0;
-      })
+      }),
     );
   }
 
-  getDomainsByEppCodes(statuses: string[]): Observable<Record<string, { domainId: string, domainName: string }[]>> {
-    return from(this.supabase.supabase
-      .rpc('get_domains_by_epp_status_codes', { status_codes: statuses })
+  getDomainsByEppCodes(
+    statuses: string[],
+  ): Observable<Record<string, { domainId: string; domainName: string }[]>> {
+    return from(
+      this.supabase.supabase.rpc('get_domains_by_epp_status_codes', {
+        status_codes: statuses,
+      }),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        const domainsByStatus: Record<string, { domainId: string, domainName: string }[]> = {};  
-        statuses.forEach(status => {
-          domainsByStatus[status] = (data as { status_code: string; domain_id: string; domain_name: string }[])
+        const domainsByStatus: Record<
+          string,
+          { domainId: string; domainName: string }[]
+        > = {};
+        statuses.forEach((status) => {
+          domainsByStatus[status] = (
+            data as { status_code: string; domain_id: string; domain_name: string }[]
+          )
             .filter((d) => d.status_code === status)
             .map((d) => ({ domainId: d.domain_id, domainName: d.domain_name }));
         });
         return domainsByStatus;
-      })
+      }),
     );
   }
 
   getDomainsByStatus(statusCode: string): Observable<DbDomain[]> {
-    return from(this.supabase.supabase
-      .from('domains')
-      .select(`
+    return from(
+      this.supabase.supabase
+        .from('domains')
+        .select(
+          `
         *,
         registrars (name, url),
         ip_addresses (ip_address, is_ipv6),
@@ -531,21 +583,24 @@ export default class MainDatabaseService extends DatabaseService {
           tags (name)
         ),
         domain_statuses!inner (status_code)
-      `)
-      .eq('domain_statuses.status_code', statusCode)
+      `,
+        )
+        .eq('domain_statuses.status_code', statusCode),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(domain => this.formatDomainData(domain));
+        return data.map((domain) => this.formatDomainData(domain));
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
   getDomainsByTag(tagName: string): Observable<DbDomain[]> {
-    return from(this.supabase.supabase
-      .from('domains')
-      .select(`
+    return from(
+      this.supabase.supabase
+        .from('domains')
+        .select(
+          `
         *,
         registrars (name, url),
         ip_addresses (ip_address, is_ipv6),
@@ -560,32 +615,31 @@ export default class MainDatabaseService extends DatabaseService {
         domain_tags!inner (
           tags!inner (name)
         )
-      `)
-      .eq('domain_tags.tags.name', tagName)
+      `,
+        )
+        .eq('domain_tags.tags.name', tagName),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(domain => this.formatDomainData(domain));
+        return data.map((domain) => this.formatDomainData(domain));
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
-  
+
   getDomainExpirations(): Observable<DomainExpiration[]> {
-    return from(this.supabase.supabase
-      .from('domains')
-      .select('domain_name, expiry_date')
+    return from(
+      this.supabase.supabase.from('domains').select('domain_name, expiry_date'),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data.map(d => ({
+        return data.map((d) => ({
           domain: d.domain_name,
-          expiration: new Date(d.expiry_date)
+          expiration: new Date(d.expiry_date),
         }));
-      })
+      }),
     );
   }
-  
 
   getAssetCount(assetType: string): Observable<number> {
     let table: string;
@@ -621,25 +675,29 @@ export default class MainDatabaseService extends DatabaseService {
         throw new Error(`Unknown asset type: ${assetType}`);
     }
 
-    return from(this.supabase.supabase
-      .from(table)
-      .select('id', { count: 'exact' })
-    ).pipe(
-      map(response => response.count || 0)
+    return from(this.supabase.supabase.from(table).select('id', { count: 'exact' })).pipe(
+      map((response) => response.count || 0),
     );
   }
-  
-  fetchAllForExport(domainName: string, includeFields: string[] | {label: string, value: string}[]): Observable<Record<string, unknown>[]> {
+
+  fetchAllForExport(
+    domainName: string,
+    includeFields: string[] | { label: string; value: string }[],
+  ): Observable<Record<string, unknown>[]> {
     const fieldMap: Record<string, string> = {
       domain_statuses: 'domain_statuses(status_code)',
       ip_addresses: 'ip_addresses(ip_address, is_ipv6)',
-      whois_info: 'whois_info(name, organization, country, street, city, state, postal_code)',
+      whois_info:
+        'whois_info(name, organization, country, street, city, state, postal_code)',
       domain_tags: 'domain_tags(tags(name))',
-      ssl_certificates: 'ssl_certificates(issuer, issuer_country, subject, valid_from, valid_to, fingerprint, key_size, signature_algorithm)',
+      ssl_certificates:
+        'ssl_certificates(issuer, issuer_country, subject, valid_from, valid_to, fingerprint, key_size, signature_algorithm)',
       notifications: 'notification_preferences(notification_type, is_enabled)',
-      domain_hosts: 'domain_hosts(hosts(ip, lat, lon, isp, org, as_number, city, region, country))',
+      domain_hosts:
+        'domain_hosts(hosts(ip, lat, lon, isp, org, as_number, city, region, country))',
       dns_records: 'dns_records(record_type, record_value)',
-      domain_costings: 'domain_costings(purchase_price, current_value, renewal_cost, auto_renew)',
+      domain_costings:
+        'domain_costings(purchase_price, current_value, renewal_cost, auto_renew)',
     };
 
     // Always include registrar
@@ -648,7 +706,7 @@ export default class MainDatabaseService extends DatabaseService {
     const fields = Array.isArray(includeFields) ? includeFields : [];
     if (fields.length > 0) {
       const selectedRelations = fields
-        .map(field => {
+        .map((field) => {
           const fieldValue = typeof field === 'string' ? field : field?.value;
           return fieldMap[fieldValue];
         })
@@ -658,9 +716,9 @@ export default class MainDatabaseService extends DatabaseService {
         selectQuery += ', ' + selectedRelations.join(', ');
       }
     }
-  
+
     return from(this.getCurrentUser()).pipe(
-      switchMap(user => {
+      switchMap((user) => {
         if (!user) throw new Error('User not authenticated');
 
         let query = this.supabase.supabase
@@ -671,14 +729,17 @@ export default class MainDatabaseService extends DatabaseService {
 
         const domainFilter = (domainName || '').trim();
         if (domainFilter) {
-          query = query.in('domain_name', domainFilter.split(',').map(d => d.trim()));
+          query = query.in(
+            'domain_name',
+            domainFilter.split(',').map((d) => d.trim()),
+          );
         }
 
         return from(query);
       }),
       map(({ data, error }) => {
         if (error) throw error;
-  
+
         interface ExportSbDomainRow {
           registrars?: { name?: string; url?: string } | null;
           ip_addresses?: { ip_address?: string }[];
@@ -709,10 +770,16 @@ export default class MainDatabaseService extends DatabaseService {
           registrar_name: domain.registrars?.name || '',
           registrar_url: domain.registrars?.url || '',
           ip_addresses: domain.ip_addresses
-            ? domain.ip_addresses.map((ip) => ip.ip_address).filter(Boolean).join(', ')
+            ? domain.ip_addresses
+                .map((ip) => ip.ip_address)
+                .filter(Boolean)
+                .join(', ')
             : '',
           ssl_certificates: domain.ssl_certificates
-            ? domain.ssl_certificates.map((cert) => cert.issuer).filter(Boolean).join(', ')
+            ? domain.ssl_certificates
+                .map((cert) => cert.issuer)
+                .filter(Boolean)
+                .join(', ')
             : '',
           whois_name: domain.whois_info?.name || '',
           whois_organization: domain.whois_info?.organization || '',
@@ -722,20 +789,29 @@ export default class MainDatabaseService extends DatabaseService {
           whois_state: domain.whois_info?.state || '',
           whois_postal_code: domain.whois_info?.postal_code || '',
           tags: domain.domain_tags
-            ? domain.domain_tags.map((tag) => tag.tags?.name).filter(Boolean).join(', ')
+            ? domain.domain_tags
+                .map((tag) => tag.tags?.name)
+                .filter(Boolean)
+                .join(', ')
             : '',
           hosts: domain.domain_hosts
-            ? domain.domain_hosts.map((host) => host.hosts?.isp).filter(Boolean).join(', ')
+            ? domain.domain_hosts
+                .map((host) => host.hosts?.isp)
+                .filter(Boolean)
+                .join(', ')
             : '',
           dns_records: domain.dns_records
-            ? domain.dns_records.map((record) => `${record.record_type}: ${record.record_value}`).filter(Boolean).join('; ')
+            ? domain.dns_records
+                .map((record) => `${record.record_type}: ${record.record_value}`)
+                .filter(Boolean)
+                .join('; ')
             : '',
           purchase_price: domain.domain_costings?.purchase_price || 0,
           current_value: domain.domain_costings?.current_value || 0,
           renewal_cost: domain.domain_costings?.renewal_cost || 0,
           auto_renew: domain.domain_costings?.auto_renew ? 'Yes' : 'No',
         }));
-  
+
         return flattenedData;
       }),
       catchError((error) => {
@@ -746,26 +822,27 @@ export default class MainDatabaseService extends DatabaseService {
           showToast: true,
         });
         return throwError(() => error);
-      })
+      }),
     );
   }
-  
-    /**
+
+  /**
    * Fetch domain uptime data for the given user and domain.
    * @param userId The ID of the user
    * @param domainId The ID of the domain
    * @param timeframe The timeframe to filter data (e.g., 'day', 'week', etc.)
    */
-    getDomainUptime(userId: string, domainId: string, timeframe: string) {
-      return this.supabase.supabase.rpc('get_domain_uptime', {
-        user_id: userId,
-        domain_id: domainId,
-        timeframe: timeframe,
-      });
-    }
+  getDomainUptime(userId: string, domainId: string, timeframe: string) {
+    return this.supabase.supabase.rpc('get_domain_uptime', {
+      user_id: userId,
+      domain_id: domainId,
+      timeframe: timeframe,
+    });
+  }
 
-    
-  checkAllTables(): Observable<{table: string; count: number | string; success: string;}[]> {
+  checkAllTables(): Observable<
+    { table: string; count: number | string; success: string }[]
+  > {
     const allTables = [
       'dns_records',
       'domain_costings',
@@ -793,14 +870,14 @@ export default class MainDatabaseService extends DatabaseService {
       if (tableName === 'domain_tags') return 'tag_id';
       if (tableName === 'domain_hosts') return 'host_id';
       return 'id';
-    }
+    };
 
     return from(allTables).pipe(
       concatMap((tableName) => {
         return from(
           this.supabase.supabase
             .from(tableName)
-            .select(idColName(tableName), { count: 'exact' })
+            .select(idColName(tableName), { count: 'exact' }),
         ).pipe(
           map((resp) => {
             if (resp.status >= 200 && resp.status < 300) {
@@ -817,15 +894,14 @@ export default class MainDatabaseService extends DatabaseService {
               showToast: true,
             });
             return of({ table: tableName, count: 'zilch', success: '❌' });
-          })
+          }),
         );
       }),
-      toArray()
+      toArray(),
     );
   }
 
   async deleteAllData(userId: string, tables?: string[]) {
     this.supabase.deleteAllData(userId, tables);
   }
-
 }

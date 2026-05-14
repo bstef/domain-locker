@@ -23,7 +23,7 @@ interface TagWithCount {
   selector: 'app-tag-grid',
   templateUrl: './tag-grid.component.html',
   styleUrls: ['../../pages/assets/tags/tags.scss'],
-  imports: [PrimeNgModule, TranslateModule]
+  imports: [PrimeNgModule, TranslateModule],
 })
 export class TagGridComponent implements OnInit {
   private databaseService = inject(DatabaseService);
@@ -59,17 +59,37 @@ export class TagGridComponent implements OnInit {
           showToast: true,
         });
         this.loading = false;
-      }
+      },
     });
   }
 
   initializeContextMenu() {
     this.contextMenuItems = [
-      { label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.VIEW_TAG'), icon: 'pi pi-eye', command: () => this.viewTag() },
-      { label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.EDIT'), icon: 'pi pi-pencil', command: () => this.editTag() },
-      { label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.MOVE_DOMAINS'), icon: 'pi pi-check-square', command: () => this.addRemoveDomains() },
-      { label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.DELETE_TAG'), icon: 'pi pi-trash', command: () => this.deleteTag() },
-      { label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.ADD_NEW_TAG'), icon: 'pi pi-plus', command: () => this.addNewTag() },
+      {
+        label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.VIEW_TAG'),
+        icon: 'pi pi-eye',
+        command: () => this.viewTag(),
+      },
+      {
+        label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.EDIT'),
+        icon: 'pi pi-pencil',
+        command: () => this.editTag(),
+      },
+      {
+        label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.MOVE_DOMAINS'),
+        icon: 'pi pi-check-square',
+        command: () => this.addRemoveDomains(),
+      },
+      {
+        label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.DELETE_TAG'),
+        icon: 'pi pi-trash',
+        command: () => this.deleteTag(),
+      },
+      {
+        label: this.translate.instant('ASSETS.TAG_GRID.CONTEXT_MENU.ADD_NEW_TAG'),
+        icon: 'pi pi-plus',
+        command: () => this.addNewTag(),
+      },
     ];
   }
 
@@ -104,8 +124,12 @@ export class TagGridComponent implements OnInit {
     if (!this.selectedTag) return;
     const selectedTag = this.selectedTag;
     this.confirmationService.confirm({
-      message: this.translate.instant('ASSETS.TAG_GRID.DELETE_CONFIRM_MESSAGE', { tag: selectedTag.name }),
-      header: this.translate.instant('ASSETS.TAG_GRID.DELETE_CONFIRM_HEADER', { tag: selectedTag.name }),
+      message: this.translate.instant('ASSETS.TAG_GRID.DELETE_CONFIRM_MESSAGE', {
+        tag: selectedTag.name,
+      }),
+      header: this.translate.instant('ASSETS.TAG_GRID.DELETE_CONFIRM_HEADER', {
+        tag: selectedTag.name,
+      }),
       acceptButtonStyleClass: 'p-button-danger p-button-sm',
       rejectButtonStyleClass: 'p-button-secondary p-button-sm',
       accept: () => {
@@ -115,7 +139,9 @@ export class TagGridComponent implements OnInit {
             this.messageService.add({
               severity: 'success',
               summary: this.translate.instant('ASSETS.TAG_GRID.DELETE_SUCCESS_SUMMARY'),
-              detail: this.translate.instant('ASSETS.TAG_GRID.DELETE_SUCCESS_DETAIL', { tag: selectedTag.name })
+              detail: this.translate.instant('ASSETS.TAG_GRID.DELETE_SUCCESS_DETAIL', {
+                tag: selectedTag.name,
+              }),
             });
             this.loadTagsWithCounts();
           },
@@ -125,9 +151,9 @@ export class TagGridComponent implements OnInit {
               message: this.translate.instant('ASSETS.TAG_GRID.ERROR'),
               showToast: true,
             });
-          }
+          },
         });
-      }
+      },
     });
   }
 }

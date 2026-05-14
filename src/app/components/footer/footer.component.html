@@ -1,4 +1,3 @@
-
 @if (big) {
   <footer class="w-full bg-surface-50 text-highlight py-1">
     <div class="m-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -20,7 +19,7 @@
             [queryParams]="cta.queryParams || {}"
             (click)="cta.click && cta.click()"
             [outlined]="!cta.isPrimary"
-            />
+          />
         }
       </div>
       <div>
@@ -69,16 +68,32 @@
   </footer>
 } @else {
   <footer class="w-full bg-highlight py-1 opacity-60">
-    <div class="w-full flex items-center align-center px-4 flex-wrap justify-center md:justify-between">
+    <div
+      class="w-full flex items-center align-center px-4 flex-wrap justify-center md:justify-between"
+    >
       <p class="m-0 text-xs opacity-90">
         <a href="#" class="text-default hover:text-primary">Domain Locker</a>
-        <a class="no-underline text-default ml-1" routerLink="/advanced">V.{{appVersion}}</a>,
-        is licensed under <a class="text-default hover:text-primary" href="https://github.com/Lissy93/domain-locker/blob/main/LICENSE">MIT</a> &copy;
-        <a href="https://aliciasykes.com" class="text-default hover:text-primary">Alicia Sykes</a> {{ year }}
+        <a class="no-underline text-default ml-1" routerLink="/advanced"
+          >V.{{ appVersion }}</a
+        >, is licensed under
+        <a
+          class="text-default hover:text-primary"
+          href="https://github.com/Lissy93/domain-locker/blob/main/LICENSE"
+          >MIT</a
+        >
+        &copy;
+        <a href="https://aliciasykes.com" class="text-default hover:text-primary"
+          >Alicia Sykes</a
+        >
+        {{ year }}
       </p>
       <p class="m-0 text-xs opacity-90">
-        <a class="text-default hover:text-primary" href="https://github.com/lissy93/domain-locker">GitHub</a> |
-        <a class="text-default hover:text-primary" routerLink="/about">Docs</a> |
+        <a
+          class="text-default hover:text-primary"
+          href="https://github.com/lissy93/domain-locker"
+          >GitHub</a
+        >
+        | <a class="text-default hover:text-primary" routerLink="/about">Docs</a> |
         <a class="text-default hover:text-primary" routerLink="/about/legal">Legal</a> |
         <a class="text-default hover:text-primary" href="https://as93.net">More Apps →</a>
       </p>

@@ -12,7 +12,6 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 export default class PrivacyPageComponent {
   private fb = inject(FormBuilder);
 
-
   form: FormGroup = this.fb.group({
     hitCounting: [true],
     errorTracking: [false],

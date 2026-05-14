@@ -1,4 +1,3 @@
-
 @if (calendarHeatmap) {
   <div class="flex gap-3 my-3">
     <div class="p-card p-3 flex-1 flex flex-col gap-3">
@@ -11,7 +10,7 @@
           [tooltip]="calendarHeatmap.tooltip!"
           [dataLabels]="calendarHeatmap.dataLabels!"
           [yaxis]="calendarHeatmap.yaxis!"
-          />
+        />
       }
     </div>
     <div class="p-card p-3 flex flex-col gap-3 w-64">
@@ -23,11 +22,10 @@
           [colors]="responseCodePieChart.colors!"
           [tooltip]="responseCodePieChart.tooltip!"
           [legend]="responseCodePieChart.legend!"
-          />
+        />
       }
     </div>
   </div>
 } @else {
   <p>Loading uptime history...</p>
 }
-

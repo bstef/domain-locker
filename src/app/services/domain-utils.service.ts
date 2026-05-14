@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { makeEppArrayFromLabels } from '~/app/constants/security-categories';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DomainUtils {
   extractTags(data: Record<string, unknown>): string[] {
@@ -12,7 +12,9 @@ export class DomainUtils {
     if (Array.isArray(domainTags)) {
       // Handle the case for /domains page
       return domainTags
-        .filter((tagItem: { tags?: { name?: string } }) => tagItem.tags && tagItem.tags.name)
+        .filter(
+          (tagItem: { tags?: { name?: string } }) => tagItem.tags && tagItem.tags.name,
+        )
         .map((tagItem: { tags: { name: string } }) => tagItem.tags.name);
     } else if (data['tags']) {
       // Handle the case for /assets/tags/[tag-name] page
@@ -22,23 +24,36 @@ export class DomainUtils {
   }
 
   formatDomainData(data: Record<string, unknown>): DbDomain {
-    const dnsRecords = (data['dns_records'] as { record_type: string; record_value: string }[] | undefined) || [];
+    const dnsRecords =
+      (data['dns_records'] as
+        | { record_type: string; record_value: string }[]
+        | undefined) || [];
     const sslCertificates = data['ssl_certificates'] as unknown[] | undefined;
     const domainHosts = data['domain_hosts'] as { hosts: unknown }[] | undefined;
-    const domainStatuses = data['domain_statuses'] as { status_code: string }[] | undefined;
+    const domainStatuses = data['domain_statuses'] as
+      | { status_code: string }[]
+      | undefined;
     return {
       ...data,
       tags: this.extractTags(data),
-      ssl: (sslCertificates && sslCertificates.length) ? sslCertificates[0] : null,
+      ssl: sslCertificates && sslCertificates.length ? sslCertificates[0] : null,
       whois: data['whois_info'],
       registrar: data['registrars'],
       host: domainHosts && domainHosts.length > 0 ? domainHosts[0].hosts : null,
       dns: {
-        mxRecords: dnsRecords.filter((record) => record.record_type === 'MX').map((record) => record.record_value),
-        txtRecords: dnsRecords.filter((record) => record.record_type === 'TXT').map((record) => record.record_value),
-        nameServers: dnsRecords.filter((record) => record.record_type === 'NS').map((record) => record.record_value),
+        mxRecords: dnsRecords
+          .filter((record) => record.record_type === 'MX')
+          .map((record) => record.record_value),
+        txtRecords: dnsRecords
+          .filter((record) => record.record_type === 'TXT')
+          .map((record) => record.record_value),
+        nameServers: dnsRecords
+          .filter((record) => record.record_type === 'NS')
+          .map((record) => record.record_value),
       },
-      statuses: makeEppArrayFromLabels(domainStatuses?.map((status) => status.status_code) || []),
+      statuses: makeEppArrayFromLabels(
+        domainStatuses?.map((status) => status.status_code) || [],
+      ),
     } as unknown as DbDomain;
   }
 
@@ -56,13 +71,17 @@ export class DomainUtils {
   }
 
   /* Split a domain into domain and tld */
-  splitDomain(domain: string): { domain: string, tld: string } {
-    if (!domain) { return { domain: '', tld: '' } }
-    if (domain.indexOf('.') === -1) { return { domain, tld: '' } }
+  splitDomain(domain: string): { domain: string; tld: string } {
+    if (!domain) {
+      return { domain: '', tld: '' };
+    }
+    if (domain.indexOf('.') === -1) {
+      return { domain, tld: '' };
+    }
     const parts = domain.split('.');
     return {
       domain: parts[0],
-      tld: parts.slice(1).join('.')
+      tld: parts.slice(1).join('.'),
     };
   }
 
@@ -70,7 +89,7 @@ export class DomainUtils {
   getRemainingDaysText(expiryDate: Date): string {
     const daysRemaining = this.getDaysRemaining(expiryDate);
     if (daysRemaining < 1) {
-      return 'Expired'
+      return 'Expired';
     }
     if (daysRemaining > 1080) {
       const months = Math.floor(daysRemaining / 30 / 12);
@@ -84,7 +103,9 @@ export class DomainUtils {
   }
 
   /* Returns the severity level for the expiry date */
-  getExpirySeverity(expiryDate: Date): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+  getExpirySeverity(
+    expiryDate: Date,
+  ): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
     const daysRemaining = this.getDaysRemaining(expiryDate);
     if (daysRemaining > 90) {
       return 'success';

@@ -1,5 +1,4 @@
-
-@if ((enablePreviewDomain$ | async))  {
+@if (enablePreviewDomain$ | async) {
   @if (name) {
     <section class="flex items-center justify-between">
       <h1 class="text-3xl flex items-center my-3">
@@ -16,7 +15,7 @@
           class="p-button-primary no-underline m-0 flex gap-2 w-fit ml-2 font-medium"
           [routerLink]="['/domains/add']"
           [queryParams]="{ domain: name }"
-          />
+        />
       </div>
     </section>
   }
@@ -26,7 +25,10 @@
   }
 
   @if (loading && domain) {
-    <app-loading loadingTitle="Loading" loadingDescription="Crunching stats for {{name}}" />
+    <app-loading
+      loadingTitle="Loading"
+      loadingDescription="Crunching stats for {{ name }}"
+    />
   }
 
   <app-cta [businessVersion]="true" />

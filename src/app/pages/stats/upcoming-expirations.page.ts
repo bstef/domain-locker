@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { DomainExpirationBarComponent } from '~/app/components/charts/domain-expiration-bar/domain-expiration-bar.component';
 
-
 @Component({
   standalone: true,
   template: `
@@ -9,7 +8,8 @@ import { DomainExpirationBarComponent } from '~/app/components/charts/domain-exp
     <app-domain-expiration-bar [showFull]="true" />
   `,
   imports: [DomainExpirationBarComponent],
-  styles: ['::ng-deep .domain-timeline-thing {display: flex; margin-top: 2rem; margin-left: -4rem;} ']
+  styles: [
+    '::ng-deep .domain-timeline-thing {display: flex; margin-top: 2rem; margin-left: -4rem;} ',
+  ],
 })
 export default class HostMapPage {}
-

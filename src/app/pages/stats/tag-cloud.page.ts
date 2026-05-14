@@ -13,7 +13,6 @@ import { TagGridComponent } from '~/app/components/tag-grid/tag-grid.component';
     </div>
   `,
   imports: [DomainTagCloudComponent, TagGridComponent],
-  styles: ['::ng-deep .cloud-view-all { display: none !important;  }']
+  styles: ['::ng-deep .cloud-view-all { display: none !important;  }'],
 })
 export default class HostMapPage {}
-

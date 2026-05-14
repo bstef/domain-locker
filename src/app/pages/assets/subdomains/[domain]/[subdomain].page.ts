@@ -68,10 +68,18 @@ export default class SubdomainDetailPageComponent implements OnInit {
 
   private async loadDomainInfo(): Promise<void> {
     const domainName = this.subdomainName + '.' + this.domain;
-    const domainInfoEndpoint = this.envService.getEnvVar('DL_DOMAIN_INFO_API', '/api/domain-info');
-    this.http.get<{ domainInfo: DbDomain}>(`${domainInfoEndpoint}?domain=${domainName}`).pipe(
-        catchError((error) => { throw error })
-      ).subscribe({
+    const domainInfoEndpoint = this.envService.getEnvVar(
+      'DL_DOMAIN_INFO_API',
+      '/api/domain-info',
+    );
+    this.http
+      .get<{ domainInfo: DbDomain }>(`${domainInfoEndpoint}?domain=${domainName}`)
+      .pipe(
+        catchError((error) => {
+          throw error;
+        }),
+      )
+      .subscribe({
         next: async (fetchedDomainInfo) => {
           const results = { ...fetchedDomainInfo.domainInfo };
           this.subdomainWebsiteInfo = results;
@@ -82,30 +90,31 @@ export default class SubdomainDetailPageComponent implements OnInit {
             message: 'Failed to determine additional subdomain info',
             showToast: true,
           });
-        }
+        },
       });
-    }
-
+  }
 
   async confirmDelete() {
     if (!(await this.featureService.isFeatureEnabledPromise('writePermissions'))) {
       this.messageService.showWarn(
         'Write Permissions Disabled',
-        'It\'s not possible to add subdomains on the demo instance.',
+        "It's not possible to add subdomains on the demo instance.",
       );
       return;
-    }  
+    }
     this.confirmationService.confirm({
       message: `Are you sure you want to delete the subdomain "${this.subdomainName}.${this.domain}"?`,
       header: 'Confirm Deletion',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-
         this.databaseService.instance.subdomainsQueries
           .deleteSubdomain(this.domain, this.subdomainName)
           .subscribe({
             next: () => {
-              this.messageService.showSuccess('Deleted', `Subdomain "${this.subdomainName}.${this.domain}" has been deleted successfully.`);
+              this.messageService.showSuccess(
+                'Deleted',
+                `Subdomain "${this.subdomainName}.${this.domain}" has been deleted successfully.`,
+              );
               this.router.navigate(['/assets/subdomains', this.domain]);
             },
             error: (error: Error) => {
@@ -114,7 +123,7 @@ export default class SubdomainDetailPageComponent implements OnInit {
                 showToast: true,
                 message: 'Failed to delete the subdomain. Please try again.',
               });
-            }
+            },
           });
       },
       reject: () => {
@@ -122,8 +131,4 @@ export default class SubdomainDetailPageComponent implements OnInit {
       },
     });
   }
-
 }
-
-
-

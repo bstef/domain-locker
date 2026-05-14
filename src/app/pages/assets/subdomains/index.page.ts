@@ -25,7 +25,13 @@ interface DomainGroup {
 @Component({
   standalone: true,
   selector: 'app-subdomains-index',
-  imports: [RouterModule, PrimeNgModule, SubdomainListComponent, DomainFaviconComponent, LazyLoadDirective],
+  imports: [
+    RouterModule,
+    PrimeNgModule,
+    SubdomainListComponent,
+    DomainFaviconComponent,
+    LazyLoadDirective,
+  ],
   templateUrl: './subdomains.page.html',
 })
 export default class SubdomainsIndexPageComponent implements OnInit {
@@ -52,7 +58,10 @@ export default class SubdomainsIndexPageComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        this.errorHandler.handleError({ message: 'Failed to list parent domains', error });
+        this.errorHandler.handleError({
+          message: 'Failed to list parent domains',
+          error,
+        });
         this.loading = false;
       },
     });
@@ -62,22 +71,25 @@ export default class SubdomainsIndexPageComponent implements OnInit {
     if (domain.subdomains?.length || domain.loadingSubs) {
       return;
     }
-  
+
     domain.loadingSubs = true;
-    this.databaseService.instance.subdomainsQueries.getSubdomainsByDomain(domain.name)
+    this.databaseService.instance.subdomainsQueries
+      .getSubdomainsByDomain(domain.name)
       .subscribe({
         next: (subs) => {
           domain.subdomains = subs;
           domain.loadingSubs = false;
         },
         error: (error) => {
-          this.errorHandler.handleError({ error, message: `Unable to load subdomains for ${domain.name}`, showToast: true });
+          this.errorHandler.handleError({
+            error,
+            message: `Unable to load subdomains for ${domain.name}`,
+            showToast: true,
+          });
           domain.loadingSubs = false;
         },
       });
   }
-  
-
 
   loadSubdomains() {
     this.loading = true;

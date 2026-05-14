@@ -17,7 +17,8 @@
       </div>
       <a
         routerLink="/assets/registrars"
-        class="text-xs text-primary-600 text-right block w-full opacity-70 hover:opacity-100">
+        class="text-xs text-primary-600 text-right block w-full opacity-70 hover:opacity-100"
+      >
         {{ 'DOMAIN_STATS.PROVIDERS.VIEW_ALL_REGISTRARS' | translate }}
       </a>
     </p-tabPanel>
@@ -38,7 +39,8 @@
       </div>
       <a
         routerLink="/assets/certs"
-        class="text-xs text-primary-600 text-right block w-full opacity-70 hover:opacity-100">
+        class="text-xs text-primary-600 text-right block w-full opacity-70 hover:opacity-100"
+      >
         {{ 'DOMAIN_STATS.PROVIDERS.VIEW_ALL_CERT_PROVIDERS' | translate }}
       </a>
     </p-tabPanel>
@@ -58,14 +60,17 @@
         }
         <a
           routerLink="/assets/hosts"
-          class="text-xs text-primary-600 text-right block w-full opacity-70 hover:opacity-100">
+          class="text-xs text-primary-600 text-right block w-full opacity-70 hover:opacity-100"
+        >
           {{ 'DOMAIN_STATS.PROVIDERS.VIEW_ALL_HOSTS' | translate }}
         </a>
       </div>
     </p-tabPanel>
   </p-tabView>
 } @else {
-  <div class="mt-4 grid grid-cols-1 gap-1 w-full mx-auto place-items-center md:grid-cols-2 lg:grid-cols-3 md:max-w-full">
+  <div
+    class="mt-4 grid grid-cols-1 gap-1 w-full mx-auto place-items-center md:grid-cols-2 lg:grid-cols-3 md:max-w-full"
+  >
     <div class="p-card p-1 h-full">
       <h2 class="m-0 mb-2">{{ 'DOMAIN_STATS.PROVIDERS.REGISTRARS' | translate }}</h2>
       @if (registrarChartReady) {

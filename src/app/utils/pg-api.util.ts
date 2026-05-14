@@ -24,7 +24,7 @@ export class PgApiUtilService {
 
   constructor() {
     // Build the base URL from your environment or fallback
-    this.baseUrl = this.envService.getPostgresApiUrl(); 
+    this.baseUrl = this.envService.getPostgresApiUrl();
   }
 
   /**

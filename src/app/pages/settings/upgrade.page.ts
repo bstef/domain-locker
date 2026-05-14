@@ -26,8 +26,8 @@ interface SubscriptionData {
   subscription_id: string;
   plan: string;
   current_period_start: string; // ISO 8601 Date string
-  current_period_end: string;   // ISO 8601 Date string
-  cancel_at: string | null;     // Nullable ISO 8601 Date string
+  current_period_end: string; // ISO 8601 Date string
+  cancel_at: string | null; // Nullable ISO 8601 Date string
   cancel_at_period_end: boolean;
   discount?: {
     percent_off: number;
@@ -51,16 +51,21 @@ interface SubscriptionData {
   };
 }
 
-
 @Component({
   selector: 'app-upgrade',
   standalone: true,
   imports: [CommonModule, PrimeNgModule, FeatureNotEnabledComponent],
   templateUrl: './upgrade.page.html',
-  styles: [`
-    ::ng-deep .p-confirm-dialog { max-width: 600px; }
-    ::ng-deep .p-datatable .p-datatable-tbody > tr > td { padding: 0.5rem; }
-  `],
+  styles: [
+    `
+      ::ng-deep .p-confirm-dialog {
+        max-width: 600px;
+      }
+      ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+        padding: 0.5rem;
+      }
+    `,
+  ],
 })
 export default class UpgradePage implements OnInit {
   private billingService = inject(BillingService);
@@ -85,7 +90,7 @@ export default class UpgradePage implements OnInit {
   public isAnnual = true;
   public billingCycleOptions = [
     { label: 'Annual', value: true, icon: 'pi pi-calendar-plus' },
-    { label: 'Monthly', value: false, icon: 'pi pi-calendar-minus' }
+    { label: 'Monthly', value: false, icon: 'pi pi-calendar-minus' },
   ];
 
   public status: 'nothing' | 'success' | 'failed' = 'nothing';
@@ -99,7 +104,11 @@ export default class UpgradePage implements OnInit {
   ngOnInit(): void {
     // Ensure the user's current plan is fetched
     this.billingService.fetchUserPlan().catch((error) =>
-      this.errorHandler.handleError({ error, message: 'Failed to fetch user plan', showToast: true }),
+      this.errorHandler.handleError({
+        error,
+        message: 'Failed to fetch user plan',
+        showToast: true,
+      }),
     );
 
     this.getBillingInfo();
@@ -117,17 +126,17 @@ export default class UpgradePage implements OnInit {
     }
 
     if (shouldRefresh) {
-        setTimeout(() => {
-          this.billingService.getBillingData().subscribe((data) => {
-            this.billingInfo = data;
-          });
-          this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { refresh: null },
-            queryParamsHandling: 'merge',
-            replaceUrl: true
-          });
-        }, 500);
+      setTimeout(() => {
+        this.billingService.getBillingData().subscribe((data) => {
+          this.billingInfo = data;
+        });
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { refresh: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }, 500);
     }
 
     this.billingService.getBillingData().subscribe((data) => {
@@ -153,10 +162,15 @@ export default class UpgradePage implements OnInit {
       return;
     }
     try {
-      const stripeSessionUrl = await this.billingService.createCheckoutSession(stripePlanId);
+      const stripeSessionUrl =
+        await this.billingService.createCheckoutSession(stripePlanId);
       window.location.href = stripeSessionUrl;
     } catch (error) {
-      this.errorHandler.handleError({ error, message: 'Failed to create Stripe session', showToast: true });
+      this.errorHandler.handleError({
+        error,
+        message: 'Failed to create Stripe session',
+        showToast: true,
+      });
     }
   }
 
@@ -166,21 +180,23 @@ export default class UpgradePage implements OnInit {
 
   cancelSubscription() {
     this.confirmationService.confirm({
-      message: 'You can cancel your subscription at any time, but '
-        + 'you\'ll lose access to all premium features, '
-        + 'including stats, monitor, alerts, change history, data connectors and more.'
-        + 'You may also loose access to your data if you have more than the free plan quota, '
-        + 'so it\'s recommended you check this is okay, or export your data first.',
+      message:
+        'You can cancel your subscription at any time, but ' +
+        "you'll lose access to all premium features, " +
+        'including stats, monitor, alerts, change history, data connectors and more.' +
+        'You may also loose access to your data if you have more than the free plan quota, ' +
+        "so it's recommended you check this is okay, or export your data first.",
       header: 'Are you sure that you want to downgrade?',
       icon: 'pi pi-exclamation-triangle',
       rejectLabel: 'No, stay subscribed',
       rejectButtonStyleClass: 'p-button-sm p-button-success',
-      acceptIcon:'pi pi-times-circle mr-2',
-      rejectIcon:'pi pi-check-circle mr-2',
-      acceptButtonStyleClass:'p-button-sm p-button-danger p-button-text',
+      acceptIcon: 'pi pi-times-circle mr-2',
+      rejectIcon: 'pi pi-check-circle mr-2',
+      acceptButtonStyleClass: 'p-button-sm p-button-danger p-button-text',
       closeOnEscape: true,
       accept: async () => {
-        this.billingService.cancelSubscription()
+        this.billingService
+          .cancelSubscription()
           .then(() => {
             this.messagingService.showSuccess(
               'Subscription Canceled',
@@ -191,7 +207,11 @@ export default class UpgradePage implements OnInit {
             }, 500);
           })
           .catch((error) => {
-            this.errorHandler.handleError({ error, message: 'Failed to cancel subscription', showToast: true });
+            this.errorHandler.handleError({
+              error,
+              message: 'Failed to cancel subscription',
+              showToast: true,
+            });
           });
       },
     });
@@ -228,21 +248,20 @@ export default class UpgradePage implements OnInit {
 
     // 4) Fire off the HTTP POST via HttpClient
     this.http.post<SubscriptionData>(endpoint, { userId }).subscribe({
-      next: data => {
+      next: (data) => {
         // run inside zone to trigger change detection
         this.ngZone.run(() => {
           this.subscriptionData = data;
         });
       },
-      error: err => {
+      error: (err) => {
         this.errorHandler.handleError({
           error: err,
           message: 'Failed to fetch Stripe details',
           location: 'Upgrade Page',
           showToast: true,
         });
-      }
+      },
     });
   }
-
 }

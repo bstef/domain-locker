@@ -19,7 +19,7 @@ export class SubdomainsQueries {
   // Combines fetchDomainId and saveSubdomains
   saveSubdomainsForDomainName(
     domain: string,
-    subdomains: { name: string; sd_info?: string }[]
+    subdomains: { name: string; sd_info?: string }[],
   ): Observable<void> {
     return this.fetchDomainId(domain).pipe(
       switchMap((domainId) => {
@@ -27,46 +27,43 @@ export class SubdomainsQueries {
       }),
       catchError((error) => {
         return this.handleError(error);
-      })
+      }),
     );
   }
-  
-  
+
   // Reusable function to fetch domain ID based on domain name
   fetchDomainId(domain: string): Observable<string> {
     return from(
-      this.supabase
-        .from('domains')
-        .select('id')
-        .eq('domain_name', domain)
-        .single()
+      this.supabase.from('domains').select('id').eq('domain_name', domain).single(),
     ).pipe(
       map(({ data, error }) => {
         if (error) {
           throw new Error(`Failed to fetch domain ID: ${error.message}`);
         }
-  
+
         const domainId = data?.id;
         if (!domainId) {
           throw new Error(`Domain ID not found for domain name: ${domain}`);
         }
-  
+
         return domainId;
       }),
       catchError((error) => {
         return this.handleError(error);
-      })
+      }),
     );
   }
-  
 
-  async saveSubdomains(domainId: string, subdomains: { name: string; sd_info?: string }[]): Promise<void> {
+  async saveSubdomains(
+    domainId: string,
+    subdomains: { name: string; sd_info?: string }[],
+  ): Promise<void> {
     if (!subdomains || subdomains.length === 0) {
       throw new Error('Skipping subdomains, none found');
     }
 
     // Filter out invalid subdomains
-    const validSubdomains = subdomains.filter(sd => sd.name?.trim());
+    const validSubdomains = subdomains.filter((sd) => sd.name?.trim());
     if (validSubdomains.length === 0) {
       throw new Error('Skipping subdomains, no valid subdomains listed');
     }
@@ -80,13 +77,15 @@ export class SubdomainsQueries {
       if (error) throw error;
 
       const existingNames = (data || []).map((sd: { name: string }) => sd.name);
-      const subdomainsToInsert = validSubdomains.filter(sd => !existingNames.includes(sd.name));
+      const subdomainsToInsert = validSubdomains.filter(
+        (sd) => !existingNames.includes(sd.name),
+      );
 
       if (subdomainsToInsert.length === 0) {
         throw new Error('Skipping subdomains, all already exist');
       }
 
-      const formattedSubdomains = subdomainsToInsert.map(sd => ({
+      const formattedSubdomains = subdomainsToInsert.map((sd) => ({
         domain_id: domainId,
         name: sd.name,
         sd_info: sd.sd_info || null,
@@ -104,8 +103,6 @@ export class SubdomainsQueries {
       throw error;
     }
   }
-  
-
 
   // async deleteSubdomain(domain: string, subdomain: string): Promise<void> {
   //   try {
@@ -135,7 +132,9 @@ export class SubdomainsQueries {
         .eq('domain_id', domainId);
 
       if (deleteError) {
-        throw new Error(`Failed to delete subdomains for domain ${domain}: ${deleteError.message}`);
+        throw new Error(
+          `Failed to delete subdomains for domain ${domain}: ${deleteError.message}`,
+        );
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -143,7 +142,10 @@ export class SubdomainsQueries {
     }
   }
 
-  async updateSubdomains(domainId: string, subdomains: { name: string; sd_info?: string }[]): Promise<void> {
+  async updateSubdomains(
+    domainId: string,
+    subdomains: { name: string; sd_info?: string }[],
+  ): Promise<void> {
     // Get existing subdomains from the database
     const { data: existingData, error } = await this.supabase
       .from('sub_domains')
@@ -156,7 +158,7 @@ export class SubdomainsQueries {
 
     // Determine which subdomains to add and remove
     const subdomainsToAdd = subdomains.filter(
-      (sd) => !existingSubdomains.some((existing) => existing.name === sd.name)
+      (sd) => !existingSubdomains.some((existing) => existing.name === sd.name),
     );
 
     const subdomainsToRemove = existingSubdomains
@@ -165,15 +167,13 @@ export class SubdomainsQueries {
 
     // Insert new subdomains
     if (subdomainsToAdd.length > 0) {
-      const { error: insertError } = await this.supabase
-        .from('sub_domains')
-        .insert(
-          subdomainsToAdd.map((sd) => ({
-            domain_id: domainId,
-            name: sd.name,
-            sd_info: sd.sd_info || null,
-          }))
-        );
+      const { error: insertError } = await this.supabase.from('sub_domains').insert(
+        subdomainsToAdd.map((sd) => ({
+          domain_id: domainId,
+          name: sd.name,
+          sd_info: sd.sd_info || null,
+        })),
+      );
 
       if (insertError) throw insertError;
     }
@@ -204,13 +204,11 @@ export class SubdomainsQueries {
 
   getAllSubdomains(): Observable<SubdomainRow[]> {
     return from(
-      this.supabase
-        .from('sub_domains')
-        .select(`
+      this.supabase.from('sub_domains').select(`
           name,
           sd_info,
           domains (domain_name)
-        `)
+        `),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
@@ -219,7 +217,7 @@ export class SubdomainsQueries {
           ...subdomain,
           // domain_name: subdomain.domains?.domain_name,
         }));
-      })
+      }),
     );
   }
 
@@ -228,14 +226,14 @@ export class SubdomainsQueries {
       this.supabase
         .from('sub_domains')
         .select('id, name, sd_info, domain:domains!inner(domain_name)')
-        .eq('domain.domain_name', domain)
+        .eq('domain.domain_name', domain),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
         return data || [];
-      })
+      }),
     );
-  }  
+  }
 
   getSubdomainInfo(domain: string, subdomain: string): Observable<SubdomainRow | null> {
     return from(
@@ -243,31 +241,33 @@ export class SubdomainsQueries {
         .from('sub_domains')
         .select('name, sd_info, domains(domain_name)')
         .eq('domains.domain_name', domain)
-        .eq('name', subdomain)
+        .eq('name', subdomain),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
         const firstResult = Array.isArray(data) && data.length > 0 ? data[0] : null;
-        if (firstResult && firstResult.sd_info && typeof firstResult.sd_info === 'string') {
+        if (
+          firstResult &&
+          firstResult.sd_info &&
+          typeof firstResult.sd_info === 'string'
+        ) {
           try {
             firstResult.sd_info = JSON.parse(firstResult.sd_info);
           } catch (error2) {
-            this.handleError({ error: error2, message: 'Failed to parse subdomain info' });
+            this.handleError({
+              error: error2,
+              message: 'Failed to parse subdomain info',
+            });
           }
         }
         return firstResult;
-      })
+      }),
     );
   }
 
-
   deleteSubdomain(domain: string, subdomain: string): Observable<void> {
     return from(
-      this.supabase
-        .from('domains')
-        .select('id')
-        .eq('domain_name', domain)
-        .single()
+      this.supabase.from('domains').select('id').eq('domain_name', domain).single(),
     ).pipe(
       switchMap(({ data: domainData, error: domainError }) => {
         if (domainError) {
@@ -283,7 +283,7 @@ export class SubdomainsQueries {
             .from('sub_domains')
             .delete()
             .eq('name', subdomain)
-            .eq('domain_id', domainId)
+            .eq('domain_id', domainId),
         );
       }),
       switchMap(({ error: deleteError }) => {
@@ -295,7 +295,7 @@ export class SubdomainsQueries {
       catchError((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
         return throwError(() => new Error(`Failed to delete subdomain: ${message}`));
-      })
+      }),
     );
   }
 
@@ -303,11 +303,7 @@ export class SubdomainsQueries {
   saveSubdomainForDomain(domainName: string, subdomain: string): Observable<void> {
     // 1) First, fetch domain ID by domainName
     return from(
-      this.supabase
-        .from('domains')
-        .select('id')
-        .eq('domain_name', domainName)
-        .single()
+      this.supabase.from('domains').select('id').eq('domain_name', domainName).single(),
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
@@ -321,21 +317,19 @@ export class SubdomainsQueries {
 
         // 2) Insert new subdomain record
         return from(
-          this.supabase
-            .from('sub_domains')
-            .insert({
-              domain_id: domainId,
-              name: subdomain,
-            })
+          this.supabase.from('sub_domains').insert({
+            domain_id: domainId,
+            name: subdomain,
+          }),
         ).pipe(
           switchMap(({ error: insertErr }) => {
             if (insertErr) {
               return this.handleError(insertErr);
             }
             return from(Promise.resolve()); // or of(void 0)
-          })
+          }),
         );
-      })
+      }),
     );
   }
 }

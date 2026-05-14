@@ -1,6 +1,21 @@
 import { Injectable, inject } from '@angular/core';
-import { DatabaseService, DbDomain, DomainExpiration, SaveDomainData } from '~/app/../types/Database';
-import { catchError, concatMap, from, map, Observable, of, retry, throwError, toArray } from 'rxjs';
+import {
+  DatabaseService,
+  DbDomain,
+  DomainExpiration,
+  SaveDomainData,
+} from '~/app/../types/Database';
+import {
+  catchError,
+  concatMap,
+  from,
+  map,
+  Observable,
+  of,
+  retry,
+  throwError,
+  toArray,
+} from 'rxjs';
 import { makeEppArrayFromLabels } from '~/app/constants/security-categories';
 
 // Database queries grouped by functionality into sub-services
@@ -28,32 +43,68 @@ export default class PgDatabaseService extends DatabaseService {
   private pgApiUtil = inject(PgApiUtilService);
   private errorHandler = inject(ErrorHandlerService);
 
-
   private exportQueries: ExportQueries;
 
   constructor() {
     super();
-    this.linkQueries = new LinkQueries(this.pgApiUtil, this.handleError.bind(this), this.listDomains.bind(this));
-    this.tagQueries = new TagQueries(this.pgApiUtil, this.handleError.bind(this), this.getCurrentUser.bind(this));
-    this.notificationQueries = new NotificationQueries(this.pgApiUtil, this.handleError.bind(this), this.getCurrentUser.bind(this));
+    this.linkQueries = new LinkQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.listDomains.bind(this),
+    );
+    this.tagQueries = new TagQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.getCurrentUser.bind(this),
+    );
+    this.notificationQueries = new NotificationQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.getCurrentUser.bind(this),
+    );
     this.historyQueries = new HistoryQueries(this.pgApiUtil, this.handleError.bind(this));
-    this.valuationQueries = new ValuationQueries(this.pgApiUtil, this.handleError.bind(this));
-    this.registrarQueries = new RegistrarQueries(this.pgApiUtil, this.handleError.bind(this), this.formatDomainData.bind(this));
-    this.dnsQueries = new DnsQueries(this.pgApiUtil, this.handleError.bind(this), this.getCurrentUser.bind(this));
-    this.hostsQueries = new HostsQueries(this.pgApiUtil, this.handleError.bind(this), this.formatDomainData.bind(this));
+    this.valuationQueries = new ValuationQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+    );
+    this.registrarQueries = new RegistrarQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.formatDomainData.bind(this),
+    );
+    this.dnsQueries = new DnsQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.getCurrentUser.bind(this),
+    );
+    this.hostsQueries = new HostsQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.formatDomainData.bind(this),
+    );
     this.ipQueries = new IpQueries(this.pgApiUtil, this.handleError.bind(this));
-    this.sslQueries = new SslQueries(this.pgApiUtil, this.handleError.bind(this), this.getFullDomainQuery.bind(this), this.formatDomainData.bind(this));
+    this.sslQueries = new SslQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.getFullDomainQuery.bind(this),
+      this.formatDomainData.bind(this),
+    );
     this.whoisQueries = new WhoisQueries(this.pgApiUtil, this.handleError.bind(this));
     this.statusQueries = new StatusQueries(this.pgApiUtil, this.handleError.bind(this));
-    this.subdomainsQueries = new SubdomainsQueries(this.pgApiUtil, this.handleError.bind(this));
-    this.exportQueries = new ExportQueries(this.pgApiUtil, this.handleError.bind(this), this.getCurrentUser.bind(this));
+    this.subdomainsQueries = new SubdomainsQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+    );
+    this.exportQueries = new ExportQueries(
+      this.pgApiUtil,
+      this.handleError.bind(this),
+      this.getCurrentUser.bind(this),
+    );
   }
-
 
   private getCurrentUser(): Promise<{ id: string } | null> {
     return Promise.resolve({ id: 'a0000000-aaaa-42a0-a0a0-00a000000a69' });
   }
-
 
   private handleError(error: unknown): Observable<never> {
     this.errorHandler.handleError({
@@ -62,10 +113,15 @@ export default class PgDatabaseService extends DatabaseService {
       location: 'pg-database.service',
       showToast: false,
     });
-    return throwError(() => error || new Error('An error occurred while processing your request.'));
+    return throwError(
+      () => error || new Error('An error occurred while processing your request.'),
+    );
   }
 
-  private executeQuery<T = Record<string, unknown>>(query: string, params?: unknown[]): Observable<T[]> {
+  private executeQuery<T = Record<string, unknown>>(
+    query: string,
+    params?: unknown[],
+  ): Observable<T[]> {
     return this.pgApiUtil
       .postToPgExecutor<T>(query, params as unknown as unknown[] | undefined)
       .pipe(
@@ -76,7 +132,7 @@ export default class PgDatabaseService extends DatabaseService {
           }
           return response.data;
         }),
-        catchError((error) => this.handleError(error))
+        catchError((error) => this.handleError(error)),
       );
   }
 
@@ -88,12 +144,17 @@ export default class PgDatabaseService extends DatabaseService {
       ) AS exists
     `;
     const params = [inputUserId, domainName];
-    const result = await this.executeQuery<{ exists: boolean }>(query, params).toPromise();
+    const result = await this.executeQuery<{ exists: boolean }>(
+      query,
+      params,
+    ).toPromise();
     return Boolean(result?.[0]?.exists);
   }
 
   saveDomain(data: SaveDomainData): Observable<DbDomain> {
-    return from(this.saveDomainInternal(data)).pipe(catchError((error) => this.handleError(error)));
+    return from(this.saveDomainInternal(data)).pipe(
+      catchError((error) => this.handleError(error)),
+    );
   }
 
   private async saveDomainInternal(data: SaveDomainData): Promise<DbDomain> {
@@ -147,7 +208,7 @@ export default class PgDatabaseService extends DatabaseService {
     }
     return domainData;
   }
-  
+
   getFullDomainQuery(): string {
     return `
       domains.id,
@@ -330,33 +391,46 @@ export default class PgDatabaseService extends DatabaseService {
       ) links_agg ON true
     `;
   }
-  
-  
-  
+
   formatDomainData(data: Record<string, unknown>): DbDomain {
-    const dnsRecords = (data['dns_records'] as { record_type: string; record_value: string }[] | undefined) || [];
-    const sslCerts = (data['ssl_certificates'] as Record<string, unknown>[] | undefined) || [];
+    const dnsRecords =
+      (data['dns_records'] as
+        | { record_type: string; record_value: string }[]
+        | undefined) || [];
+    const sslCerts =
+      (data['ssl_certificates'] as Record<string, unknown>[] | undefined) || [];
     const hosts = (data['hosts'] as Record<string, unknown>[] | undefined) || [];
-    const domainStatuses = (data['domain_statuses'] as { status_code: string }[] | undefined) || [];
+    const domainStatuses =
+      (data['domain_statuses'] as { status_code: string }[] | undefined) || [];
     const formattedData = {
       ...data,
       tags: this.extractTags(data),
       whois: data['whois_info'],
       dns: {
-        mxRecords: dnsRecords.filter((record) => record.record_type === 'MX').map((record) => record.record_value),
-        txtRecords: dnsRecords.filter((record) => record.record_type === 'TXT').map((record) => record.record_value),
-        nameServers: dnsRecords.filter((record) => record.record_type === 'NS').map((record) => record.record_value),
+        mxRecords: dnsRecords
+          .filter((record) => record.record_type === 'MX')
+          .map((record) => record.record_value),
+        txtRecords: dnsRecords
+          .filter((record) => record.record_type === 'TXT')
+          .map((record) => record.record_value),
+        nameServers: dnsRecords
+          .filter((record) => record.record_type === 'NS')
+          .map((record) => record.record_value),
       },
       ssl: sslCerts[0] || null,
       host: hosts[0] || null,
-      statuses: makeEppArrayFromLabels(domainStatuses.map((status) => status.status_code)),
+      statuses: makeEppArrayFromLabels(
+        domainStatuses.map((status) => status.status_code),
+      ),
     };
     return formattedData as unknown as DbDomain;
   }
 
   private extractTags(data: Record<string, unknown>): string[] {
     const tags = data['tags'] as { name?: string }[] | undefined;
-    return tags?.map((tagItem) => tagItem?.name).filter((n): n is string => Boolean(n)) || [];
+    return (
+      tags?.map((tagItem) => tagItem?.name).filter((n): n is string => Boolean(n)) || []
+    );
   }
 
   listDomains(): Observable<DbDomain[]> {
@@ -367,7 +441,7 @@ export default class PgDatabaseService extends DatabaseService {
     `;
     return this.executeQuery(query).pipe(
       map((data) => data.map((domain) => this.formatDomainData(domain))),
-      catchError((error) => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -376,11 +450,11 @@ export default class PgDatabaseService extends DatabaseService {
       SELECT LOWER(domain_name) AS domain_name
       FROM domains
     `;
-  
+
     return this.pgApiUtil.postToPgExecutor<{ domain_name: string }>(query).pipe(
       map(({ data }) => data.map((row) => row.domain_name)),
       retry(3),
-      catchError((error) => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -392,30 +466,32 @@ export default class PgDatabaseService extends DatabaseService {
       WHERE domains.domain_name = $1
     `;
 
-    return this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(query, [domainName]).pipe(
-      map(({ data }) => {
-        if (!data || data.length === 0) {
-          throw new Error('Domain not found');
-        }
-        return this.formatDomainData(data[0]);
-      }),
-      retry(3),
-      catchError((error) => this.handleError(error))
-    );
+    return this.pgApiUtil
+      .postToPgExecutor<Record<string, unknown>>(query, [domainName])
+      .pipe(
+        map(({ data }) => {
+          if (!data || data.length === 0) {
+            throw new Error('Domain not found');
+          }
+          return this.formatDomainData(data[0]);
+        }),
+        retry(3),
+        catchError((error) => this.handleError(error)),
+      );
   }
-  
-  
-  
 
   updateDomain(domainId: string, domainData: SaveDomainData): Observable<DbDomain> {
     return from(this.updateDomainInternal(domainId, domainData)).pipe(
-      catchError((error) => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
-  
-  private async updateDomainInternal(domainId: string, data: SaveDomainData): Promise<DbDomain> {
+
+  private async updateDomainInternal(
+    domainId: string,
+    data: SaveDomainData,
+  ): Promise<DbDomain> {
     const { domain, tags, notifications, subdomains, links } = data;
-  
+
     // Update domain's basic information
     const updateDomainQuery = `
       UPDATE domains
@@ -426,36 +502,42 @@ export default class PgDatabaseService extends DatabaseService {
       WHERE id = $4
       RETURNING *;
     `;
-    const registrarValue = (domain as unknown as { registrar?: string | { name?: string } }).registrar;
-    const registrarName = typeof registrarValue === 'string' ? registrarValue : (registrarValue?.name || '');
+    const registrarValue = (
+      domain as unknown as { registrar?: string | { name?: string } }
+    ).registrar;
+    const registrarName =
+      typeof registrarValue === 'string' ? registrarValue : registrarValue?.name || '';
     const registrarId = await this.registrarQueries.getOrInsertRegistrarId(registrarName);
     const domainParams = [domain.expiry_date, domain.notes, registrarId, domainId];
-    const updatedDomain = await this.executeQuery(updateDomainQuery, domainParams).toPromise();
+    const updatedDomain = await this.executeQuery(
+      updateDomainQuery,
+      domainParams,
+    ).toPromise();
 
     if (!updatedDomain || !updatedDomain.length) {
       throw new Error('Failed to update domain');
     }
-  
+
     // Handle tags
     if (tags) {
       await this.tagQueries.updateTags(domainId, tags);
     }
-  
+
     // Handle notifications
     if (notifications) {
       await this.notificationQueries.updateNotificationTypes(domainId, notifications);
     }
-  
+
     // Handle subdomains
     if (subdomains) {
       await this.subdomainsQueries.updateSubdomains(domainId, subdomains);
     }
-  
+
     // Handle links
     if (links) {
       await this.linkQueries.updateLinks(domainId, links);
     }
-  
+
     return this.getDomainById(domainId);
   }
 
@@ -487,61 +569,64 @@ export default class PgDatabaseService extends DatabaseService {
 
     return from(this.pgApiUtil.postToPgExecutor(query)).pipe(
       map(() => void 0),
-      catchError(error => {
+      catchError((error) => {
         this.handleError(error);
         return throwError(() => error);
-      })
+      }),
     );
   }
-  
 
   getDomainExpirations(): Observable<DomainExpiration[]> {
     const query = `
       SELECT domain_name, expiry_date
       FROM domains
     `;
-  
-    return this.pgApiUtil.postToPgExecutor<{ domain_name: string; expiry_date: string }>(query).pipe(
-      map(({ data }) => 
-        data.map((d) => ({
-          domain: d.domain_name,
-          expiration: new Date(d.expiry_date),
-        }))
-      ),
-      catchError((error) => this.handleError(error))
-    );
+
+    return this.pgApiUtil
+      .postToPgExecutor<{ domain_name: string; expiry_date: string }>(query)
+      .pipe(
+        map(({ data }) =>
+          data.map((d) => ({
+            domain: d.domain_name,
+            expiration: new Date(d.expiry_date),
+          })),
+        ),
+        catchError((error) => this.handleError(error)),
+      );
   }
 
   getAssetCount(assetType: string): Observable<number> {
     const tableMap: Record<string, string> = {
-      'registrars': 'registrars',
+      registrars: 'registrars',
       'ip addresses': 'ip_addresses',
       'ssl certificates': 'ssl_certificates',
-      'hosts': 'hosts',
+      hosts: 'hosts',
       'dns records': 'dns_records',
-      'tags': 'tags',
-      'links': 'domain_links',
-      'subdomains': 'sub_domains',
+      tags: 'tags',
+      links: 'domain_links',
+      subdomains: 'sub_domains',
       'domain statuses': 'domain_statuses',
     };
-  
+
     const table = tableMap[assetType];
     if (!table) {
       throw new Error(`Unknown asset type: ${assetType}`);
     }
-  
+
     const query = `
       SELECT COUNT(*) AS count
       FROM ${table}
     `;
-  
+
     return this.pgApiUtil.postToPgExecutor<{ count: string }>(query).pipe(
       map(({ data }) => (data?.[0]?.count ? parseInt(data[0].count, 10) : 0)),
-      catchError((error) => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
-  getStatusesWithDomainCounts(): Observable<{ eppCode: string; description: string; domainCount: number }[]> {
+  getStatusesWithDomainCounts(): Observable<
+    { eppCode: string; description: string; domainCount: number }[]
+  > {
     const query = `
       SELECT 
         domain_statuses.status_code AS epp_code,
@@ -553,17 +638,19 @@ export default class PgDatabaseService extends DatabaseService {
       ORDER BY 
         domain_count DESC;
     `;
-  
-    return this.pgApiUtil.postToPgExecutor<{ epp_code: string; domain_count: number }>(query).pipe(
-      map(({ data }) => 
-        data.map((item) => ({
-          eppCode: item.epp_code,
-          description: '', // You can populate the description if necessary
-          domainCount: Number(item.domain_count),
-        }))
-      ),
-      catchError((error) => this.handleError(error))
-    );
+
+    return this.pgApiUtil
+      .postToPgExecutor<{ epp_code: string; domain_count: number }>(query)
+      .pipe(
+        map(({ data }) =>
+          data.map((item) => ({
+            eppCode: item.epp_code,
+            description: '', // You can populate the description if necessary
+            domainCount: Number(item.domain_count),
+          })),
+        ),
+        catchError((error) => this.handleError(error)),
+      );
   }
   getDomainsByStatus(statusCode: string): Observable<DbDomain[]> {
     const query = `
@@ -577,12 +664,13 @@ export default class PgDatabaseService extends DatabaseService {
       )
     `;
 
-    return this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(query, [statusCode]).pipe(
-      map(({ data }) => data.map((domain) => this.formatDomainData(domain))),
-      catchError((error) => this.handleError(error))
-    );
+    return this.pgApiUtil
+      .postToPgExecutor<Record<string, unknown>>(query, [statusCode])
+      .pipe(
+        map(({ data }) => data.map((domain) => this.formatDomainData(domain))),
+        catchError((error) => this.handleError(error)),
+      );
   }
-  
 
   private getTimeIntervalForTimeframe(timeframe: string): string {
     switch (timeframe) {
@@ -612,29 +700,35 @@ export default class PgDatabaseService extends DatabaseService {
       )
     `;
 
-    return from(this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(query, [tagName])).pipe(
+    return from(
+      this.pgApiUtil.postToPgExecutor<Record<string, unknown>>(query, [tagName]),
+    ).pipe(
       map(({ data }) => {
         if (!data || data.length === 0) {
           return [];
         }
-        return data.map(domain => this.formatDomainData(domain));
+        return data.map((domain) => this.formatDomainData(domain));
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
-    
-  
-  
-  async getDomainUptime(userId: string, domainId: string, timeframe: string): Promise<{
-    checked_at: string;
-    is_up: boolean;
-    response_code: number;
-    response_time_ms: number;
-    dns_lookup_time_ms: number;
-    ssl_handshake_time_ms: number;
-  }[]> {
+
+  async getDomainUptime(
+    userId: string,
+    domainId: string,
+    timeframe: string,
+  ): Promise<
+    {
+      checked_at: string;
+      is_up: boolean;
+      response_code: number;
+      response_time_ms: number;
+      dns_lookup_time_ms: number;
+      ssl_handshake_time_ms: number;
+    }[]
+  > {
     const timeInterval = this.getTimeIntervalForTimeframe(timeframe);
-  
+
     const query = `
       SELECT
         u.checked_at,
@@ -654,9 +748,9 @@ export default class PgDatabaseService extends DatabaseService {
       ORDER BY
         u.checked_at
     `;
-  
+
     const params = [userId, domainId, timeInterval];
-  
+
     try {
       const data = await this.executeQuery<{
         checked_at: string;
@@ -686,11 +780,13 @@ export default class PgDatabaseService extends DatabaseService {
         }
         return parseInt(data[0].total, 10) || 0;
       }),
-      catchError((error) => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
-  
-  getDomainsByEppCodes(statuses: string[]): Observable<Record<string, { domainId: string; domainName: string }[]>> {
+
+  getDomainsByEppCodes(
+    statuses: string[],
+  ): Observable<Record<string, { domainId: string; domainName: string }[]>> {
     const query = `
       SELECT 
         domain_statuses.status_code, 
@@ -703,35 +799,52 @@ export default class PgDatabaseService extends DatabaseService {
       WHERE 
         domain_statuses.status_code = ANY($1::text[])
     `;
-  
-    const params = [statuses];
-  
-    return this.pgApiUtil.postToPgExecutor<{ status_code: string; domain_id: string; domain_name: string }[]>(query, params).pipe(
-      map(({ data }) => {
-        if (!data || data.length === 0) {
-          return statuses.reduce((acc, status) => ({ ...acc, [status]: [] }), {});
-        }
-  
-        const domainsByStatus: Record<string, { domainId: string; domainName: string }[]> = {};
-  
-        statuses.forEach(status => {
-          domainsByStatus[status] = (data as unknown as { status_code: string; domain_id: string; domain_name: string }[])
-            .filter((d) => d.status_code === status)
-            .map((d) => ({ domainId: d.domain_id, domainName: d.domain_name }));
-        });
 
-        return domainsByStatus;
-      }),
-      catchError(error => this.handleError(error))
-    );
+    const params = [statuses];
+
+    return this.pgApiUtil
+      .postToPgExecutor<
+        { status_code: string; domain_id: string; domain_name: string }[]
+      >(query, params)
+      .pipe(
+        map(({ data }) => {
+          if (!data || data.length === 0) {
+            return statuses.reduce((acc, status) => ({ ...acc, [status]: [] }), {});
+          }
+
+          const domainsByStatus: Record<
+            string,
+            { domainId: string; domainName: string }[]
+          > = {};
+
+          statuses.forEach((status) => {
+            domainsByStatus[status] = (
+              data as unknown as {
+                status_code: string;
+                domain_id: string;
+                domain_name: string;
+              }[]
+            )
+              .filter((d) => d.status_code === status)
+              .map((d) => ({ domainId: d.domain_id, domainName: d.domain_name }));
+          });
+
+          return domainsByStatus;
+        }),
+        catchError((error) => this.handleError(error)),
+      );
   }
 
-
-  fetchAllForExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Observable<Record<string, unknown>[]> {
+  fetchAllForExport(
+    domainNames: string,
+    includeFields: string[] | { label: string; value: string }[],
+  ): Observable<Record<string, unknown>[]> {
     return this.exportQueries.fetchAllForExport(domainNames, includeFields);
   }
 
-  checkAllTables(): Observable<{ table: string; count: number | string; success: string }[]> {
+  checkAllTables(): Observable<
+    { table: string; count: number | string; success: string }[]
+  > {
     const allTables = [
       'dns_records',
       'domain_costings',
@@ -760,7 +873,7 @@ export default class PgDatabaseService extends DatabaseService {
       if (tableName === 'domain_hosts') return 'host_id';
       return 'id';
     };
-  
+
     return from(allTables).pipe(
       concatMap((tableName) => {
         const query = `SELECT COUNT(${idColName(tableName)}) AS count FROM ${tableName}`;
@@ -780,20 +893,22 @@ export default class PgDatabaseService extends DatabaseService {
               showToast: true,
             });
             return of({ table: tableName, count: 'zilch', success: '❌' });
-          })
+          }),
         );
       }),
-      toArray()
+      toArray(),
     );
   }
 
   async deleteAllData(userId: string, tables?: string[]): Promise<void> {
     // Fetch all domain IDs belonging to the user
     const fetchDomainsQuery = `SELECT id FROM domains WHERE user_id = $1`;
-    const result = await this.pgApiUtil.postToPgExecutor(fetchDomainsQuery, [userId]).toPromise();
+    const result = await this.pgApiUtil
+      .postToPgExecutor(fetchDomainsQuery, [userId])
+      .toPromise();
     const domainRows = (result?.data || []) as { id: string }[];
     const domainIds = domainRows.map((d) => d.id);
-  
+
     // Tables categorized by deletion method
     const domainBasedTablesAll = [
       'dns_records',
@@ -810,7 +925,7 @@ export default class PgDatabaseService extends DatabaseService {
       'uptime',
       'whois_info',
     ];
-  
+
     const userBasedTablesAll = [
       'billing',
       'domain_updates',
@@ -819,39 +934,38 @@ export default class PgDatabaseService extends DatabaseService {
       'registrars',
       'tags',
     ];
-  
+
     // Determine which tables to target if specific tables are provided
     const domainBasedTables = tables
       ? domainBasedTablesAll.filter((t) => tables.includes(t))
       : domainBasedTablesAll;
-  
+
     const userBasedTables = tables
       ? userBasedTablesAll.filter((t) => tables.includes(t))
       : userBasedTablesAll;
-  
+
     const mustDeleteDomains = !tables || tables.includes('domains');
-  
+
     // Delete domain-based records
     for (const table of domainBasedTables) {
       if (domainIds.length > 0) {
         const deleteDomainRecordsQuery = `DELETE FROM ${table} WHERE domain_id = ANY($1)`;
-        await this.pgApiUtil.postToPgExecutor(deleteDomainRecordsQuery, [domainIds]).toPromise();
+        await this.pgApiUtil
+          .postToPgExecutor(deleteDomainRecordsQuery, [domainIds])
+          .toPromise();
       }
     }
-  
+
     // Delete user-based records
     for (const table of userBasedTables) {
       const deleteUserRecordsQuery = `DELETE FROM ${table} WHERE user_id = $1`;
       await this.pgApiUtil.postToPgExecutor(deleteUserRecordsQuery, [userId]).toPromise();
     }
-  
+
     // Delete domains themselves
     if (mustDeleteDomains) {
       const deleteDomainsQuery = `DELETE FROM domains WHERE user_id = $1`;
       await this.pgApiUtil.postToPgExecutor(deleteDomainsQuery, [userId]).toPromise();
     }
   }
-  
-  
-  
 }

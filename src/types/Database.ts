@@ -79,7 +79,7 @@ export interface DbDomain extends Timestamps {
   dns: Dns;
   statuses?: SecurityCategory[];
   domain_costings?: Valuation;
-  notification_preferences?: { notification_type: string; is_enabled: boolean; }[];
+  notification_preferences?: { notification_type: string; is_enabled: boolean }[];
   sub_domains?: Subdomain[];
   domain_links?: Link[];
 }
@@ -99,7 +99,10 @@ export interface NotificationOptions extends Timestamps {
 }
 
 export interface SaveDomainData {
-  domain: Omit<DbDomain, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'dns' | 'ipAddresses'>;
+  domain: Omit<
+    DbDomain,
+    'id' | 'user_id' | 'created_at' | 'updated_at' | 'dns' | 'ipAddresses'
+  >;
   tags: string[];
   notifications: { type: string; isEnabled: boolean }[];
   statuses?: string[];
@@ -114,7 +117,6 @@ export interface SaveDomainData {
 }
 
 export abstract class DatabaseService {
-
   serviceType: 'supabase' | 'postgres' | 'none' | 'error' = 'none';
 
   notificationQueries!: SbNotificationQueries | PgNotificationQueries;
@@ -131,23 +133,39 @@ export abstract class DatabaseService {
   statusQueries!: SbStatusQueries | PgStatusQueries;
   subdomainsQueries!: SbSubdomainsQueries | PgSubdomainsQueries;
 
-  abstract getDomainUptime(userId: string, domainId: string, timeframe: string): PromiseLike<unknown>;
+  abstract getDomainUptime(
+    userId: string,
+    domainId: string,
+    timeframe: string,
+  ): PromiseLike<unknown>;
   abstract listDomains(): Observable<DbDomain[]>;
   abstract domainExists(inputUserId: string | null, domainName: string): Promise<boolean>;
   abstract saveDomain(data: SaveDomainData): Observable<DbDomain>;
-  abstract fetchAllForExport(domainNames: string, includeFields: string[] | { label: string; value: string }[]): Observable<Record<string, unknown>[]>;
-  abstract getDomainsByEppCodes(statuses: string[]): Observable<Record<string, { domainId: string; domainName: string }[]>>;
+  abstract fetchAllForExport(
+    domainNames: string,
+    includeFields: string[] | { label: string; value: string }[],
+  ): Observable<Record<string, unknown>[]>;
+  abstract getDomainsByEppCodes(
+    statuses: string[],
+  ): Observable<Record<string, { domainId: string; domainName: string }[]>>;
   abstract getDomainExpirations(): Observable<DomainExpiration[]>;
   abstract deleteDomain(domainId: string): Observable<void>;
   abstract getAssetCount(assetType: string): Observable<number>;
   abstract listDomainNames(): Observable<string[]>;
   abstract getDomainsByStatus(statusCode: string): Observable<DbDomain[]>;
-  abstract getStatusesWithDomainCounts(): Observable<{ eppCode: string; description: string; domainCount: number }[]>;
+  abstract getStatusesWithDomainCounts(): Observable<
+    { eppCode: string; description: string; domainCount: number }[]
+  >;
   abstract getDomainsByTag(tagName: string): Observable<DbDomain[]>;
   abstract getDomainById(id: string): Promise<DbDomain>;
   abstract getDomain(domainName: string): Observable<DbDomain>;
-  abstract updateDomain(domainId: string, domainData: SaveDomainData): Observable<DbDomain>;
-  abstract checkAllTables(): Observable<{table: string; count: number | string; success: string;}[]>;
+  abstract updateDomain(
+    domainId: string,
+    domainData: SaveDomainData,
+  ): Observable<DbDomain>;
+  abstract checkAllTables(): Observable<
+    { table: string; count: number | string; success: string }[]
+  >;
   abstract deleteAllData(userId: string, tables?: string[]): Promise<void>;
   abstract getTotalDomains(): Observable<number>;
 }

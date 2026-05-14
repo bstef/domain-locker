@@ -3,7 +3,7 @@ import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
-  HttpInterceptor
+  HttpInterceptor,
 } from '@angular/common/http';
 import { from, Observable, throwError } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
@@ -23,9 +23,10 @@ export class AuthInterceptor implements HttpInterceptor {
   private envService = inject(EnvService);
   private supabaseService = inject(SupabaseService);
 
-
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-
+  intercept(
+    request: HttpRequest<unknown>,
+    next: HttpHandler,
+  ): Observable<HttpEvent<unknown>> {
     const environment = this.envService.getEnvironmentType();
     const isSupabaseEnabled = this.supabaseService.isSupabaseEnabled();
 
@@ -49,7 +50,7 @@ export class AuthInterceptor implements HttpInterceptor {
             return next.handle(authRequest);
           }
           return next.handle(request);
-        })
+        }),
       );
     }
 
@@ -57,24 +58,26 @@ export class AuthInterceptor implements HttpInterceptor {
     if (request.url.includes('.supabase.co/functions/')) {
       if (!isSupabaseEnabled) {
         // User shouldn't be calling Supabase, if Supabase is not enabled!
-        return throwError(() => new Error('Supabase is not enabled in this environment.'));
+        return throwError(
+          () => new Error('Supabase is not enabled in this environment.'),
+        );
       }
 
       return from(this.supabaseService.getSessionToken()).pipe(
-        switchMap(token => {
+        switchMap((token) => {
           if (!token) {
             const err = new Error('No Supabase session token available');
             return throwError(() => err);
           }
           // clone and set the header
           const authed = request.clone({
-            setHeaders: { Authorization: `Bearer ${token}` }
+            setHeaders: { Authorization: `Bearer ${token}` },
           });
           return next.handle(authed);
         }),
-        catchError(error => {
+        catchError((error) => {
           return throwError(() => error);
-        })
+        }),
       );
     }
 

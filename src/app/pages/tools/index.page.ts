@@ -7,6 +7,6 @@ import { PrimeNgModule } from '~/app/prime-ng.module';
   imports: [RouterOutlet, PrimeNgModule],
   selector: 'app-tools-index-page',
   templateUrl: './index.page.html',
-  styles: ['::ng-deep .content-container { max-width: 1600px; }']
+  styles: ['::ng-deep .content-container { max-width: 1600px; }'],
 })
 export default class ToolsIndexPageComponent {}

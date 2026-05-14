@@ -14,7 +14,7 @@
     [responsiveOptions]="responsiveOptions"
     [containerClass]="galleriaClass()"
     styleClass="p-card"
-    >
+  >
     <!-- Main item template -->
     <ng-template pTemplate="item" let-item>
       <img
@@ -22,9 +22,9 @@
         [alt]="item.title"
         [ngStyle]="{
           width: !fullscreen ? '100%' : '',
-          display: !fullscreen ? 'block' : ''
+          display: !fullscreen ? 'block' : '',
         }"
-        />
+      />
     </ng-template>
 
     <!-- Thumbnail template -->
@@ -40,7 +40,9 @@
         <!-- <button type="button" pButton icon="pi pi-list" (click)="onThumbnailButtonClick()"></button> -->
         @if (screenshots.length) {
           <span class="title-container">
-            <span class="title font-bold mr-2">{{ screenshots[activeIndex]?.title }}:</span>
+            <span class="title font-bold mr-2"
+              >{{ screenshots[activeIndex]?.title }}:</span
+            >
             <span class="italic">{{ screenshots[activeIndex]?.description }}</span>
           </span>
         }

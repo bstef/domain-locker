@@ -6,7 +6,6 @@ import PgDatabaseService from '~/app/services/db-query-services/pg-database.serv
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 import { type DatabaseService as IDatabaseService } from '~/app/../types/Database';
 
-
 @Injectable({
   providedIn: 'root',
 })
@@ -43,10 +42,7 @@ export default class DatabaseService {
     });
     this.serviceType = 'error';
     this.service = {} as unknown as IDatabaseService;
-    this.router.navigate(
-      ['/advanced/error'],
-      { queryParams: { errorMessage } }
-    );
+    this.router.navigate(['/advanced/error'], { queryParams: { errorMessage } });
   }
 
   // Expose the proxied service to the rest of the app

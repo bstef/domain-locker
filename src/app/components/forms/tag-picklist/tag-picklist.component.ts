@@ -10,9 +10,14 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
   templateUrl: './tag-picklist.component.html',
   standalone: true,
   imports: [PrimeNgModule],
-  styles: [`
-    ::ng-deep .p-picklist-target-controls, ::ng-deep .p-picklist-source-controls { display: none; }
-  `],
+  styles: [
+    `
+      ::ng-deep .p-picklist-target-controls,
+      ::ng-deep .p-picklist-source-controls {
+        display: none;
+      }
+    `,
+  ],
 })
 export class TagPickListComponent implements OnInit {
   private databaseService = inject(DatabaseService);
@@ -36,8 +41,10 @@ export class TagPickListComponent implements OnInit {
     this.databaseService.instance.tagQueries.getDomainsForTag(tagId).subscribe({
       next: ({ available, selected }) => {
         const selectedTyped = selected as { id?: string }[];
-        const selectedDomainIds = selectedTyped.map(domain => domain.id);
-        this.availableDomains = available.filter(domain => !selectedDomainIds.includes(domain['id'] as string));
+        const selectedDomainIds = selectedTyped.map((domain) => domain.id);
+        this.availableDomains = available.filter(
+          (domain) => !selectedDomainIds.includes(domain['id'] as string),
+        );
         this.selectedDomains = selectedTyped;
       },
       error: (error) => {
@@ -61,23 +68,25 @@ export class TagPickListComponent implements OnInit {
       });
       return;
     }
-    this.databaseService.instance.tagQueries.saveDomainsForTag(this.tagId, this.selectedDomains as { id: string }[]).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Domains saved successfully',
-        });
-        this.$afterSave.emit();
-      },
-      error: (error) => {
-        this.errorHandler.handleError({
-          error,
-          message: 'Failed to save domains for this tag',
-          location: 'TagPickListComponent.saveDomainsForTag',
-          showToast: true,
-        });
-      },
-    });
+    this.databaseService.instance.tagQueries
+      .saveDomainsForTag(this.tagId, this.selectedDomains as { id: string }[])
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Domains saved successfully',
+          });
+          this.$afterSave.emit();
+        },
+        error: (error) => {
+          this.errorHandler.handleError({
+            error,
+            message: 'Failed to save domains for this tag',
+            location: 'TagPickListComponent.saveDomainsForTag',
+            showToast: true,
+          });
+        },
+      });
   }
 }

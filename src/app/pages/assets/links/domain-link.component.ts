@@ -13,7 +13,7 @@ import { PrimeNgModule } from '~/app/prime-ng.module';
       target="_blank"
       (contextmenu)="onContextMenu($event)"
       class="p-card px-3 py-2 flex flex-col gap-1 w-full h-full no-underline justify-between overflow-hidden"
-      >
+    >
       <h4 class="flex gap-2 my-0 text-lg font-semibold">
         <app-domain-favicon [domain]="linkUrl" [size]="24" />
         {{ linkName }}
@@ -21,11 +21,9 @@ import { PrimeNgModule } from '~/app/prime-ng.module';
       @if (linkDescription) {
         <p class="m-0 italic">{{ linkDescription }}</p>
       }
-    
+
       @if (associatedDomains && associatedDomains.length) {
-        <p
-          class="m-0 text-sm text-gray-500"
-          [pTooltip]="associatedDomains.join(', ')">
+        <p class="m-0 text-sm text-gray-500" [pTooltip]="associatedDomains.join(', ')">
           @if (associatedDomains.length === 1) {
             Associated with {{ associatedDomains[0] }}
           } @else if (associatedDomains.length > 1) {
@@ -34,7 +32,7 @@ import { PrimeNgModule } from '~/app/prime-ng.module';
         </p>
       }
     </a>
-    `,
+  `,
 })
 export class DomainLinkComponent {
   @Input() linkUrl!: string;

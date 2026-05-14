@@ -54,27 +54,29 @@ export default class DomainDetailsPage implements OnInit {
   shouldMountCalendar = false;
 
   ngOnInit() {
-    this.route.params.pipe(
-      switchMap(params => {
-        const domainName = params['domain'];
-        this.name = domainName;
-        return this.databaseService.instance.getDomain(domainName).pipe(
-          catchError(error => {
-            this.domainNotFound = true;
-            this.errorHandler.handleError({
-              error,
-              message: 'Failed to load domain details',
-              showToast: true,
-              location: 'Domain',
-            });
-            return of(null);
-          })
-        );
-      })
-    ).subscribe(domain => {
-      this.domain = domain;
-      if (domain) this.domainId = domain.id;
-    });
+    this.route.params
+      .pipe(
+        switchMap((params) => {
+          const domainName = params['domain'];
+          this.name = domainName;
+          return this.databaseService.instance.getDomain(domainName).pipe(
+            catchError((error) => {
+              this.domainNotFound = true;
+              this.errorHandler.handleError({
+                error,
+                message: 'Failed to load domain details',
+                showToast: true,
+                location: 'Domain',
+              });
+              return of(null);
+            }),
+          );
+        }),
+      )
+      .subscribe((domain) => {
+        this.domain = domain;
+        if (domain) this.domainId = domain.id;
+      });
   }
 
   onCalendarVisible(): void {

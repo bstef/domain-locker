@@ -34,7 +34,10 @@ export default class RegistrarsIndexPageComponent implements OnInit {
     }).subscribe({
       next: ({ registrars, counts }) => {
         this.registrars = registrars
-          .map((registrar) => ({ ...registrar, domainCount: counts[registrar.name] || 0 }))
+          .map((registrar) => ({
+            ...registrar,
+            domainCount: counts[registrar.name] || 0,
+          }))
           .sort((a, b) => b.domainCount - a.domainCount);
         this.loading = false;
       },

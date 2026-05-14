@@ -24,55 +24,66 @@ type SubdomainRow = SubdomainView & { kvList: { key: string; value: string }[] }
 @Component({
   standalone: true,
   selector: 'app-subdomain-list',
-  imports: [CommonModule, RouterModule, PrimeNgModule, DomainFaviconComponent ],
+  imports: [CommonModule, RouterModule, PrimeNgModule, DomainFaviconComponent],
   template: `
     <ul
-      [class]="' list-none p-0 m-0 grid grid-cols-1 '
-        + (embeddedView ? 'xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-3 '
-        : ' md:grid-cols-2 lg:grid-cols-3 gap-4 ')"
-      >
+      [class]="
+        ' list-none p-0 m-0 grid grid-cols-1 ' +
+        (embeddedView
+          ? 'xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-3 '
+          : ' md:grid-cols-2 lg:grid-cols-3 gap-4 ')
+      "
+    >
       @for (subdomain of subdomainsToShow; track subdomain) {
         <li
-        [ngClass]="{
-          'px-4 py-3 rounded shadow relative': true,
-          'border-2 border-surface-100': embeddedView,
-          'p-card': !embeddedView
-        }"
+          [ngClass]="{
+            'px-4 py-3 rounded shadow relative': true,
+            'border-2 border-surface-100': embeddedView,
+            'p-card': !embeddedView,
+          }"
           (contextmenu)="onRightClick($event, subdomain)"
-          >
+        >
           <a
             [routerLink]="['/assets/subdomains', domain, subdomain.name]"
             class="text-primary no-underline hover:underline"
-            >
+          >
             <h3 class="text-lg font-bold text-default truncate">
-              <app-domain-favicon [domain]="subdomain.name + '.' + domain" [size]="24" class="mr-2" />
+              <app-domain-favicon
+                [domain]="subdomain.name + '.' + domain"
+                [size]="24"
+                class="mr-2"
+              />
               <span class="text-primary">{{ subdomain.name }}</span>
               <span>.</span>
               <span>{{ domain }}</span>
             </h3>
           </a>
           @for (item of subdomain.kvList; track item.key) {
-            <ul
-              class="m-0 p-0 list-none text-sm text-surface-500 opacity-90">
+            <ul class="m-0 p-0 list-none text-sm text-surface-500 opacity-90">
               <li class="truncate">
-                <strong class="font-semibold">{{ item.key }}</strong>: {{ item.value }}
+                <strong class="font-semibold">{{ item.key }}</strong
+                >: {{ item.value }}
               </li>
             </ul>
           }
         </li>
       }
     </ul>
-    
+
     @if (embeddedView) {
       <p-divider align="center" (click)="toggleShowAll()">
         @if (!showFullList) {
-          <div class="flex gap-2 items-center px-3 py-2 cursor-pointer hover:text-primary bg-highlight rounded">
+          <div
+            class="flex gap-2 items-center px-3 py-2 cursor-pointer hover:text-primary bg-highlight rounded"
+          >
             <i class="pi pi-angle-double-down"></i>
             <span>Expand List</span>
             <i class="pi pi-angle-double-down"></i>
           </div>
         } @else {
-          <div class="flex gap-2 items-center px-1 py-1 cursor-pointer hover:text-primary text-xs opacity-70 bg-highlight rounded-sm">
+          <div
+            class="flex gap-2 items-center px-1 py-1 cursor-pointer hover:text-primary text-xs opacity-70 bg-highlight rounded-sm"
+          >
             <i class="pi pi-angle-double-up"></i>
             <span>Show Less</span>
             <i class="pi pi-angle-double-up"></i>
@@ -82,7 +93,7 @@ type SubdomainRow = SubdomainView & { kvList: { key: string; value: string }[] }
     }
     <p-confirmDialog />
     <p-contextMenu #contextMenu [model]="menuItems"></p-contextMenu>
-    `,
+  `,
   providers: [ConfirmationService],
 })
 export class SubdomainListComponent implements OnChanges {
@@ -105,7 +116,8 @@ export class SubdomainListComponent implements OnChanges {
 
   ngOnChanges(): void {
     const rows = this.subdomains.map((s) => ({ ...s, kvList: makeKVList(s.sd_info) }));
-    this.subdomainsToShow = this.embeddedView && !this.showFullList ? rows.slice(0, 8) : rows;
+    this.subdomainsToShow =
+      this.embeddedView && !this.showFullList ? rows.slice(0, 8) : rows;
   }
 
   onRightClick(event: MouseEvent, subdomain: SubdomainView) {
@@ -129,7 +141,10 @@ export class SubdomainListComponent implements OnChanges {
       {
         label: 'View Subdomain',
         icon: 'pi pi-search',
-        command: () => this.navigateTo(`/assets/subdomains/${this.domain}/${this.selectedSubdomain!.name}`),
+        command: () =>
+          this.navigateTo(
+            `/assets/subdomains/${this.domain}/${this.selectedSubdomain!.name}`,
+          ),
       },
       {
         label: 'Visit Subdomain',
@@ -174,7 +189,7 @@ export class SubdomainListComponent implements OnChanges {
     if (!(await this.featureService.isFeatureEnabledPromise('writePermissions'))) {
       this.messagingService.showWarn(
         'Write Permissions Disabled',
-        'It\'s not possible to delete subdomains on the demo instance.',
+        "It's not possible to delete subdomains on the demo instance.",
       );
       return;
     }
@@ -183,25 +198,27 @@ export class SubdomainListComponent implements OnChanges {
       header: 'Confirm Deletion',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-
         this.databaseService.instance.subdomainsQueries
-        .deleteSubdomain(this.domain, subdomain.name)
-        .subscribe({
-          next: () => {
-            this.messagingService.showSuccess('Deleted', `Subdomain "${subdomain.name}.${this.domain}" has been deleted successfully.`);
-            this.router.navigate(['/assets/subdomains', this.domain]);
-          },
-          error: (error: Error) => {
-            this.errorHandler.handleError({
-              error,
-              showToast: true,
-              message: 'Failed to delete the subdomain. Please try again.',
-            });
-          }
-        });
+          .deleteSubdomain(this.domain, subdomain.name)
+          .subscribe({
+            next: () => {
+              this.messagingService.showSuccess(
+                'Deleted',
+                `Subdomain "${subdomain.name}.${this.domain}" has been deleted successfully.`,
+              );
+              this.router.navigate(['/assets/subdomains', this.domain]);
+            },
+            error: (error: Error) => {
+              this.errorHandler.handleError({
+                error,
+                showToast: true,
+                message: 'Failed to delete the subdomain. Please try again.',
+              });
+            },
+          });
       },
       reject: () => {
-        this.messagingService.showInfo('Cancelled', 'Deletion cancelled' );
+        this.messagingService.showInfo('Cancelled', 'Deletion cancelled');
       },
     });
   }

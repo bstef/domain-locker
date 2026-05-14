@@ -2,12 +2,19 @@ import { injectContent, injectContentFiles } from '@analogjs/content';
 
 import { Component } from '@angular/core';
 import { PrimeNgModule } from '~/app/prime-ng.module';
-import { DocsViewerComponent, DocAttributes } from '~/app/components/about-things/doc-viewer.component';
+import {
+  DocsViewerComponent,
+  DocAttributes,
+} from '~/app/components/about-things/doc-viewer.component';
 
 @Component({
   standalone: true,
   imports: [PrimeNgModule, DocsViewerComponent],
-  template: `<app-docs-viewer [doc$]="doc$" [allDocs]="files" [categoryName]="'legal'" />`,
+  template: `<app-docs-viewer
+    [doc$]="doc$"
+    [allDocs]="files"
+    [categoryName]="'legal'"
+  />`,
 })
 export default class DocsComponent {
   // The subdirectory for the docs
@@ -19,6 +26,6 @@ export default class DocsComponent {
   });
   // Fetch all the files in the same subdirectory
   readonly files = injectContentFiles<DocAttributes>((contentFile) =>
-    contentFile.filename.includes(`/${this.category}`)
+    contentFile.filename.includes(`/${this.category}`),
   );
 }

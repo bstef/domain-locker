@@ -27,7 +27,12 @@ export default class SettingsPage {
   currentPlan$?: Observable<string | null>;
   user$?: Observable<User | null>;
 
-  displayOptions: { theme: string, darkMode: boolean, font: string, scale: string } | null = null;
+  displayOptions: {
+    theme: string;
+    darkMode: boolean;
+    font: string;
+    scale: string;
+  } | null = null;
   language = 'English';
   notifications: {
     email: boolean;
@@ -67,14 +72,14 @@ export default class SettingsPage {
     this.language = this.translationService.getLanguageToUse();
 
     // Async call for notifications
-    this.getNotificationPreferences()
-      .finally(() => {
-        this.isAccountInfoLoading = false;
-      });
+    this.getNotificationPreferences().finally(() => {
+      this.isAccountInfoLoading = false;
+    });
   }
 
   private async getNotificationPreferences() {
-    const preferences = await this.databaseService.instance.notificationQueries.getNotificationChannels();
+    const preferences =
+      await this.databaseService.instance.notificationQueries.getNotificationChannels();
     if (!preferences) return;
     this.notifications = {
       email: preferences?.email?.enabled || false,

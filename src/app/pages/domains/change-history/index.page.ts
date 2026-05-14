@@ -9,7 +9,13 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
 @Component({
   standalone: true,
   selector: 'app-domain-details',
-  imports: [CommonModule, PrimeNgModule, DomainUpdatesComponent, ChangeHistoryChartComponent, FeatureNotEnabledComponent ],
+  imports: [
+    CommonModule,
+    PrimeNgModule,
+    DomainUpdatesComponent,
+    ChangeHistoryChartComponent,
+    FeatureNotEnabledComponent,
+  ],
   templateUrl: './change-history.page.html',
 })
 export default class ChangeHistoryPage {

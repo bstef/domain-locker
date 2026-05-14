@@ -1,5 +1,12 @@
-
-import { Component, ChangeDetectorRef, ViewChild, OnInit, OnDestroy, Input, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  ViewChild,
+  OnInit,
+  OnDestroy,
+  Input,
+  inject,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { GalleriaModule, Galleria } from 'primeng/galleria';
@@ -7,20 +14,16 @@ import { ButtonModule } from 'primeng/button';
 
 export interface Screenshot {
   screenshot: string; // The URL to the screenshot
-  title: string;      // Short title
+  title: string; // Short title
   description: string; // Longer description
 }
 
 @Component({
   selector: 'app-screenshots',
   standalone: true,
-  imports: [
-    CommonModule,
-    GalleriaModule,
-    ButtonModule
-  ],
+  imports: [CommonModule, GalleriaModule, ButtonModule],
   templateUrl: './screenshots.component.html',
-  styleUrls: ['./screenshots.component.scss']
+  styleUrls: ['./screenshots.component.scss'],
 })
 export class ScreenshotsComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
@@ -47,16 +50,16 @@ export class ScreenshotsComponent implements OnInit, OnDestroy {
   responsiveOptions = [
     {
       breakpoint: '1024px',
-      numVisible: 5
+      numVisible: 5,
     },
     {
       breakpoint: '768px',
-      numVisible: 3
+      numVisible: 3,
     },
     {
       breakpoint: '560px',
-      numVisible: 1
-    }
+      numVisible: 1,
+    },
   ];
 
   ngOnInit() {

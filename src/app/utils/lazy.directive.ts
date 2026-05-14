@@ -1,4 +1,13 @@
-import { Directive, ElementRef, EventEmitter, Output, PLATFORM_ID, inject, AfterViewInit, OnDestroy } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  EventEmitter,
+  Output,
+  PLATFORM_ID,
+  inject,
+  AfterViewInit,
+  OnDestroy,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 @Directive({
@@ -27,7 +36,7 @@ export class LazyLoadDirective implements AfterViewInit, OnDestroy {
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     this.observer.observe(this.el.nativeElement);

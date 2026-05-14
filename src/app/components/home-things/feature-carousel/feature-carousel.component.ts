@@ -7,10 +7,7 @@ import { features } from '~/app/pages/about/data/feature-comparison';
 @Component({
   selector: 'app-feature-carousel',
   standalone: true,
-  imports: [
-    PrimeNgModule,
-    DlIconComponent
-],
+  imports: [PrimeNgModule, DlIconComponent],
   templateUrl: './feature-carousel.component.html',
   styleUrls: ['./feature-carousel.component.scss'],
 })

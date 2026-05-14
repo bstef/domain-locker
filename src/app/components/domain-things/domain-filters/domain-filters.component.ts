@@ -1,4 +1,12 @@
-import { Component, Output, EventEmitter, Input, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  OnInit,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { PrimeNgModule } from '~/app/prime-ng.module';
@@ -48,8 +56,10 @@ export class FieldVisibilityFilterComponent implements OnInit {
   @Output() searchChange = new EventEmitter<string>();
   @Output() layoutChange = new EventEmitter<boolean>();
   @Output() sortChange = new EventEmitter<FieldOption>();
-  
-  @Input() triggerReload: () => void = () => { /* no-op */ };
+
+  @Input() triggerReload: () => void = () => {
+    /* no-op */
+  };
   @Output() $triggerReload = new EventEmitter();
 
   selectedFields: FieldOption[] = [];
@@ -60,7 +70,7 @@ export class FieldVisibilityFilterComponent implements OnInit {
 
   layoutOptions = [
     { label: 'Grid', value: true, icon: 'pi pi-th-large' },
-    { label: 'List', value: false, icon: 'pi pi-bars' }
+    { label: 'List', value: false, icon: 'pi pi-bars' },
   ];
 
   addButtonLinks = [
@@ -91,10 +101,10 @@ export class FieldVisibilityFilterComponent implements OnInit {
   }
 
   public initializeSelectedFields() {
-    this.selectedFields = this.fieldOptions.filter(option => 
-      this.defaultSelectedFields.includes(option.value)
+    this.selectedFields = this.fieldOptions.filter((option) =>
+      this.defaultSelectedFields.includes(option.value),
     );
-    this.selectedFieldsList = this.selectedFields.map(field => field.value);
+    this.selectedFieldsList = this.selectedFields.map((field) => field.value);
     this.onSelectionChange();
   }
 
@@ -102,8 +112,8 @@ export class FieldVisibilityFilterComponent implements OnInit {
     if (this.selectedFields.length === 0) {
       this.initializeSelectedFields();
     }
-    this.selectedFields = this.fieldOptions.filter(option => 
-      this.selectedFieldsList.includes(option.value)
+    this.selectedFields = this.fieldOptions.filter((option) =>
+      this.selectedFieldsList.includes(option.value),
     );
     this.visibilityChange.emit(this.selectedFields);
   }

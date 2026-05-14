@@ -39,7 +39,11 @@ export class UptimeHistoryComponent implements OnInit {
     this.databaseService.instance
       .getDomainUptime(this.userId, this.domainId, 'year')
       .then((raw: unknown) => {
-        const data = raw as { data?: UptimeData[]; length?: number; error?: unknown } & UptimeData[];
+        const data = raw as {
+          data?: UptimeData[];
+          length?: number;
+          error?: unknown;
+        } & UptimeData[];
         if (!data.data && data.length) data.data = data; // wtf.
         if (data.data) {
           this.uptimeData = data.data;
@@ -59,14 +63,14 @@ export class UptimeHistoryComponent implements OnInit {
   generateCalendarHeatmap(): void {
     const daysInYear = this.getDaysInPastYear();
     const groupedByDay: Record<string, number[]> = {};
-  
+
     // Group response times by day
     this.uptimeData.forEach((entry) => {
       const day = new Date(entry.checked_at).toISOString().split('T')[0]; // YYYY-MM-DD
       if (!groupedByDay[day]) groupedByDay[day] = [];
       if (entry.response_time_ms) groupedByDay[day].push(entry.response_time_ms);
     });
-  
+
     // Calculate daily averages
     const dailyAverages = daysInYear.map((day) => ({
       day,
@@ -75,7 +79,7 @@ export class UptimeHistoryComponent implements OnInit {
           groupedByDay[day].length
         : null,
     }));
-  
+
     // Split data into 7 series (one for each day of the week)
     const series = Array.from({ length: 7 }, (_, i) => ({
       name: this.getDayName(i),
@@ -87,7 +91,7 @@ export class UptimeHistoryComponent implements OnInit {
           fullDate: item.day,
         })),
     }));
-  
+
     // Configure the heatmap chart
     this.calendarHeatmap = {
       chart: {
@@ -145,7 +149,18 @@ export class UptimeHistoryComponent implements OnInit {
       },
       tooltip: {
         enabled: true,
-        custom: ({ seriesIndex, dataPointIndex, w }: { series: unknown; seriesIndex: number; dataPointIndex: number; w: { globals: { initialSeries: { data: { y: number; fullDate: string }[] }[] } } }) => {
+        custom: ({
+          seriesIndex,
+          dataPointIndex,
+          w,
+        }: {
+          series: unknown;
+          seriesIndex: number;
+          dataPointIndex: number;
+          w: {
+            globals: { initialSeries: { data: { y: number; fullDate: string }[] }[] };
+          };
+        }) => {
           const data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
           if (data.y === -1) {
             return `<div class="tooltip-text">
@@ -161,7 +176,7 @@ export class UptimeHistoryComponent implements OnInit {
           });
           const dayOfMonth = date.getDate();
           const ordinalSuffix = this.getOrdinalSuffix(dayOfMonth);
-  
+
           return `<div class="tooltip-text">
             <strong>${day} ${dayOfMonth}${ordinalSuffix} ${month}</strong>: 
             <span style="color: var(--cyan-400)">${data.y.toFixed(2)} ms</span>
@@ -171,7 +186,7 @@ export class UptimeHistoryComponent implements OnInit {
       series,
     };
   }
-  
+
   generateResponseCodePieChart(): void {
     const codeCounts: Record<string, number> = {};
 
@@ -195,10 +210,11 @@ export class UptimeHistoryComponent implements OnInit {
       colors,
       tooltip: {
         y: {
-          formatter: (value: number, { seriesIndex: _seriesIndex }: { seriesIndex: number }) =>
-            `${value} checks (${((value / this.uptimeData.length) * 100).toFixed(
-              2
-            )}%)`,
+          formatter: (
+            value: number,
+            { seriesIndex: _seriesIndex }: { seriesIndex: number },
+          ) =>
+            `${value} checks (${((value / this.uptimeData.length) * 100).toFixed(2)}%)`,
         },
       },
       legend: {
@@ -214,7 +230,7 @@ export class UptimeHistoryComponent implements OnInit {
     if (code >= 500) return `var(--${prefix}red-400)`; // Red for server errors
     return `var(--${prefix}grey-400)`; // Grey for unknown
   }
-  
+
   /**
    * Helper function to get the ordinal suffix for a number (e.g., 1st, 2nd, 3rd).
    */
@@ -231,7 +247,6 @@ export class UptimeHistoryComponent implements OnInit {
         return 'th';
     }
   }
-  
 
   /**
    * Gets all days in the past year.

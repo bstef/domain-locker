@@ -1,5 +1,13 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, catchError, from, lastValueFrom, map, Observable, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  from,
+  lastValueFrom,
+  map,
+  Observable,
+  throwError,
+} from 'rxjs';
 import { SupabaseService } from '~/app/services/supabase.service';
 import { EnvService } from '~/app/services/environment.service';
 import { ErrorHandlerService } from '~/app/services//error-handler.service';
@@ -9,7 +17,13 @@ import { HttpClient } from '@angular/common/http';
  * Environment Types
  */
 export type BillingPlans = 'free' | 'hobby' | 'pro' | 'enterprise';
-export type SpecialPlans = 'sponsor' | 'complimentary' | 'tester' | 'demo' | 'super' | 'local';
+export type SpecialPlans =
+  | 'sponsor'
+  | 'complimentary'
+  | 'tester'
+  | 'demo'
+  | 'super'
+  | 'local';
 export type UserType = BillingPlans | SpecialPlans;
 type EnvironmentType = 'dev' | 'managed' | 'selfHosted' | 'demo';
 
@@ -90,19 +104,14 @@ export class BillingService {
 
   /** Returns an Observable that emits the user's billing row or throws an error. */
   getBillingData(): Observable<Record<string, unknown> | null> {
-    return from(
-      this.supabaseService.supabase
-        .from('billing')
-        .select('*')
-        .single()
-    ).pipe(
+    return from(this.supabaseService.supabase.from('billing').select('*').single()).pipe(
       map(({ data, error }) => {
         if (error) {
           throw error;
         }
         return data as Record<string, unknown> | null;
       }),
-      catchError((err) => throwError(() => err))
+      catchError((err) => throwError(() => err)),
     );
   }
 
@@ -116,7 +125,9 @@ export class BillingService {
     try {
       // interceptor will add Authorization header for supabase functions
       const data = await lastValueFrom(
-        this.http.post<{ error?: string } & Record<string, unknown>>(endpoint, { userId })
+        this.http.post<{ error?: string } & Record<string, unknown>>(endpoint, {
+          userId,
+        }),
       );
       if (data.error) {
         throw new Error(data.error);
@@ -127,12 +138,11 @@ export class BillingService {
         error,
         message: 'Failed to cancel subscription',
         showToast: true,
-        location: 'SupabaseService.cancelSubscription'
+        location: 'SupabaseService.cancelSubscription',
       });
       throw error;
     }
   }
-
 
   async createCheckoutSession(productId: string): Promise<string> {
     const userId = (await this.supabaseService.getCurrentUser())?.id;
@@ -140,7 +150,9 @@ export class BillingService {
     const host = this.envService.getEnvVar('DL_BASE_URL', 'https://domain-locker.com');
     const callbackUrl = host
       ? `${host}/settings/upgrade`
-      : (typeof window !== 'undefined' ? window.location.href : '');
+      : typeof window !== 'undefined'
+        ? window.location.href
+        : '';
 
     if (!endpoint) {
       throw new Error('Stripe checkout endpoint is not configured.');
@@ -150,7 +162,7 @@ export class BillingService {
       const body = { userId, productId, callbackUrl };
       // interceptor will attach JWT
       const data = await lastValueFrom(
-        this.http.post<{ url?: string; error?: string }>(endpoint, body)
+        this.http.post<{ url?: string; error?: string }>(endpoint, body),
       );
       if (!data.url) {
         throw new Error(data.error || 'Failed to create checkout session');
@@ -161,15 +173,15 @@ export class BillingService {
         error,
         message: 'Failed to create checkout session',
         showToast: true,
-        location: 'SupabaseService.createCheckoutSession'
+        location: 'SupabaseService.createCheckoutSession',
       });
       throw error;
     }
   }
 
-
   verifyStripeSession(sessionId: string) {
-    this.http.post<{ status?: string }>('/api/verify-checkout', { sessionId })
+    this.http
+      .post<{ status?: string }>('/api/verify-checkout', { sessionId })
       .subscribe((res) => {
         if (res && res.status === 'paid') {
           // Payment is confirmed, plan is 'pro' or 'hobby', etc.
@@ -179,5 +191,4 @@ export class BillingService {
         }
       });
   }
-
 }

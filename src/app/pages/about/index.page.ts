@@ -18,28 +18,30 @@ export default class AboutPageComponent {
 
   readonly autoLinks: Record<string, ContentFile<DocAttributes>[]> = {
     legal: this.createSortedContentFiles((contentFile) =>
-      contentFile.filename.includes('/legal')
+      contentFile.filename.includes('/legal'),
     ),
     developing: this.createSortedContentFiles((contentFile) =>
-      contentFile.filename.includes('/developing/')
+      contentFile.filename.includes('/developing/'),
     ),
     'self-hosting': this.createSortedContentFiles((contentFile) =>
-      contentFile.filename.includes('/self-hosting/')
+      contentFile.filename.includes('/self-hosting/'),
     ),
     articles: this.createSortedContentFiles((contentFile) =>
-      contentFile.filename.includes('/articles/')
+      contentFile.filename.includes('/articles/'),
     ),
     guides: this.createSortedContentFiles((contentFile) =>
-      contentFile.filename.includes('/guides/')
+      contentFile.filename.includes('/guides/'),
     ),
   };
 
   private sortDocs<T extends { attributes: { index?: number; title: string } }>(
-    docs: T[]
+    docs: T[],
   ): T[] {
     return [...docs].sort((a, b) => {
-      const aIndex = typeof a.attributes.index === 'number' ? a.attributes.index : Infinity;
-      const bIndex = typeof b.attributes.index === 'number' ? b.attributes.index : Infinity;
+      const aIndex =
+        typeof a.attributes.index === 'number' ? a.attributes.index : Infinity;
+      const bIndex =
+        typeof b.attributes.index === 'number' ? b.attributes.index : Infinity;
 
       if (aIndex !== bIndex) {
         return aIndex - bIndex;
@@ -50,7 +52,7 @@ export default class AboutPageComponent {
   }
 
   private createSortedContentFiles(
-    predicate: (contentFile: ContentFile<DocAttributes>) => boolean
+    predicate: (contentFile: ContentFile<DocAttributes>) => boolean,
   ) {
     const files = injectContentFiles<DocAttributes>(predicate);
     return this.sortDocs(files);

@@ -12,14 +12,18 @@
 
 @if (domains.length === 0) {
   <div class="p-card p-4">
-    <h4 class="mt-0 mb-4">{{ 'DOMAINS.DOMAIN_COLLECTION.NO_DOMAINS_FOUND' | translate }}</h4>
+    <h4 class="mt-0 mb-4">
+      {{ 'DOMAINS.DOMAIN_COLLECTION.NO_DOMAINS_FOUND' | translate }}
+    </h4>
     <p>
       {{ 'DOMAINS.DOMAIN_COLLECTION.NO_DOMAINS_TEXT_1' | translate }}
-      <a routerLink="/domains/add" class="text-primary underline">{{ 'DOMAINS.DOMAIN_COLLECTION.ADD_FIRST_DOMAIN' | translate }}</a>.
+      <a routerLink="/domains/add" class="text-primary underline">{{
+        'DOMAINS.DOMAIN_COLLECTION.ADD_FIRST_DOMAIN' | translate
+      }}</a
+      >.
     </p>
   </div>
 }
-
 
 @if (!loading) {
   <!-- Domain Grid (cards) -->
@@ -44,28 +48,48 @@
 
 <!-- Note (count of visible fields, and usage instructions) -->
 @if (showFooter) {
-  <div class="flex space-between justify-between items-center flex-wrap mt-4 text-surface-400">
+  <div
+    class="flex space-between justify-between items-center flex-wrap mt-4 text-surface-400"
+  >
     <p>
-      {{ 'DOMAINS.DOMAIN_COLLECTION.VIEWING' | translate }} {{ filteredDomains.length }} {{ 'DOMAINS.DOMAIN_COLLECTION.OF' | translate }} {{ domains.length }} {{ 'DOMAINS.DOMAIN_COLLECTION.DOMAINS' | translate }} {{ preFilteredText }}
+      {{ 'DOMAINS.DOMAIN_COLLECTION.VIEWING' | translate }} {{ filteredDomains.length }}
+      {{ 'DOMAINS.DOMAIN_COLLECTION.OF' | translate }} {{ domains.length }}
+      {{ 'DOMAINS.DOMAIN_COLLECTION.DOMAINS' | translate }} {{ preFilteredText }}
       @if (searchTerm) {
         {{ 'DOMAINS.DOMAIN_COLLECTION.MATCHING_SEARCH' | translate }} "{{ searchTerm }}"
-        },
-        {{ 'DOMAINS.DOMAIN_COLLECTION.WITH' | translate }} {{ visibleColumns.length }} {{ 'DOMAINS.DOMAIN_COLLECTION.FIELDS_VISIBLE_IN' | translate }}
-        {{ isGridLayout ? ('DOMAINS.DOMAIN_COLLECTION.GRID_VIEW' | translate) : ('DOMAINS.DOMAIN_COLLECTION.LIST_VIEW' | translate) }}<br>
-        @if (searchTerm || visibleFields.length !== 3) {
-          <button type="button" (click)="resetFilters()" class="text-primary opacity-70 underline cursor-pointer bg-transparent border-none p-0">
-            {{ 'DOMAINS.DOMAIN_COLLECTION.RESET_FILTERS' | translate }}
-          </button>
-        }
-        @if ((searchTerm || visibleFields.length !== 3) && preFilteredText) {
-          {{ 'DOMAINS.DOMAIN_COLLECTION.OR' | translate }}
-        }
-        @if (preFilteredText) {
-          <a routerLink="/domains" (click)="resetFilters()" class="text-primary opacity-70 underline cursor-pointer">
-            {{ 'DOMAINS.DOMAIN_COLLECTION.VIEW_ALL' | translate }}
-          </a>
-        }
-      </p>
-      <p class="text-xs" [innerHTML]="'DOMAINS.DOMAIN_COLLECTION.INSTRUCTIONS' | translate"></p>
-    </div>
-  }
+      }
+      , {{ 'DOMAINS.DOMAIN_COLLECTION.WITH' | translate }} {{ visibleColumns.length }}
+      {{ 'DOMAINS.DOMAIN_COLLECTION.FIELDS_VISIBLE_IN' | translate }}
+      {{
+        isGridLayout
+          ? ('DOMAINS.DOMAIN_COLLECTION.GRID_VIEW' | translate)
+          : ('DOMAINS.DOMAIN_COLLECTION.LIST_VIEW' | translate)
+      }}<br />
+      @if (searchTerm || visibleFields.length !== 3) {
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="text-primary opacity-70 underline cursor-pointer bg-transparent border-none p-0"
+        >
+          {{ 'DOMAINS.DOMAIN_COLLECTION.RESET_FILTERS' | translate }}
+        </button>
+      }
+      @if ((searchTerm || visibleFields.length !== 3) && preFilteredText) {
+        {{ 'DOMAINS.DOMAIN_COLLECTION.OR' | translate }}
+      }
+      @if (preFilteredText) {
+        <a
+          routerLink="/domains"
+          (click)="resetFilters()"
+          class="text-primary opacity-70 underline cursor-pointer"
+        >
+          {{ 'DOMAINS.DOMAIN_COLLECTION.VIEW_ALL' | translate }}
+        </a>
+      }
+    </p>
+    <p
+      class="text-xs"
+      [innerHTML]="'DOMAINS.DOMAIN_COLLECTION.INSTRUCTIONS' | translate"
+    ></p>
+  </div>
+}

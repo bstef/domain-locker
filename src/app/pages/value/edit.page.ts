@@ -21,7 +21,12 @@ export default class EditDomainValuePage implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
 
-  domains: (DbDomain & { purchase_price: number; current_value: number; renewal_cost: number; auto_renew: boolean })[] = [];
+  domains: (DbDomain & {
+    purchase_price: number;
+    current_value: number;
+    renewal_cost: number;
+    auto_renew: boolean;
+  })[] = [];
   loading = true;
   public locale = 'en-US';
   public currency = 'USD';
@@ -91,24 +96,25 @@ export default class EditDomainValuePage implements OnInit {
       auto_renew: domain.auto_renew,
     }));
 
-    this.databaseService.instance.valuationQueries.updateDomainCostings(updates).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Domain costings updated successfully',
-        });
-      },
-      error: (_error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to update domain costings',
-        });
-      },
-    });
+    this.databaseService.instance.valuationQueries
+      .updateDomainCostings(updates)
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Domain costings updated successfully',
+          });
+        },
+        error: (_error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to update domain costings',
+          });
+        },
+      });
   }
-
 
   setLocaleAndCurrency() {
     if (isPlatformBrowser(this.platformId)) {
@@ -123,5 +129,4 @@ export default class EditDomainValuePage implements OnInit {
       }
     }
   }
-  
 }

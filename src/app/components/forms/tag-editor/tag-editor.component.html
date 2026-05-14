@@ -5,19 +5,12 @@
       Tag Name
       <small>Name of the tag (Required)</small>
     </label>
-    <input
-      pInputText
-      id="tag-name"
-      class="w-1/2"
-      [(ngModel)]="tag.name"
-      required />
+    <input pInputText id="tag-name" class="w-1/2" [(ngModel)]="tag.name" required />
   </div>
 
   <!-- Tag Color (Radio Buttons) -->
   <div class="field-row">
-    <label for="tag-color">
-      Tag Color
-    </label>
+    <label for="tag-color"> Tag Color </label>
     <div class="flex gap-4 flex-wrap w-1/2">
       @for (color of tagColors; track color) {
         <div class="flex gap-1" [title]="color">
@@ -25,9 +18,16 @@
             name="color"
             [inputId]="color"
             [value]="color"
-            [(ngModel)]="tag.color" />
+            [(ngModel)]="tag.color"
+          />
           <label [for]="color">
-            <div [style]="{ 'background-color': 'var(--'+color+'-400)', 'border': '2px solid var(--'+color+'-800)' }" class="rounded-full w-14 h-6"></div>
+            <div
+              [style]="{
+                'background-color': 'var(--' + color + '-400)',
+                border: '2px solid var(--' + color + '-800)',
+              }"
+              class="rounded-full w-14 h-6"
+            ></div>
           </label>
         </div>
       }
@@ -47,9 +47,13 @@
         class="w-full"
         placeholder="e.g. game-icons/dinosaur-rex"
         [(ngModel)]="tag.icon"
-        pattern="[a-z]+/[a-z]+" />
-      <small  class="p-info opacity-70">
-        Choose an icon from <a class="primary" href="https://icon-sets.iconify.design/" target="_blank">iconify.design</a>
+        pattern="[a-z]+/[a-z]+"
+      />
+      <small class="p-info opacity-70">
+        Choose an icon from
+        <a class="primary" href="https://icon-sets.iconify.design/" target="_blank"
+          >iconify.design</a
+        >
         and specify in the format of [icon-pack]/[icon-name]. E.g. mdi/penguin
       </small>
     </div>
@@ -68,7 +72,8 @@
       [autoResize]="true"
       class="w-1/2 h-auto"
       [(ngModel)]="tag.description"
-    maxlength="255"></textarea>
+      maxlength="255"
+    ></textarea>
   </div>
 
   <!-- Save Button -->

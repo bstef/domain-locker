@@ -31,11 +31,10 @@ export class ValuationQueries {
     private handleError: (error: unknown) => Observable<never>,
   ) {}
 
-   // Get all domains with costings info
-   getDomainCostings(): Observable<DomainCosting[]> {
-    return from(this.supabase
-      .from('domain_costings')
-      .select(`
+  // Get all domains with costings info
+  getDomainCostings(): Observable<DomainCosting[]> {
+    return from(
+      this.supabase.from('domain_costings').select(`
         domain_id,
         purchase_price,
         current_value,
@@ -47,7 +46,7 @@ export class ValuationQueries {
           registrar_id,
           registrars (name)
         )
-      `)
+      `),
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
@@ -60,10 +59,10 @@ export class ValuationQueries {
           purchase_price: parseFloat(String(item.purchase_price)) || 0,
           current_value: parseFloat(String(item.current_value)) || 0,
           renewal_cost: parseFloat(String(item.renewal_cost)) || 0,
-          auto_renew: item.auto_renew
+          auto_renew: item.auto_renew,
         }));
       }),
-      catchError(error => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -77,8 +76,7 @@ export class ValuationQueries {
           if (response.error) {
             throw response.error;
           }
-        })
+        }),
     );
   }
-
 }

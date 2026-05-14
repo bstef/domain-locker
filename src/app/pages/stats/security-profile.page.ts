@@ -12,6 +12,6 @@ import StatusesIndexPageComponent from '~/app/pages/assets/statuses/index.page';
     </div>
   `,
   imports: [EppStatusChartComponent, StatusesIndexPageComponent],
-  styles: ['::ng-deep app-statuses-index h1 { display: none !important; } ']
+  styles: ['::ng-deep app-statuses-index h1 { display: none !important; } '],
 })
 export default class SecurityProfilePage {}

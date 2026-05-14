@@ -26,28 +26,30 @@ export class HistoryQueries {
     private handleError: (error: unknown) => Observable<never>,
   ) {}
 
-
   getChangeHistory(domainName?: string, days = 7): Observable<HistoryEntry[]> {
     let query = this.supabase
       .from('domain_updates')
       .select('change_type, date')
       .gte('date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
-  
+
     if (domainName) {
       query = query.eq('domains.domain_name', domainName);
     }
-  
+
     return from(query).pipe(
       map(({ data, error }) => {
         if (error) {
           this.handleError(error);
           throw error;
         }
-  
+
         // Process data to group by date and change_type
-        const historyMap: Record<string, { added: number, removed: number, updated: number }> = {};
-  
-        data.forEach((entry: { date: string, change_type: string }) => {
+        const historyMap: Record<
+          string,
+          { added: number; removed: number; updated: number }
+        > = {};
+
+        data.forEach((entry: { date: string; change_type: string }) => {
           const date = new Date(entry.date).toISOString().split('T')[0]; // Extract day
           if (!historyMap[date]) {
             historyMap[date] = { added: 0, removed: 0, updated: 0 };
@@ -60,7 +62,7 @@ export class HistoryQueries {
             historyMap[date].updated += 1;
           }
         });
-  
+
         return Object.entries(historyMap).map(([date, counts]) => ({
           date,
           ...counts,
@@ -73,48 +75,59 @@ export class HistoryQueries {
           location: 'HistoryQueries.getChangeHistory',
         });
         return of([]);
-      })
+      }),
     );
   }
 
   getTotalUpdateCount(domainName?: string): Observable<number> {
-    let query: PromiseLike<{ count: number | null; error: PostgrestError | null }> = this.supabase
-      .from('domain_updates')
-      .select('id', { count: 'exact' });
+    let query: PromiseLike<{ count: number | null; error: PostgrestError | null }> =
+      this.supabase.from('domain_updates').select('id', { count: 'exact' });
 
-      if (domainName) {
-        query = this.supabase
-          .from('domain_updates')
-          .select('id, domains!inner(domain_name)', { count: 'exact' })
-          .eq('domains.domain_name', domainName);
-      }
+    if (domainName) {
+      query = this.supabase
+        .from('domain_updates')
+        .select('id, domains!inner(domain_name)', { count: 'exact' })
+        .eq('domains.domain_name', domainName);
+    }
 
-    return from(query.then(({ count, error }: { count: number | null; error: PostgrestError | null }) => {
-      if (error) throw error;
-      return count || 0;
-    })).pipe(
-      catchError(error => {
+    return from(
+      query.then(
+        ({ count, error }: { count: number | null; error: PostgrestError | null }) => {
+          if (error) throw error;
+          return count || 0;
+        },
+      ),
+    ).pipe(
+      catchError((error) => {
         this.handleError({
           message: 'Error fetching total update count',
           error,
           location: 'HistoryQueries.getTotalUpdateCount',
         });
         return of(0);
-      })
+      }),
     );
   }
 
-    
-  getDomainUpdates(domainName?: string, start = 0, end = 24, category?: string, changeType?: string, filterDomain?: string): Observable<DomainUpdateRow[]> {
+  getDomainUpdates(
+    domainName?: string,
+    start = 0,
+    end = 24,
+    category?: string,
+    changeType?: string,
+    filterDomain?: string,
+  ): Observable<DomainUpdateRow[]> {
     let query = this.supabase
       .from('domain_updates')
-      .select(`
+      .select(
+        `
         *,
         domains!inner(domain_name)
-      `)
+      `,
+      )
       .order('date', { ascending: false })
       .range(start, end);
-  
+
     if (domainName) {
       query = query.eq('domains.domain_name', domainName);
     }
@@ -127,7 +140,7 @@ export class HistoryQueries {
     if (filterDomain) {
       query = query.ilike('domains.domain_name', `%${filterDomain}%`);
     }
-  
+
     return from(query).pipe(
       map(({ data, error }) => {
         if (error) throw error;
@@ -135,11 +148,12 @@ export class HistoryQueries {
       }),
       catchError((error) => {
         this.handleError({
-          error, message: 'Error fetching domain updates', location: 'HistoryQueries.getDomainUpdates',
+          error,
+          message: 'Error fetching domain updates',
+          location: 'HistoryQueries.getDomainUpdates',
         });
         return of([]);
-      })
+      }),
     );
   }
-
 }

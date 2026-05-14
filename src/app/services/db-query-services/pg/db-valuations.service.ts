@@ -56,10 +56,10 @@ export class ValuationQueries {
           purchase_price: parseFloat(String(item.purchase_price)) || 0,
           current_value: parseFloat(String(item.current_value)) || 0,
           renewal_cost: parseFloat(String(item.renewal_cost)) || 0,
-          auto_renew: item.auto_renew
+          auto_renew: item.auto_renew,
         }));
       }),
-      catchError((error) => this.handleError(error))
+      catchError((error) => this.handleError(error)),
     );
   }
 
@@ -75,12 +75,12 @@ export class ValuationQueries {
         auto_renew = EXCLUDED.auto_renew
     `;
 
-    const params = updates.flatMap(update => [
+    const params = updates.flatMap((update) => [
       update.domain_id,
       update.purchase_price,
       update.current_value,
       update.renewal_cost,
-      update.auto_renew
+      update.auto_renew,
     ]);
 
     return this.pgApiUtil.postToPgExecutor(query, params).pipe(
@@ -88,8 +88,7 @@ export class ValuationQueries {
       catchError((error) => {
         this.handleError(error);
         return of(void 0);
-      })
+      }),
     );
   }
-  
 }

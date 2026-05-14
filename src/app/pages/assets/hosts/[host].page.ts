@@ -17,15 +17,15 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
     @if (!loading) {
       <app-domain-view
         [domains]="domains"
-        [preFilteredText]="'hosted with '+hostIsp+''"
+        [preFilteredText]="'hosted with ' + hostIsp + ''"
         [showAddButton]="false"
         [loading]="loading"
-        />
+      />
     }
     @if (loading) {
       <p-progressSpinner></p-progressSpinner>
     }
-    `,
+  `,
 })
 export default class HostDomainsPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -38,7 +38,7 @@ export default class HostDomainsPageComponent implements OnInit {
   loading = true;
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.hostIsp = params['host'];
       this.loadDomains();
     });
@@ -59,7 +59,7 @@ export default class HostDomainsPageComponent implements OnInit {
           location: 'HostDomainsPageComponent.loadDomains',
         });
         this.loading = false;
-      }
+      },
     });
   }
 }

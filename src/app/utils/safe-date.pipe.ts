@@ -5,7 +5,11 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true,
 })
 export class SafeDatePipe implements PipeTransform {
-  transform(value: string | number | Date | null | undefined, format: 'full' | 'long' | 'medium' | 'short' | undefined = 'medium', fallback = 'Unknown'): string {
+  transform(
+    value: string | number | Date | null | undefined,
+    format: 'full' | 'long' | 'medium' | 'short' | undefined = 'medium',
+    fallback = 'Unknown',
+  ): string {
     if (!value || isNaN(Date.parse(String(value)))) {
       return fallback;
     }

@@ -4,7 +4,7 @@
  * So that we can measure engagement so we can understand which features are most used,
  * and improve accordingly.
  * No personal data is collected, and no cookies are used.
- * 
+ *
  * All tracking will be skipped if:
  * - The user has disabled analytics in the settings.
  * - The user is not using the public managed instance.
@@ -19,7 +19,7 @@ import { SupabaseService } from '~/app/services/supabase.service';
 import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 type EventType =
-  'pageview_authenticated'
+  | 'pageview_authenticated'
   | 'pageview_unauthenticated'
   | 'auth_view'
   | 'auth_login_start'
@@ -31,7 +31,7 @@ type EventType =
   | 'add_domain';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class HitCountingService {
   private platformId = inject<object>(PLATFORM_ID);
@@ -42,8 +42,12 @@ export class HitCountingService {
   private plausibleEnabled = false;
   private analyticsKey = 'PRIVACY_disable-analytics';
 
-  private get plausibleWindow(): { plausible?: (event: string, opts?: { props?: Record<string, unknown> }) => void } {
-    return window as unknown as { plausible?: (event: string, opts?: { props?: Record<string, unknown> }) => void };
+  private get plausibleWindow(): {
+    plausible?: (event: string, opts?: { props?: Record<string, unknown> }) => void;
+  } {
+    return window as unknown as {
+      plausible?: (event: string, opts?: { props?: Record<string, unknown> }) => void;
+    };
   }
 
   constructor() {
@@ -55,7 +59,11 @@ export class HitCountingService {
 
   /* Read Plausible config from environmental variables */
   private getCredentials() {
-    const { site: plausibleSite, url: plausibleUrl, isConfigured } = this.envService.getPlausibleConfig();
+    const {
+      site: plausibleSite,
+      url: plausibleUrl,
+      isConfigured,
+    } = this.envService.getPlausibleConfig();
     return { plausibleUrl, plausibleSite, isConfigured };
   }
 
@@ -108,7 +116,7 @@ export class HitCountingService {
     if (!this.plausibleEnabled) {
       return false;
     }
-    
+
     // Cancel if not client
     if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') {
       return false;
@@ -126,8 +134,10 @@ export class HitCountingService {
     try {
       if (!this.checkIfShouldContinue() || !url) return;
       const isAuthenticated = await this.supabaseService.isAuthenticated();
-      const eventName = isAuthenticated ? 'pageview_authenticated' : 'pageview_unauthenticated';
-      const topLevel = (url.replace(/^\/+/, '').split('/')[0] || 'home');
+      const eventName = isAuthenticated
+        ? 'pageview_authenticated'
+        : 'pageview_unauthenticated';
+      const topLevel = url.replace(/^\/+/, '').split('/')[0] || 'home';
       this.plausibleWindow.plausible?.(eventName, { props: { topLevel, url } });
     } catch (error) {
       this.errorHandler.handleError({

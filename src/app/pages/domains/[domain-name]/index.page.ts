@@ -64,46 +64,50 @@ export default class DomainDetailsPage implements OnInit {
   shouldMountHistory = false;
 
   ngOnInit() {
-    this.route.params.pipe(
-      switchMap(params => {
-        this.name = params['domain-name'];
-        return this.databaseService.instance.getDomain(this.name!).pipe(
-          catchError(err => {
-            this.domainNotFound = true;
-            this.errorHandler.handleError({
-              error: err,
-              message: 'Failed to load domain details',
-              showToast: true,
-              location: 'Domain',
-            });
-            this.cdr.markForCheck();
-            return of(null);
-          })
-        );
-      }),
-      tap(domain => {
-        this.domain = domain;
-        this.cdr.markForCheck();
-        // if ?update=true, re-fetch in 1s and then remove param
-        if (this.route.snapshot.queryParamMap.get('update') === 'true' && this.name) {
-          setTimeout(() => {
-            this.databaseService.instance.getDomain(this.name!).subscribe(
-              refreshed => {
-                this.domain = refreshed;
-                this.cdr.markForCheck();
-              },
-              () => { /* no-op */ }
-            );
-            this.router.navigate([], {
-              relativeTo: this.route,
-              queryParams: { update: null },
-              queryParamsHandling: 'merge',
-              replaceUrl: true
-            });
-          }, 1000);
-        }
-      })
-    ).subscribe();
+    this.route.params
+      .pipe(
+        switchMap((params) => {
+          this.name = params['domain-name'];
+          return this.databaseService.instance.getDomain(this.name!).pipe(
+            catchError((err) => {
+              this.domainNotFound = true;
+              this.errorHandler.handleError({
+                error: err,
+                message: 'Failed to load domain details',
+                showToast: true,
+                location: 'Domain',
+              });
+              this.cdr.markForCheck();
+              return of(null);
+            }),
+          );
+        }),
+        tap((domain) => {
+          this.domain = domain;
+          this.cdr.markForCheck();
+          // if ?update=true, re-fetch in 1s and then remove param
+          if (this.route.snapshot.queryParamMap.get('update') === 'true' && this.name) {
+            setTimeout(() => {
+              this.databaseService.instance.getDomain(this.name!).subscribe(
+                (refreshed) => {
+                  this.domain = refreshed;
+                  this.cdr.markForCheck();
+                },
+                () => {
+                  /* no-op */
+                },
+              );
+              this.router.navigate([], {
+                relativeTo: this.route,
+                queryParams: { update: null },
+                queryParamsHandling: 'merge',
+                replaceUrl: true,
+              });
+            }, 1000);
+          }
+        }),
+      )
+      .subscribe();
   }
 
   onMonitorVisible(): void {
@@ -114,9 +118,12 @@ export default class DomainDetailsPage implements OnInit {
     this.shouldMountHistory = true;
   }
 
-  public filterIpAddresses(ipAddresses: { ip_address: string, is_ipv6: boolean }[] | undefined, isIpv6: boolean): { ip_address: string, is_ipv6: boolean }[] {
+  public filterIpAddresses(
+    ipAddresses: { ip_address: string; is_ipv6: boolean }[] | undefined,
+    isIpv6: boolean,
+  ): { ip_address: string; is_ipv6: boolean }[] {
     if (!ipAddresses) return [];
-    return ipAddresses.filter(ip => ip.is_ipv6 === isIpv6);
+    return ipAddresses.filter((ip) => ip.is_ipv6 === isIpv6);
   }
 
   confirmDelete(event: Event) {
@@ -124,7 +131,7 @@ export default class DomainDetailsPage implements OnInit {
       target: event.target as EventTarget,
       message: 'Are you sure you want to delete this domain?',
       icon: 'pi pi-exclamation-triangle',
-      accept: () => this.deleteDomain()
+      accept: () => this.deleteDomain(),
     });
   }
 
@@ -135,18 +142,18 @@ export default class DomainDetailsPage implements OnInit {
         this.globalMessageService.showMessage({
           severity: 'success',
           summary: 'Success',
-          detail: 'Domain deleted successfully'
+          detail: 'Domain deleted successfully',
         });
         this.router.navigate(['/domains']);
       },
-      error: err => {
+      error: (err) => {
         this.errorHandler.handleError({
           error: err,
           message: 'Failed to delete domain',
           showToast: true,
           location: 'Domain',
         });
-      }
+      },
     });
   }
 }

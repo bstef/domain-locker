@@ -19,14 +19,16 @@
               <p class="m-0 font-semibold">No monitoring data available yet</p>
               @if (isSelfHosted) {
                 <p class="m-0">
-                  Domain monitoring is now enabled for your self-hosted instance, but no data has been collected yet.
-                  The monitoring cron job runs every 15 minutes to check your domains' uptime and performance.
+                  Domain monitoring is now enabled for your self-hosted instance, but no
+                  data has been collected yet. The monitoring cron job runs every 15
+                  minutes to check your domains' uptime and performance.
                 </p>
               }
               @if (isSelfHosted) {
                 <p class="m-0">
-                  If you recently updated your deployment, please ensure the <code>domain-locker-updater</code> container is running.
-                  You can also manually trigger monitoring by running:
+                  If you recently updated your deployment, please ensure the
+                  <code>domain-locker-updater</code> container is running. You can also
+                  manually trigger monitoring by running:
                 </p>
               }
               @if (isSelfHosted) {
@@ -36,7 +38,8 @@
               }
               @if (!isSelfHosted) {
                 <p class="m-0 mt-2">
-                  Monitoring data will appear here once your domains have been checked. This typically happens within a few minutes.
+                  Monitoring data will appear here once your domains have been checked.
+                  This typically happens within a few minutes.
                 </p>
               }
             </div>
@@ -48,7 +51,9 @@
       <div>
         <p-messages severity="warn">
           <ng-template pTemplate>
-            <p class="m-0">No domains available to monitor. Please add some domains first.</p>
+            <p class="m-0">
+              No domains available to monitor. Please add some domains first.
+            </p>
           </ng-template>
         </p-messages>
       </div>
@@ -56,14 +61,28 @@
     @if (!loading && domainSummaries.length > 0) {
       <ul class="list-none p-0 m-0 flex flex-col gap-3">
         @for (summary of domainSummaries; track summary) {
-          <li role="button" tabindex="0" (click)="visitDomain(summary.domainName)" (keydown.enter)="visitDomain(summary.domainName)" (keydown.space)="$event.preventDefault(); visitDomain(summary.domainName)" class="p-card py-2 px-3 flex gap-3 items-normal">
-            <a [routerLink]="['/monitor', summary.domainName]" class="flex gap-2 items-center no-underline min-w-48">
+          <li
+            role="button"
+            tabindex="0"
+            (click)="visitDomain(summary.domainName)"
+            (keydown.enter)="visitDomain(summary.domainName)"
+            (keydown.space)="$event.preventDefault(); visitDomain(summary.domainName)"
+            class="p-card py-2 px-3 flex gap-3 items-normal"
+          >
+            <a
+              [routerLink]="['/monitor', summary.domainName]"
+              class="flex gap-2 items-center no-underline min-w-48"
+            >
               <app-domain-favicon [domain]="summary.domainName"></app-domain-favicon>
               <h3 class="m-0 text-primary">{{ summary.domainName }}</h3>
             </a>
             <div class="flex flex-col justify-between min-w-40">
               <span class="text-sm opacity-70">Uptime</span>
-              <span class="text-xl font-semibold pb-2 {{getUptimeColor(summary.uptimePercentage)}}">
+              <span
+                class="text-xl font-semibold pb-2 {{
+                  getUptimeColor(summary.uptimePercentage)
+                }}"
+              >
                 @if (isNaN(summary.uptimePercentage)) {
                   N/A
                 } @else {
@@ -72,20 +91,29 @@
               </span>
             </div>
             <div class="flex flex-col justify-between min-w-80">
-              <span class="text-sm opacity-70 {{ !summary.sparklineData.length  ? 'line-through' : ''}}">Response Time</span>
+              <span
+                class="text-sm opacity-70 {{
+                  !summary.sparklineData.length ? 'line-through' : ''
+                }}"
+                >Response Time</span
+              >
               @if (summary.sparklineData) {
                 <apx-chart
                   [series]="[{ data: summary.sparklineData }]"
                   [chart]="sparkLineConfig.chart!"
                   [stroke]="{ curve: 'smooth', width: 2 }"
-                  [colors]= "['var(--primary-color, #60a5fa)']"
+                  [colors]="['var(--primary-color, #60a5fa)']"
                   [tooltip]="{ enabled: false }"
                 ></apx-chart>
               }
             </div>
             <div class="flex flex-col justify-between min-w-40">
               <span class="text-sm opacity-70">DNS Response</span>
-              <span class="text-xl font-semibold pb-2 {{getPerformanceColor(summary.avgDnsTime, 'dns')}}">
+              <span
+                class="text-xl font-semibold pb-2 {{
+                  getPerformanceColor(summary.avgDnsTime, 'dns')
+                }}"
+              >
                 @if (isNaN(summary.avgDnsTime)) {
                   N/A
                 } @else {
@@ -95,7 +123,11 @@
             </div>
             <div class="flex flex-col justify-between min-w-40">
               <span class="text-sm opacity-70">SSL Handshake</span>
-              <span class="text-xl font-semibold pb-2 {{getPerformanceColor(summary.avgSslTime, 'ssl')}}">
+              <span
+                class="text-xl font-semibold pb-2 {{
+                  getPerformanceColor(summary.avgSslTime, 'ssl')
+                }}"
+              >
                 @if (isNaN(summary.avgSslTime)) {
                   N/A
                 } @else {
@@ -115,10 +147,10 @@
                   [stroke]="{ show: false }"
                   [legend]="{ show: false }"
                   [labels]="[]"
-          [tooltip]="{
-            enabled: false
-          }"
-                  />
+                  [tooltip]="{
+                    enabled: false,
+                  }"
+                />
               }
             </div>
           </li>
