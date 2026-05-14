@@ -18,7 +18,8 @@
     "build:netlify": "NITRO_PRESET=netlify NODE_OPTIONS=--max-old-space-size=4096  ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "eslint 'src/**/*.{ts,html}'"
+    "lint": "eslint 'src/**/*.{ts,html}'",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "private": true,
   "dependencies": {
