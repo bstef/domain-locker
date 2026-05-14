@@ -7,17 +7,20 @@ description: Set up Node from .nvmrc, restore the node_modules cache, and instal
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v6
+    - name: Set up Node
+      uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
         cache: 'npm'
 
-    - id: nm-cache
+    - name: Restore node_modules cache
+      id: nm-cache
       uses: actions/cache@v4
       with:
         path: node_modules
         key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-    - if: steps.nm-cache.outputs.cache-hit != 'true'
+    - name: Install dependencies
+      if: steps.nm-cache.outputs.cache-hit != 'true'
       shell: bash
       run: npm ci --legacy-peer-deps

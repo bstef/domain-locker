@@ -47,9 +47,11 @@ jobs:
               - 'package*.json'
 
   pr-title:
-    name: 🖊️ PR Title Check
+    name: 🖊️ PR Check
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+
       - name: Validate PR title (conventional commits)
         uses: amannn/action-semantic-pull-request@v5
         env:
@@ -72,6 +74,23 @@ jobs:
           subjectPatternError: |
             Subject must start with a letter and not be empty.
             Example: `feat: add support for X` or `fix(api): handle Y`.
+
+      - name: Validate PR body is filled in
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # Fail if PR body is empty or unchanged from the template
+          template=$(cat .github/PULL_REQUEST_TEMPLATE.md)
+          body="${PR_BODY//$'\r'/}"
+          if [ -z "$(echo "$body" | tr -d '[:space:]')" ]; then
+            echo "::error::PR body is empty. Please fill in the template."
+            exit 1
+          fi
+          if [ "$body" = "$template" ]; then
+            echo "::error::PR body is unchanged from the template. Please describe your changes."
+            exit 1
+          fi
+          echo "✅ PR body looks filled in"
 
   lint:
     name: 🛡️ Lint
@@ -115,7 +134,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/dependency-review-action@v4
         with:
-          fail-on-severity: medium
+          fail-on-severity: moderate
           comment-summary-in-pr: on-failure
 
   build:
@@ -159,11 +178,14 @@ jobs:
           echo "::error::SSR server did not respond on /api/health within 20s"
           exit 1
 
+      - name: Archive bundle
+        run: tar -czf dl-bundle.tar.gz dist/
+
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: dl-bundle-${{ github.sha }}
-          path: dist/
+          path: dl-bundle.tar.gz
           retention-days: 14
           if-no-files-found: error
 
@@ -265,3 +287,57 @@ jobs:
         uses: raven-actions/actionlint@v2
         with:
           fail-on-error: true
+
+  summary:
+    name: 📣 Summary
+    runs-on: ubuntu-latest
+    needs: [pr-title, lint, typecheck, format, deps-review, build, docker-smoke, actionlint]
+    if: always()
+    steps:
+      - name: Write run summary
+        env:
+          PR_TITLE: ${{ needs.pr-title.result }}
+          LINT: ${{ needs.lint.result }}
+          TYPECHECK: ${{ needs.typecheck.result }}
+          FORMAT: ${{ needs.format.result }}
+          DEPS: ${{ needs.deps-review.result }}
+          BUILD: ${{ needs.build.result }}
+          DOCKER: ${{ needs.docker-smoke.result }}
+          ACTIONLINT: ${{ needs.actionlint.result }}
+        run: |
+          # Render a per-job status table to the Actions run summary UI
+          icon() {
+            case "$1" in
+              success)   echo "✅" ;;
+              failure)   echo "❌" ;;
+              cancelled) echo "⏹️" ;;
+              skipped)   echo "⏭️" ;;
+              *)         echo "❓" ;;
+            esac
+          }
+          overall="✅ All checks passed"
+          for r in "$PR_TITLE" "$LINT" "$TYPECHECK" "$FORMAT" "$DEPS" \
+                   "$BUILD" "$DOCKER" "$ACTIONLINT"; do
+            [ "$r" = "failure" ] && overall="❌ One or more checks failed"
+          done
+          {
+            echo "## CI Summary"
+            echo ""
+            echo "> **Overall:** $overall"
+            echo ""
+            echo "| Check | Status |"
+            echo "|---|---|"
+            echo "| 🖊️ PR Check | $(icon "$PR_TITLE") $PR_TITLE |"
+            echo "| 🛡️ Lint | $(icon "$LINT") $LINT |"
+            echo "| 🦴 Typecheck | $(icon "$TYPECHECK") $TYPECHECK |"
+            echo "| 🧼 Format | $(icon "$FORMAT") $FORMAT |"
+            echo "| ⛓️‍💥 Dependency Review | $(icon "$DEPS") $DEPS |"
+            echo "| 🏗️ Build | $(icon "$BUILD") $BUILD |"
+            echo "| 🐳 Docker Smoke | $(icon "$DOCKER") $DOCKER |"
+            echo "| ⚙️ Actionlint | $(icon "$ACTIONLINT") $ACTIONLINT |"
+            echo ""
+            echo "**Commit:** \`${GITHUB_SHA:0:7}\` on branch \`${GITHUB_HEAD_REF}\`"
+            if [ "$BUILD" = "success" ]; then
+              echo "**Build artifact:** \`dl-bundle-${GITHUB_SHA}\` (see the Artifacts panel above)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
