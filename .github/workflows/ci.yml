@@ -5,8 +5,6 @@ name: 🚦 CI Checks
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '**.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +21,7 @@ jobs:
     outputs:
       app: ${{ steps.filter.outputs.app }}
       workflows: ${{ steps.filter.outputs.workflows }}
+      packages: ${{ steps.filter.outputs.packages }}
     steps:
       - uses: dorny/paths-filter@v4
         id: filter
@@ -44,6 +43,8 @@ jobs:
               - 'tsconfig*.json'
             workflows:
               - '.github/workflows/**'
+            packages:
+              - 'package*.json'
 
   pr-title:
     name: 🖊️ PR Title Check
@@ -73,17 +74,13 @@ jobs:
             Example: `feat: add support for X` or `fix(api): handle Y`.
 
   lint:
-    name: 🧼 Lint
+    name: 🛡️ Lint
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.app == 'true'
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - uses: ./.github/actions/setup
       - run: npm run lint
 
   typecheck:
@@ -93,11 +90,7 @@ jobs:
     if: needs.changes.outputs.app == 'true'
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - uses: ./.github/actions/setup
       - run: npm run typecheck
 
   format:
@@ -107,12 +100,23 @@ jobs:
     if: needs.changes.outputs.app == 'true'
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - uses: ./.github/actions/setup
       - run: npm run format:check
+
+  deps-review:
+    name: ⛓️‍💥 Dependency Review
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: medium
+          comment-summary-in-pr: on-failure
 
   build:
     name: 🏗️ Build
@@ -122,11 +126,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --legacy-peer-deps
+      - uses: ./.github/actions/setup
       - name: Build production bundle
         env:
           NODE_OPTIONS: --max-old-space-size=8192
@@ -139,6 +139,33 @@ jobs:
             exit 1
           fi
           echo "✅ SSR entry present"
+
+      - name: SSR boot probe
+        env:
+          PORT: 3000
+        run: |
+          # Boot the built server, confirm /api/health responds, then exit
+          node dist/analog/server/index.mjs &
+          SSR_PID=$!
+          trap 'kill $SSR_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 20); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/health || echo 000)
+            if [ "$CODE" = "200" ]; then
+              echo "✅ SSR boots, /api/health responded after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::SSR server did not respond on /api/health within 20s"
+          exit 1
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dl-bundle-${{ github.sha }}
+          path: dist/
+          retention-days: 14
+          if-no-files-found: error
 
   docker-smoke:
     name: 🐳 Docker Smoke Test
@@ -178,7 +205,7 @@ jobs:
           echo "::error::Postgres did not become ready"
           exit 1
 
-      - name: 🚀 Start app & probe /api/health
+      - name: 🚀 Start app
         run: |
           docker run -d --name dl-ci-app --network dl-ci -p 3000:3000 \
             -e DL_ENV_TYPE=selfHosted \
@@ -188,7 +215,10 @@ jobs:
             -e DL_PG_PASSWORD=ci-test \
             -e DL_PG_NAME=domain_locker \
             domain-locker:ci
+          echo "✅ App container started"
 
+      - name: 🩺 Health check
+        run: |
           for i in $(seq 1 60); do
             CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/health || echo 000)
             if [ "$CODE" = "200" ]; then
@@ -204,6 +234,19 @@ jobs:
           echo "--- postgres logs ---"
           docker logs dl-ci-pg
           exit 1
+
+      - name: 👀 Probe homepage SSR
+        run: |
+          # Confirm SSR actually renders the app shell, not just a healthcheck
+          CODE=$(curl -s -L -o /tmp/dl-home.html -w '%{http_code}' http://localhost:3000/)
+          if [ "$CODE" != "200" ] || ! grep -q '<app-root' /tmp/dl-home.html; then
+            echo "::error::Homepage did not render app-root (status: $CODE)"
+            head -c 2000 /tmp/dl-home.html
+            echo
+            docker logs --tail 100 dl-ci-app
+            exit 1
+          fi
+          echo "✅ SSR renders homepage"
 
       - name: 🧹 Tear down
         if: always()
