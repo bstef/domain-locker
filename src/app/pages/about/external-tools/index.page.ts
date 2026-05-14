@@ -5,7 +5,7 @@ import { MetaTagsService } from '~/app/services/meta-tags.service';
 import { sections } from '../data/useful-links';
 
 @Component({
-  selector: 'app-external-tools',
+  selector: 'app-about-external-tools-page',
   standalone: true,
   imports: [PrimeNgModule],
   templateUrl: './index.page.html',

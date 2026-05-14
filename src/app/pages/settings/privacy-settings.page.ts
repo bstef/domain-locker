@@ -6,6 +6,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 
 @Component({
   standalone: true,
+  selector: 'app-settings-privacy-settings-page',
   imports: [PrimeNgModule, ReactiveFormsModule],
   templateUrl: './privacy-settings.page.html',
 })

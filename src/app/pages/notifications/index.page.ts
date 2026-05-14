@@ -5,6 +5,7 @@ import { NotificationsListComponent } from '~/app/components/notifications-list/
 
 @Component({
   standalone: true,
+  selector: 'app-notifications-page',
   templateUrl: './index.page.html',
   imports: [PrimeNgModule, NotificationsListComponent],
 })

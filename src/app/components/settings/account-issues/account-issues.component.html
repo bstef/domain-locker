@@ -31,8 +31,7 @@
             <div class="ml-2 flex flex-1 items-center justify-between">
               {{ issue.message }}
               @if (issue.action) {
-                <button
-                  pButton
+                <p-button
                   class="ml-2 min-w-52"
                   styleClass="w-full"
                   [severity]="
@@ -47,7 +46,7 @@
                   [label]="issue.action.label"
                   (click)="issue.action.callback ? issue.action.callback() : null"
                   [routerLink]="issue.action.route || null"
-                ></button>
+                />
               }
             </div>
           </div>

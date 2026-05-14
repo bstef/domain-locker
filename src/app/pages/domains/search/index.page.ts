@@ -6,6 +6,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
+  selector: 'app-domains-search-page',
   imports: [PrimeNgModule],
   template: ``,
 })

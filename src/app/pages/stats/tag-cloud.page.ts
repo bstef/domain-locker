@@ -4,7 +4,7 @@ import { TagGridComponent } from '~/app/components/tag-grid/tag-grid.component';
 
 @Component({
   standalone: true,
-  selector: 'app-index-page',
+  selector: 'app-stats-tag-cloud-page',
   template: `
     <h1>Tags</h1>
     <div class="flex flex-col gap-8">

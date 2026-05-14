@@ -52,7 +52,7 @@ interface SubscriptionData {
 }
 
 @Component({
-  selector: 'app-upgrade',
+  selector: 'app-settings-upgrade-page',
   standalone: true,
   imports: [CommonModule, PrimeNgModule, FeatureNotEnabledComponent],
   templateUrl: './upgrade.page.html',
@@ -152,7 +152,8 @@ export default class UpgradePage implements OnInit {
     };
 
     const billingCycle = this.isAnnual ? 'annual' : 'monthly';
-    return planMap[planId]?.[billingCycle] || '';
+    const plan = planMap[planId];
+    return plan ? plan[billingCycle] : '';
   }
 
   async handleUpgrade(planId: string): Promise<void> {

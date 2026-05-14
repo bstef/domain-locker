@@ -14,7 +14,7 @@ interface PageRoute {
 }
 
 @Component({
-  selector: 'app-page-list',
+  selector: 'app-advanced-page-list-page',
   standalone: true,
   imports: [CommonModule, RouterModule, PrimeNgModule],
   templateUrl: './page-list.page.html',

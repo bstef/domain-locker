@@ -9,7 +9,7 @@ import { CtaComponent } from '~/app/components/home-things/cta/cta.component';
 
 @Component({
   standalone: true,
-  selector: 'app-about-index-page',
+  selector: 'app-about-page',
   templateUrl: './about.page.html',
   imports: [PrimeNgModule, DlIconComponent, CtaComponent],
 })

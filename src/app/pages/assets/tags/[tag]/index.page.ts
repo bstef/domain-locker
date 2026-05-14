@@ -14,7 +14,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-tag-domains',
+  selector: 'app-assets-tags-tag-page',
   imports: [
     PrimeNgModule,
     DomainCollectionComponent,

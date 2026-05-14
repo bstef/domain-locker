@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 
 @Component({
   standalone: true,
-  selector: 'app-tag-edit',
+  selector: 'app-assets-tags-new-page',
   imports: [PrimeNgModule, DomainCollectionComponent, TagEditorComponent],
   template: ` <h2 class="mb-4 ml-4">Add New Tag</h2>
     <div class="p-card p-4 m-4">

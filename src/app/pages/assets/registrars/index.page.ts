@@ -10,7 +10,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-registrars-index',
+  selector: 'app-assets-registrars-page',
   imports: [RouterModule, PrimeNgModule, DomainFaviconComponent],
   templateUrl: './index.page.html',
 })

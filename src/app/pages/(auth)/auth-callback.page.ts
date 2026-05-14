@@ -8,7 +8,7 @@ import { HitCountingService } from '~/app/services/hit-counting.service';
 
 @Component({
   standalone: true,
-  selector: 'app-auth-callback',
+  selector: 'app-auth-callback-page',
   template: `<p>Processing social login...</p>`,
 })
 export default class AuthCallbackComponent implements OnInit {

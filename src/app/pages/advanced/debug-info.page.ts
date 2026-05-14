@@ -37,6 +37,7 @@ interface ScreenInfo {
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-debug-info-page',
   imports: [CommonModule, PrimeNgModule],
   templateUrl: './debug-info.page.html',
   styles: [``],

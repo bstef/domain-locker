@@ -5,6 +5,7 @@ import { UiSettingsComponent } from '~/app/components/settings/ui-options/ui-opt
 
 @Component({
   standalone: true,
+  selector: 'app-settings-display-options-page',
   imports: [PrimeNgModule, UiSettingsComponent],
   templateUrl: './display-options.page.html',
   styles: [

@@ -21,6 +21,7 @@ import DatabaseService from '~/app/services/database.service';
 
 @Component({
   standalone: true,
+  selector: 'app-settings-layout-page',
   imports: [
     CommonModule,
     RouterOutlet,

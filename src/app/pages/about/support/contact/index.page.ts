@@ -24,7 +24,7 @@ type QueryInfo = Record<
 
 @Component({
   standalone: true,
-  selector: 'app-contact',
+  selector: 'app-about-support-contact-page',
   imports: [PrimeNgModule, FormsModule, ReactiveFormsModule, HelpfulLinksComponent],
   templateUrl: './index.page.html',
 })

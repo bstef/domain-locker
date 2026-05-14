@@ -3,6 +3,7 @@ import { DomainExpirationBarComponent } from '~/app/components/charts/domain-exp
 
 @Component({
   standalone: true,
+  selector: 'app-stats-upcoming-expirations-page',
   template: `
     <h1 class="mt-2 mb-4">Upcoming Expirations</h1>
     <app-domain-expiration-bar [showFull]="true" />

@@ -17,6 +17,7 @@ interface Section {
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-page',
   imports: [PrimeNgModule],
   templateUrl: './index.page.html',
   styles: [

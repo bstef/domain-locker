@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
   standalone: true,
-  selector: 'app-domain-all-page',
+  selector: 'app-domains-page',
   imports: [DomainCollectionComponent, PrimeNgModule],
   template: `
     @if (!loading) {

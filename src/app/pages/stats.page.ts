@@ -19,7 +19,7 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
 @Component({
   standalone: true,
   imports: [CommonModule, PrimeNgModule, FeatureNotEnabledComponent],
-  selector: 'app-stats-page',
+  selector: 'app-stats-layout-page',
   templateUrl: './stats/index.page.html',
   styles: [
     `

@@ -10,7 +10,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-ssl-issuer-domains',
+  selector: 'app-assets-certs-issuer-page',
   imports: [PrimeNgModule, DomainCollectionComponent],
   template: `
     <h1>Domains using SSL certificates from "{{ issuer }}"</h1>

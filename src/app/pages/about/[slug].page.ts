@@ -24,6 +24,7 @@ export interface DocAttributes {
 
 @Component({
   standalone: true,
+  selector: 'app-about-slug-page',
   imports: [MarkdownComponent, PrimeNgModule, NotFoundPage],
   templateUrl: './[slug].page.html',
   styleUrls: ['../../styles/prism.css'],

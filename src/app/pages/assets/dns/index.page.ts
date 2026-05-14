@@ -19,7 +19,7 @@ interface DomainWithRecords {
 
 @Component({
   standalone: true,
-  selector: 'app-dns-records',
+  selector: 'app-assets-dns-page',
   imports: [PrimeNgModule, TabViewModule, TableModule],
   templateUrl: './index.page.html',
   styleUrls: ['./index.page.scss'],

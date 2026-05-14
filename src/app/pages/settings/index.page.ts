@@ -12,7 +12,7 @@ import { User } from '@supabase/supabase-js';
 import { settingsLinks } from '~/app/constants/navigation-links';
 
 @Component({
-  selector: 'app-settings',
+  selector: 'app-settings-page',
   standalone: true,
   templateUrl: './settings.page.html',
   imports: [CommonModule, PrimeNgModule, AccountIssuesComponent],

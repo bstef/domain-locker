@@ -12,7 +12,7 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
 
 @Component({
   standalone: true,
-  selector: 'app-settings',
+  selector: 'app-settings-account-page',
   templateUrl: './account.page.html',
   styleUrls: ['./index.page.scss'],
   imports: [PrimeNgModule, ReactiveFormsModule, FeatureNotEnabledComponent],

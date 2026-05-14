@@ -36,6 +36,7 @@ declare const __APP_VERSION__: string;
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-diagnostic-actions-page',
   imports: [CommonModule, PrimeNgModule],
   templateUrl: './diagnostic-actions.page.html',
   styles: [``],

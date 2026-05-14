@@ -11,7 +11,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-status-domains',
+  selector: 'app-assets-statuses-status-page',
   imports: [PrimeNgModule, DomainCollectionComponent],
   template: `
     <h1>Domains with status "{{ statusInfo ? statusInfo.label : statusCode }}"</h1>

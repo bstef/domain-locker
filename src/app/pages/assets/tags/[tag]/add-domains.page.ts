@@ -9,7 +9,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-tag-edit',
+  selector: 'app-assets-tags-tag-add-domains-page',
   imports: [PrimeNgModule, TagPickListComponent],
   template: ` <h2 class="mb-4 ml-4">Add Domains: {{ tagName }}</h2>
     @if (tag && tag.id) {

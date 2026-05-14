@@ -21,7 +21,7 @@ import { NotFoundComponent } from '~/app/components/misc/domain-not-found.compon
 
 @Component({
   standalone: true,
-  selector: 'app-domain-details',
+  selector: 'app-monitor-domain-page',
   imports: [
     CommonModule,
     PrimeNgModule,

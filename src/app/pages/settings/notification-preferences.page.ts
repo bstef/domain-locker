@@ -35,7 +35,7 @@ interface NotificationChannel {
 }
 
 @Component({
-  selector: 'app-notification-preferences',
+  selector: 'app-settings-notification-preferences-page',
   templateUrl: './notification-preferences.page.html',
   standalone: true,
   imports: [

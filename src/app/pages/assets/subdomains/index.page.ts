@@ -24,7 +24,7 @@ interface DomainGroup {
 
 @Component({
   standalone: true,
-  selector: 'app-subdomains-index',
+  selector: 'app-assets-subdomains-page',
   imports: [
     RouterModule,
     PrimeNgModule,

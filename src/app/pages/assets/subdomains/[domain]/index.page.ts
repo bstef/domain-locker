@@ -18,7 +18,7 @@ import { EnvService } from '~/app/services/environment.service';
 
 @Component({
   standalone: true,
-  selector: 'app-subdomains-domain',
+  selector: 'app-assets-subdomains-domain-page',
   imports: [
     SubdomainListComponent,
     PrimeNgModule,

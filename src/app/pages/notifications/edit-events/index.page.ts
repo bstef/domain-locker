@@ -14,6 +14,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
+  selector: 'app-notifications-edit-events-page',
   imports: [
     CommonModule,
     PrimeNgModule,

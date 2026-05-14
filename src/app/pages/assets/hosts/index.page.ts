@@ -10,7 +10,7 @@ import { TableModule } from 'primeng/table';
 
 @Component({
   standalone: true,
-  selector: 'app-hosts-index',
+  selector: 'app-assets-hosts-page',
   imports: [RouterModule, PrimeNgModule, TableModule],
   template: `
     <h1 class="mt-2 mb-4">Hosts</h1>

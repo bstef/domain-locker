@@ -30,6 +30,7 @@ import { NgxTurnstileModule, NgxTurnstileComponent } from 'ngx-turnstile';
 
 @Component({
   standalone: true,
+  selector: 'app-login-page',
   imports: [
     CommonModule,
     ReactiveFormsModule,

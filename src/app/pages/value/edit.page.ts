@@ -11,7 +11,7 @@ import { DbDomain } from '~/app/../types/Database';
 
 @Component({
   standalone: true,
-  selector: 'app-edit-domain-value',
+  selector: 'app-value-edit-page',
   templateUrl: './edit.page.html',
   imports: [PrimeNgModule, RouterModule, FormsModule, TableModule],
 })

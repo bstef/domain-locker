@@ -8,7 +8,7 @@ import { CtaComponent } from '~/app/components/home-things/cta/cta.component';
 
 @Component({
   standalone: true,
-  selector: 'app-pricing-page',
+  selector: 'app-about-pricing-page',
   templateUrl: './index.page.html',
   imports: [PrimeNgModule, PricingCardsComponent, CtaComponent],
 })

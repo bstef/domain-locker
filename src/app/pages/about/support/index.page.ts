@@ -5,6 +5,7 @@ import { supportContent } from '~/app/pages/about/data/support-links';
 
 @Component({
   standalone: true,
+  selector: 'app-about-support-page',
   imports: [PrimeNgModule],
   templateUrl: './index.page.html',
   styles: [``],

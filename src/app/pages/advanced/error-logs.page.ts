@@ -11,6 +11,7 @@ interface BuildLogChoice {
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-error-logs-page',
   imports: [CommonModule, PrimeNgModule],
   templateUrl: './error-logs.page.html',
   styles: [

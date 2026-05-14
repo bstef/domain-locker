@@ -6,7 +6,7 @@ import { ExtendedMenuItem, statsLinks } from '~/app/constants/navigation-links';
 @Component({
   standalone: true,
   imports: [PrimeNgModule],
-  selector: 'app-stats-index-page',
+  selector: 'app-stats-page',
   // templateUrl: './index.page.html',
   template: `
     <div class="mx-auto mt-6 w-4/5">

@@ -6,6 +6,7 @@ import { GlobalMessageService } from '~/app/services/messaging.service';
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-error-page',
   imports: [PrimeNgModule],
   templateUrl: './error.page.html',
   styles: [``],

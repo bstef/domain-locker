@@ -6,6 +6,7 @@ import { DeleteAccountComponent } from '~/app/components/settings/delete-data/de
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-delete-data-page',
   imports: [PrimeNgModule, DeleteAccountComponent],
   template: '<app-delete-account />',
 })

@@ -13,7 +13,7 @@ import {
 import { OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-features',
+  selector: 'app-about-alternatives-page',
   standalone: true,
   imports: [PrimeNgModule, TableModule],
   templateUrl: './index.page.html',

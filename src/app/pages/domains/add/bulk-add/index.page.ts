@@ -39,7 +39,7 @@ import { HitCountingService } from '~/app/services/hit-counting.service';
  */
 @Component({
   standalone: true,
-  selector: 'app-bulk-add',
+  selector: 'app-domains-add-bulk-add-page',
   imports: [PrimeNgModule, ReactiveFormsModule],
   templateUrl: './bulk-add.page.html',
   styleUrls: ['./bulk-add.page.scss'],

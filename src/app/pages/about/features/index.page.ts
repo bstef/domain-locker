@@ -5,7 +5,7 @@ import { FeaturesGridComponent } from '~/app/components/home-things/feature-grid
 import { CtaComponent } from '~/app/components/home-things/cta/cta.component';
 
 @Component({
-  selector: 'app-features',
+  selector: 'app-about-features-page',
   standalone: true,
   imports: [PrimeNgModule, FeaturesGridComponent, CtaComponent],
   templateUrl: './index.page.html',

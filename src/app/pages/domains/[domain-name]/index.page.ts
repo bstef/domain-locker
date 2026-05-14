@@ -24,7 +24,7 @@ import { SubdomainListComponent } from '~/app/pages/assets/subdomains/subdomain-
 
 @Component({
   standalone: true,
-  selector: 'app-domain-details',
+  selector: 'app-domains-domain-name-page',
   imports: [
     CommonModule,
     PrimeNgModule,

@@ -14,7 +14,7 @@ interface SslIssuer {
 
 @Component({
   standalone: true,
-  selector: 'app-ssl-issuers-index',
+  selector: 'app-assets-certs-page',
   imports: [RouterModule, PrimeNgModule, TableModule],
   template: `
     <h1 class="mt-2 mb-4">SSL Certificate Issuers</h1>

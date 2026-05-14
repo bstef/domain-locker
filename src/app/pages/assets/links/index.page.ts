@@ -29,7 +29,7 @@ type CustomSections = Record<string, Record<string, Omit<Link, 'id'>[]>>;
 
 @Component({
   standalone: true,
-  selector: 'app-tags-index',
+  selector: 'app-assets-links-page',
   imports: [CommonModule, RouterModule, PrimeNgModule, DomainLinkComponent],
   templateUrl: './index.page.html',
   providers: [DialogService],

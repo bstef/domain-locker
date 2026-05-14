@@ -11,7 +11,7 @@ import { EnvService } from '~/app/services/environment.service';
 
 @Component({
   standalone: true,
-  selector: 'app-domain-details',
+  selector: 'app-preview-page',
   imports: [CtaComponent, CommonModule, PrimeNgModule, BusinessFeaturesComponent],
   providers: [ConfirmationService, MessageService],
   templateUrl: 'index.page.html',

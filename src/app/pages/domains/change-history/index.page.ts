@@ -8,7 +8,7 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
 
 @Component({
   standalone: true,
-  selector: 'app-domain-details',
+  selector: 'app-domains-change-history-page',
   imports: [
     CommonModule,
     PrimeNgModule,

@@ -7,7 +7,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   standalone: true,
-  selector: 'app-attributions',
+  selector: 'app-about-attributions-page',
   imports: [PrimeNgModule, DomainFaviconComponent],
   template: `
     <h1>Attributions</h1>

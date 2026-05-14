@@ -10,6 +10,7 @@ import { SponsorMessageComponent } from '~/app/components/sponsor-thanks/sponsor
 
 @Component({
   standalone: true,
+  selector: 'app-about-self-hosting-slug-page',
   imports: [PrimeNgModule, DocsViewerComponent, SponsorMessageComponent],
   template: `
     <app-docs-viewer [doc$]="doc$" [allDocs]="files" [categoryName]="category" />

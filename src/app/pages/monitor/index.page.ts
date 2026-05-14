@@ -42,7 +42,7 @@ interface UptimeData {
 }
 
 @Component({
-  selector: 'app-monitor',
+  selector: 'app-monitor-page',
   standalone: true,
   imports: [
     CommonModule,

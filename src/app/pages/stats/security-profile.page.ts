@@ -4,6 +4,7 @@ import StatusesIndexPageComponent from '~/app/pages/assets/statuses/index.page';
 
 @Component({
   standalone: true,
+  selector: 'app-stats-security-profile-page',
   template: `
     <h1>EPP Security Status</h1>
     <div class="flex flex-col gap-8">

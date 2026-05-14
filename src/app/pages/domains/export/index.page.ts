@@ -7,7 +7,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 
 @Component({
   standalone: true,
-  selector: 'app-export-page',
+  selector: 'app-domains-export-page',
   templateUrl: './export.page.html',
   imports: [PrimeNgModule, ReactiveFormsModule],
 })

@@ -11,7 +11,7 @@ import { DbDomain } from '~/app/../types/Database';
 
 @Component({
   standalone: true,
-  selector: 'app-valuation-index-page',
+  selector: 'app-value-page',
   templateUrl: './index.page.html',
   imports: [PrimeNgModule, CommonModule, RouterModule, TableModule],
 })

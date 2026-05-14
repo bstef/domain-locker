@@ -10,7 +10,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-registrar-domains',
+  selector: 'app-assets-registrars-registrar-page',
   imports: [PrimeNgModule, DomainCollectionComponent, DomainFaviconComponent],
   template: `
     <h1 class="flex gap-3 align-items-center">

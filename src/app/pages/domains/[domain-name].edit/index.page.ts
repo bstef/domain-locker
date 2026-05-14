@@ -15,7 +15,7 @@ import { RegistrarAutocompleteService } from '~/app/services/registrar-autocompl
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'app-edit-domain',
+  selector: 'app-domains-domain-name-edit-page',
   templateUrl: './edit-domain.page.html',
   styleUrls: ['./edit-domain.page.scss'],
   standalone: true,

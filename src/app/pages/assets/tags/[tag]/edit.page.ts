@@ -10,7 +10,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-tag-edit',
+  selector: 'app-assets-tags-tag-edit-page',
   imports: [PrimeNgModule, TagEditorComponent],
   template: ` <h2 class="mb-4 ml-4">Edit Tag: {{ tagName }}</h2>
     <div class="p-card p-4 m-4">

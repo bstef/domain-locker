@@ -42,6 +42,7 @@ import { Router } from '@angular/router';
 
 @Component({
   standalone: true,
+  selector: 'app-home-page',
   imports: [
     PrimeNgModule,
     AssetListComponent,

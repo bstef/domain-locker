@@ -12,6 +12,7 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-database-connection-page',
   imports: [CommonModule, PrimeNgModule, ReactiveFormsModule, FeatureNotEnabledComponent],
   templateUrl: './database-connection.page.html',
   styles: [``],

@@ -29,7 +29,7 @@ import { HitCountingService } from '~/app/services/hit-counting.service';
 import { RegistrarAutocompleteService } from '~/app/services/registrar-autocomplete.service';
 
 @Component({
-  selector: 'app-add-domain',
+  selector: 'app-domains-add-page',
   standalone: true,
   imports: [PrimeNgModule, ReactiveFormsModule, CommonModule, TableModule],
   providers: [ConfirmationService],

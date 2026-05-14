@@ -10,7 +10,7 @@ import { ErrorHandlerService } from '~/app/services/error-handler.service';
 
 @Component({
   standalone: true,
-  selector: 'app-host-domains',
+  selector: 'app-assets-hosts-host-page',
   imports: [PrimeNgModule, DomainCollectionComponent],
   template: `
     <h1>Domains hosted by "{{ hostIsp }}"</h1>

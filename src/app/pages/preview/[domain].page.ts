@@ -52,7 +52,7 @@ interface PreviewDomainInfo {
 
 @Component({
   standalone: true,
-  selector: 'app-domain-details',
+  selector: 'app-preview-domain-page',
   imports: [
     CommonModule,
     PrimeNgModule,

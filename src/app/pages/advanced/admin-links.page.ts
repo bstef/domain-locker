@@ -13,6 +13,7 @@ import {
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-admin-links-page',
   imports: [PrimeNgModule, DomainFaviconComponent],
   templateUrl: './admin-links.page.html',
 })

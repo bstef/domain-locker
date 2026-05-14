@@ -96,6 +96,7 @@ interface StatusMetrics {
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-status-page',
   imports: [CommonModule, PrimeNgModule, DomainFaviconComponent],
   templateUrl: './status.page.html',
   styles: [

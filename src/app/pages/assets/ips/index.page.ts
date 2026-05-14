@@ -19,7 +19,7 @@ interface DomainWithIpAddresses {
 
 @Component({
   standalone: true,
-  selector: 'app-ip-addresses',
+  selector: 'app-assets-ips-page',
   imports: [PrimeNgModule, TabViewModule, TableModule],
   templateUrl: './index.page.html',
   styleUrls: ['./index.page.scss'],

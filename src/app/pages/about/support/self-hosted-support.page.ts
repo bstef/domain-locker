@@ -5,6 +5,7 @@ import { selfHostedSupport } from '~/app/pages/about/data/support-links';
 
 @Component({
   standalone: true,
+  selector: 'app-about-support-self-hosted-support-page',
   imports: [CommonModule, PrimeNgModule],
   templateUrl: './index.page.html',
 

@@ -4,6 +4,7 @@ import { ChangeHistoryChartComponent } from '~/app/components/charts/change-hist
 
 @Component({
   standalone: true,
+  selector: 'app-stats-change-frequency-page',
   template: `
     <h1>Change Frequency</h1>
     <div class="flex flex-col gap-2">

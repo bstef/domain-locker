@@ -11,7 +11,7 @@ import { TableModule } from 'primeng/table';
 
 @Component({
   standalone: true,
-  selector: 'app-tags-index',
+  selector: 'app-assets-tags-page',
   imports: [RouterModule, PrimeNgModule, TagEditorComponent, TableModule],
   templateUrl: './index.page.html',
   styleUrl: './tags.scss',

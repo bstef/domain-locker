@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
+  selector: 'app-settings-developer-options-page',
   imports: [PrimeNgModule, ReactiveFormsModule],
   templateUrl: './developer-options.page.html',
   styles: [``],

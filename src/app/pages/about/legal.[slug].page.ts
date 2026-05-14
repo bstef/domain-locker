@@ -9,6 +9,7 @@ import {
 
 @Component({
   standalone: true,
+  selector: 'app-about-legal-slug-page',
   imports: [PrimeNgModule, DocsViewerComponent],
   template: `<app-docs-viewer
     [doc$]="doc$"

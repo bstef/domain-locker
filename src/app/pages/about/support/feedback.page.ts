@@ -4,6 +4,7 @@ import { PrimeNgModule } from '~/app/prime-ng.module';
 
 @Component({
   standalone: true,
+  selector: 'app-about-support-feedback-page',
   imports: [PrimeNgModule],
   template: `
     <div style="position: relative; height:40dvh; overflow:auto;">

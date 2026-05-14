@@ -7,7 +7,7 @@ import { ScreenshotsComponent } from '~/app/components/home-things/screenshots/s
 import { screenshots } from '~/app/pages/about/data/feature-comparison';
 
 @Component({
-  selector: 'app-demo-page',
+  selector: 'app-about-demo-page',
   template: `
     <h1 class="my-4 text-2xl">Domain Locker Demos</h1>
     <app-demo [standAlone]="true" />

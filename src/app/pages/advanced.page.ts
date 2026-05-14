@@ -8,6 +8,7 @@ import { FeatureNotEnabledComponent } from '~/app/components/misc/feature-not-en
 
 @Component({
   standalone: true,
+  selector: 'app-advanced-layout-page',
   imports: [CommonModule, RouterOutlet, PrimeNgModule, FeatureNotEnabledComponent],
   template: `
     @if (enableAdvancedInfo$ | async) {
