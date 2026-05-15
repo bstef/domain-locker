@@ -22,6 +22,11 @@ RUN npm run build && test -f dist/analog/server/index.mjs
 RUN --mount=type=cache,target=/root/.npm \
     npm prune --omit=dev
 
+# Strip esbuild (it's build-time only, and there's a CVE)
+RUN find node_modules \( -type d -name '@esbuild' -o -type d -name 'esbuild' \) \
+        -prune -exec rm -rf {} + && \
+    find node_modules -type l -name esbuild -exec rm -f {} +
+
 # Stage 2 - runner: minimal image to serve the app
 FROM node:20-alpine AS runner
 

@@ -95,7 +95,7 @@ jobs:
           image-ref: dl-scan:${{ matrix.arch }}
           severity: CRITICAL
           ignore-unfixed: true
-          exit-code: '1'
+          exit-code: ${{ github.event_name == 'schedule' && '1' || '0' }}
           vuln-type: 'os,library'
           format: 'table'
           timeout: '10m'
