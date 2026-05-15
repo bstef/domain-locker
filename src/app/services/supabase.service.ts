@@ -662,7 +662,9 @@ export class SupabaseService {
     } else {
       const { data, error } = await this.supabase.auth.mfa.listFactors();
       if (error) throw error;
-      const unverifiedFactor = data.totp.find((factor) => factor.status === 'unverified');
+      const unverifiedFactor = data.all.find(
+        (factor) => factor.factor_type === 'totp' && factor.status === 'unverified',
+      );
       if (unverifiedFactor) {
         const { error: unenrollError } = await this.supabase.auth.mfa.unenroll({
           factorId: unverifiedFactor.id,
