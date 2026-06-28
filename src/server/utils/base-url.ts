@@ -11,7 +11,6 @@ export function getInternalBaseUrl(): string {
     return override;
   }
 
-
   const port = process.env['NITRO_PORT'] || process.env['PORT'] || '3000';
   return `http://localhost:${port}`;
 }
