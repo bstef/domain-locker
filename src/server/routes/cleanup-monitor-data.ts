@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3';
-import { getBaseUrl } from '../utils/base-url';
+import { getInternalBaseUrl } from '../utils/base-url';
 
 const RETENTION_DAYS = 7;
 
@@ -22,12 +22,12 @@ async function callPgExecutor<T>(
   return data.data || [];
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   if (getEnvVar('DL_ENV_TYPE') !== 'selfHosted') {
     return { error: 'Only available in self-hosted mode' };
   }
 
-  const baseUrl = getBaseUrl(event);
+  const baseUrl = getInternalBaseUrl();
   const pgUrl = `${baseUrl}/api/pg-executer`;
   const cutoff = new Date(
     Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000,
