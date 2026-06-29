@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { REQUEST, type ServerRequest } from '@analogjs/router/tokens';
+import { REQUEST } from '@analogjs/router/tokens';
 import { environment } from '~/app/environments/environment';
 
 export type EnvironmentType = 'dev' | 'managed' | 'selfHosted' | 'demo';
@@ -35,7 +35,7 @@ export type EnvVar =
 })
 export class EnvService {
   private platformId = inject<object>(PLATFORM_ID);
-  private request = inject(REQUEST, { optional: true }) as ServerRequest | null;
+  private request = inject(REQUEST, { optional: true });
 
   private environmentFile = (environment || {}) as Record<string, string | undefined>;
 
