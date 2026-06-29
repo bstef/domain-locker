@@ -15,7 +15,6 @@ export interface DomainRow {
   expiry_date?: string;
   registrar?: { name?: string; url?: string } | null;
   user_id?: string;
-  dnssec_enabled?: boolean;
   host?: Record<string, unknown> | null;
 }
 
@@ -48,12 +47,12 @@ async function runWithConcurrency<T, R>(
   return results;
 }
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   if (getEnvVar('DL_ENV_TYPE') !== 'selfHosted') {
     return { error: 'Only available in self-hosted mode.' };
   }
 
-  const baseUrl = getInternalBaseUrl();
+  const baseUrl = getInternalBaseUrl(event);
   const pgExecUrl = `${baseUrl}/api/pg-executer`;
   const domainInfoUrl = `${baseUrl}/api/domain-info`;
 
@@ -64,8 +63,20 @@ export default defineEventHandler(async () => {
       callPgExecutor<DomainRow>(
         pgExecUrl,
         `
-        SELECT d.id, d.domain_name, d.expiry_date,
-               jsonb_build_object('name', r.name, 'url', r.url) as registrar
+        SELECT d.id, d.domain_name, d.expiry_date, d.user_id,
+               jsonb_build_object('name', r.name, 'url', r.url) as registrar,
+               (
+                 SELECT jsonb_build_object(
+                   'ip', h.ip, 'lat', h.lat::text, 'lon', h.lon::text,
+                   'isp', h.isp, 'org', h.org, 'as_number', h.as_number,
+                   'city', h.city, 'region', h.region, 'country', h.country
+                 )
+                 FROM domain_hosts dh
+                 JOIN hosts h ON h.id = dh.host_id
+                 WHERE dh.domain_id = d.id
+                 ORDER BY dh.updated_at DESC
+                 LIMIT 1
+               ) as host
         FROM domains d
         LEFT JOIN registrars r ON d.registrar_id = r.id
         ORDER BY d.domain_name

@@ -1,14 +1,21 @@
+import { getRequestHeader, type H3Event } from 'h3';
+
 /**
- * Base URL for internal server-to-server calls (pg-executer, domain-info)
- * Because these need the local loopback and shouldn't go thru reverse proxy
- * Override with DL_INTERNAL_BASE_URL for non-standard local setups
- *
- * @returns The internal base URL (e.g. "http://localhost:3000")
+ * Base URL for internal self-calls (pg-executer, domain-info)
+ * Dev reuses the request host, prod uses localhost:<port>
  */
-export function getInternalBaseUrl(): string {
+export function getInternalBaseUrl(event?: H3Event): string {
   const override = process.env['DL_INTERNAL_BASE_URL'];
   if (override) {
     return override;
+  }
+
+  if (event && process.env['NODE_ENV'] === 'development') {
+    // reuse the host the request came in on (0.0.0.0 is a bind addr, not a connect target)
+    const host = getRequestHeader(event, 'host')?.replace(/^0\.0\.0\.0/, '127.0.0.1');
+    if (host) {
+      return `http://${host}`;
+    }
   }
 
   const port = process.env['NITRO_PORT'] || process.env['PORT'] || '3000';

@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3';
 import { getInternalBaseUrl } from '../utils/base-url';
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   const {
     DL_ENV_TYPE,
     NOTIFY_WEBHOOK_BASE,
@@ -33,7 +33,7 @@ export default defineEventHandler(async () => {
     thresholds = defaultThresholds;
   }
 
-  const baseUrl = getInternalBaseUrl();
+  const baseUrl = getInternalBaseUrl(event);
   const pgExecUrl = `${baseUrl}/api/pg-executer`;
   const today = new Date().toISOString().split('T')[0];
 

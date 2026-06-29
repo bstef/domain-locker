@@ -87,13 +87,13 @@ async function processBatch<T, R>(
   return results;
 }
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   if (getEnvVar('DL_ENV_TYPE') !== 'selfHosted') {
     return { error: 'Only available in self-hosted mode' };
   }
 
   const startTime = Date.now();
-  const baseUrl = getInternalBaseUrl();
+  const baseUrl = getInternalBaseUrl(event);
   const pgUrl = `${baseUrl}/api/pg-executer`;
 
   const domains = await callPgExecutor<{ id: string; domain_name: string }>(

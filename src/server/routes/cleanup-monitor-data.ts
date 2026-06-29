@@ -22,12 +22,12 @@ async function callPgExecutor<T>(
   return data.data || [];
 }
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   if (getEnvVar('DL_ENV_TYPE') !== 'selfHosted') {
     return { error: 'Only available in self-hosted mode' };
   }
 
-  const baseUrl = getInternalBaseUrl();
+  const baseUrl = getInternalBaseUrl(event);
   const pgUrl = `${baseUrl}/api/pg-executer`;
   const cutoff = new Date(
     Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000,
