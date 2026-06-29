@@ -3,7 +3,7 @@ import { getEnvVar, withTimeout } from './lib/utils';
 import { callPgExecutor } from './lib/pgExecutor';
 import { fetchDomainInfo } from './lib/fetchInfo';
 import { compareAndUpdateDomain } from './lib/compare';
-import { getBaseUrl } from '../../utils/base-url';
+import { getInternalBaseUrl } from '../../utils/base-url';
 
 const DOMAIN_FETCH_TIMEOUT = 10000; // ms
 const DOMAIN_UPDATE_TIMEOUT = 7000; // ms
@@ -48,12 +48,12 @@ async function runWithConcurrency<T, R>(
   return results;
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   if (getEnvVar('DL_ENV_TYPE') !== 'selfHosted') {
     return { error: 'Only available in self-hosted mode.' };
   }
 
-  const baseUrl = getBaseUrl(event);
+  const baseUrl = getInternalBaseUrl();
   const pgExecUrl = `${baseUrl}/api/pg-executer`;
   const domainInfoUrl = `${baseUrl}/api/domain-info`;
 
