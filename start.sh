@@ -179,10 +179,12 @@ done
 echo "${SUCCESS} Postgres is ready (took ${elapsed}s)${RESET}"
 
 # Check if schema is applied / and apply it
-echo "${INFO} Applying schema from schema.sql...${RESET}"
+SCHEMA_FILE=./schema.sql
+[ -f "$SCHEMA_FILE" ] || SCHEMA_FILE=./db/schema.sql
+echo "${INFO} Applying schema from ${SCHEMA_FILE}...${RESET}"
 PGPASSWORD="$DL_PG_PASSWORD" \
   psql -h "$DL_PG_HOST" -p "$DL_PG_PORT" -U "$DL_PG_USER" \
-  -d "$DL_PG_NAME" -f ./schema.sql || {
+  -d "$DL_PG_NAME" -f "$SCHEMA_FILE" || {
     echo "${ERR} Failed to apply schema. See error above.${RESET}"
   } \
   && echo "${SUCCESS} Schema applied successfully${RESET}" \
