@@ -17,12 +17,14 @@ type RawDomainInfo = Omit<FreshDomainInfo, 'dns'> & {
   };
 };
 
+const FETCH_DOMAIN_INFO_TIMEOUT_MS = 10000;
+
 export async function fetchDomainInfo(
   endpoint: string,
   domain: string,
 ): Promise<FreshDomainInfo> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 2000);
+  const timeout = setTimeout(() => controller.abort(), FETCH_DOMAIN_INFO_TIMEOUT_MS);
 
   try {
     const res = await fetch(`${endpoint}?domain=${encodeURIComponent(domain)}`, {
@@ -46,7 +48,9 @@ export async function fetchDomainInfo(
     };
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new Error(`Request timed out after 5 seconds for "${domain}"`);
+      throw new Error(
+        `Request timed out after ${FETCH_DOMAIN_INFO_TIMEOUT_MS / 1000} seconds for "${domain}"`,
+      );
     }
     throw err;
   } finally {
