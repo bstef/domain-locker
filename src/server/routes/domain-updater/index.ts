@@ -47,12 +47,12 @@ async function runWithConcurrency<T, R>(
   return results;
 }
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   if (getEnvVar('DL_ENV_TYPE') !== 'selfHosted') {
     return { error: 'Only available in self-hosted mode.' };
   }
 
-  const baseUrl = getInternalBaseUrl();
+  const baseUrl = getInternalBaseUrl(event);
   const pgExecUrl = `${baseUrl}/api/pg-executer`;
   const domainInfoUrl = `${baseUrl}/api/domain-info`;
 
