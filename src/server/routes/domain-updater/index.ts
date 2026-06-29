@@ -15,7 +15,6 @@ export interface DomainRow {
   expiry_date?: string;
   registrar?: { name?: string; url?: string } | null;
   user_id?: string;
-  dnssec_enabled?: boolean;
   host?: Record<string, unknown> | null;
 }
 
