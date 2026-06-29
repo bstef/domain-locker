@@ -4,7 +4,8 @@ import tls, { PeerCertificate } from 'tls';
 import type { DomainInfo } from '../../types/DomainInfo';
 import type { Host } from 'src/types/common';
 import { verifyAuth } from '../utils/auth';
-import { getWhoisInfo, parseDate } from '../utils/whois';
+import { getWhoisInfo } from '../utils/whois';
+import { parseDate } from '../utils/whois/dates';
 import Logger from '../utils/logger';
 
 const log = new Logger('domain-info');

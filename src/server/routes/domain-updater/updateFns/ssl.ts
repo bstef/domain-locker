@@ -188,7 +188,7 @@ export async function updateSSL(
       }
     }
 
-    if (oldVal !== newVal && field.type != 'date') {
+    if (newVal && oldVal !== newVal && field.type != 'date') {
       updateSet.push(`${field.column} = $${updateSet.length + 2}::${field.type}`);
       updateValues.push(field.new ?? null);
 
