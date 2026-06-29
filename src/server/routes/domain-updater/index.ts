@@ -13,6 +13,8 @@ export interface DomainRow {
   id: string;
   domain_name: string;
   expiry_date?: string;
+  registration_date?: string;
+  updated_date?: string;
   registrar?: { name?: string; url?: string } | null;
   user_id?: string;
   host?: Record<string, unknown> | null;
@@ -63,7 +65,7 @@ export default defineEventHandler(async (event) => {
       callPgExecutor<DomainRow>(
         pgExecUrl,
         `
-        SELECT d.id, d.domain_name, d.expiry_date, d.user_id,
+        SELECT d.id, d.domain_name, d.expiry_date, d.registration_date, d.updated_date, d.user_id,
                jsonb_build_object('name', r.name, 'url', r.url) as registrar,
                (
                  SELECT jsonb_build_object(
