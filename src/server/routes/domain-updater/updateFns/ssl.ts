@@ -17,6 +17,15 @@ interface SslRow {
   created_at?: string;
 }
 
+const hasUsefulSslData = (fresh: Record<string, unknown>): boolean =>
+  Boolean(
+    fresh['valid_to'] ||
+    fresh['fingerprint'] ||
+    fresh['issuer'] ||
+    fresh['subject'] ||
+    fresh['key_size'],
+  );
+
 export async function updateSSL(
   pgExec: string,
   domainRow: DomainRow,
@@ -26,6 +35,7 @@ export async function updateSSL(
   const domainId = domainRow.id;
   const fresh = freshInfo?.ssl as Record<string, unknown> | undefined;
   if (!fresh) return;
+  if (!hasUsefulSslData(fresh)) return;
 
   const [existing] = await callPgExecutor<SslRow>(
     pgExec,
