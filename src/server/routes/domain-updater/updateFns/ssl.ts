@@ -155,6 +155,8 @@ export async function updateSSL(
 
     // Special date comparison, because timezones are stupid
     if (field.type === 'date') {
+      if (!newVal) continue;
+
       const oldDate = new Date(oldVal);
       const newDate = new Date(newVal);
 
