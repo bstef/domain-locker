@@ -100,11 +100,15 @@ export class UptimeHistoryComponent implements OnInit {
   /* Build a GitHub-style calendar: 7 weekday rows over the past year of weeks */
   generateCalendarHeatmap(): void {
     const valueByDay = new Map<string, number | null>();
-    this.dailyData.forEach((entry) => valueByDay.set(entry.day, entry.avg_response_time_ms));
+    this.dailyData.forEach((entry) =>
+      valueByDay.set(entry.day, entry.avg_response_time_ms),
+    );
 
     const today = this.startOfTodayUtc();
     const start = new Date(today);
-    start.setUTCDate(today.getUTCDate() - today.getUTCDay() - 7 * (this.calendarWeeks - 1));
+    start.setUTCDate(
+      today.getUTCDate() - today.getUTCDay() - 7 * (this.calendarWeeks - 1),
+    );
 
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const series = dayNames.map((name, weekday) => ({
@@ -174,11 +178,36 @@ export class UptimeHistoryComponent implements OnInit {
 
   private heatmapRanges() {
     return [
-      { from: -Infinity, to: -1, color: this.getCssVariableColor('--grey-400', '#cccccc'), name: 'No checks' },
-      { from: 0, to: 250, color: this.getCssVariableColor('--green-400', '#22c55e'), name: 'Fast' },
-      { from: 251, to: 500, color: this.getCssVariableColor('--yellow-400', '#eab308'), name: 'Moderate' },
-      { from: 501, to: 1000, color: this.getCssVariableColor('--orange-400', '#f97316'), name: 'Slow' },
-      { from: 1001, to: Infinity, color: this.getCssVariableColor('--red-400', '#ef4444'), name: 'Very Slow' },
+      {
+        from: -Infinity,
+        to: -1,
+        color: this.getCssVariableColor('--grey-400', '#cccccc'),
+        name: 'No checks',
+      },
+      {
+        from: 0,
+        to: 250,
+        color: this.getCssVariableColor('--green-400', '#22c55e'),
+        name: 'Fast',
+      },
+      {
+        from: 251,
+        to: 500,
+        color: this.getCssVariableColor('--yellow-400', '#eab308'),
+        name: 'Moderate',
+      },
+      {
+        from: 501,
+        to: 1000,
+        color: this.getCssVariableColor('--orange-400', '#f97316'),
+        name: 'Slow',
+      },
+      {
+        from: 1001,
+        to: Infinity,
+        color: this.getCssVariableColor('--red-400', '#ef4444'),
+        name: 'Very Slow',
+      },
     ];
   }
 

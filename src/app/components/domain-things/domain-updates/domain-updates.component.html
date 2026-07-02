@@ -69,29 +69,37 @@
           @if (!domainName) {
             <a
               class="flex-none text-default"
-              [routerLink]="'/domains/' + (update.domains?.domain_name || update.domain_name)"
+              [routerLink]="
+                '/domains/' + (update.domains?.domain_name || update.domain_name)
+              "
               >{{ update.domains?.domain_name || update.domain_name }}</a
             >
             <span class="flex-none opacity-60">-</span>
           }
           @if (update.old_value && update.new_value) {
-            <span class="flex-none text-blue-400">{{ mapChangeKey(update.change) }} updated</span>
+            <span class="flex-none text-blue-400"
+              >{{ mapChangeKey(update.change) }} updated</span
+            >
             <span
               class="w-full md:flex-1 min-w-0 box-border pl-4 md:pl-0 truncate"
               [title]="update.old_value + ' → ' + update.new_value"
             >
-              from <span class="font-mono">{{ update.old_value }}</span>
-              to <span class="font-mono">{{ update.new_value }}</span>
+              from <span class="font-mono">{{ update.old_value }}</span> to
+              <span class="font-mono">{{ update.new_value }}</span>
             </span>
           } @else if (update.new_value) {
-            <span class="flex-none text-green-400">{{ mapChangeKey(update.change) }} added</span>
+            <span class="flex-none text-green-400"
+              >{{ mapChangeKey(update.change) }} added</span
+            >
             <span
               class="w-full md:flex-1 min-w-0 box-border pl-4 md:pl-0 truncate font-mono"
               [title]="update.new_value"
               >{{ update.new_value }}</span
             >
           } @else if (update.old_value) {
-            <span class="flex-none text-red-400">{{ mapChangeKey(update.change) }} removed</span>
+            <span class="flex-none text-red-400"
+              >{{ mapChangeKey(update.change) }} removed</span
+            >
             <span
               class="w-full md:flex-1 min-w-0 box-border pl-4 md:pl-0 truncate font-mono"
               [title]="update.old_value"
