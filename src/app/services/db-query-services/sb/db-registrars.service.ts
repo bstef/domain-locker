@@ -1,6 +1,10 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
 import { catchError, from, map, Observable } from 'rxjs';
-import { normalizeRegistrarName } from '~/app/services/domain-utils.service';
+import {
+  dedupeRegistrars,
+  matchRegistrarRows,
+  mergeRegistrarCounts,
+} from '~/app/services/domain-utils.service';
 import { DbDomain, Registrar } from '~/app/../types/Database';
 
 export class RegistrarQueries {
@@ -11,11 +15,12 @@ export class RegistrarQueries {
     private formatDomainData: (data: Record<string, unknown>) => DbDomain,
   ) {}
 
+  // Get all registrars, collapsing name variants of the same registrar
   getRegistrars(): Observable<Registrar[]> {
     return from(this.supabase.from('registrars').select('*')).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data as Registrar[];
+        return dedupeRegistrars(data as Registrar[]);
       }),
       catchError((error) => this.handleError(error)),
     );
@@ -30,10 +35,7 @@ export class RegistrarQueries {
 
     if (registrarError) throw registrarError;
 
-    const targetName = normalizeRegistrarName(sanitizedName);
-    const existing = (registrars || []).find(
-      (row) => normalizeRegistrarName(row.name) === targetName,
-    );
+    const existing = matchRegistrarRows(registrars || [], sanitizedName)[0];
     if (existing) {
       return existing.id;
     }
@@ -49,31 +51,48 @@ export class RegistrarQueries {
     return newRegistrar.id;
   }
 
+  // Get domain counts by registrar, merged across name variants
   getDomainCountsByRegistrar(): Observable<Record<string, number>> {
-    return from(
-      this.supabase.from('domains').select('registrars(name), id', { count: 'exact' }),
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
-        const counts: Record<string, number> = {};
-        const rows = (data || []) as unknown as {
-          registrars?: { name?: string } | null;
-        }[];
-        rows.forEach((item) => {
-          const registrarName = item.registrars?.name;
-          if (registrarName) {
-            counts[registrarName] = (counts[registrarName] || 0) + 1;
-          }
-        });
-        return counts;
-      }),
-      catchError((error) => this.handleError(error)),
-    );
+    const fetchCounts = async (): Promise<Record<string, number>> => {
+      const [namesResult, domainsResult] = await Promise.all([
+        this.supabase.from('registrars').select('name'),
+        this.supabase.from('domains').select('registrars(name)'),
+      ]);
+      if (namesResult.error) throw namesResult.error;
+      if (domainsResult.error) throw domainsResult.error;
+
+      const counts: Record<string, number> = {};
+      const rows = (domainsResult.data || []) as unknown as {
+        registrars?: { name?: string } | null;
+      }[];
+      rows.forEach((item) => {
+        const registrarName = item.registrars?.name;
+        if (registrarName) {
+          counts[registrarName] = (counts[registrarName] || 0) + 1;
+        }
+      });
+
+      const allNames = (namesResult.data || []).map((row) => row.name);
+      return mergeRegistrarCounts(counts, allNames);
+    };
+
+    return from(fetchCounts()).pipe(catchError((error) => this.handleError(error)));
   }
 
+  // Get domains for a registrar, including variant spellings of its name
   getDomainsByRegistrar(registrarName: string): Observable<DbDomain[]> {
-    return from(
-      this.supabase
+    const fetchDomains = async () => {
+      const { data: registrars, error: registrarsError } = await this.supabase
+        .from('registrars')
+        .select('id, name');
+      if (registrarsError) throw registrarsError;
+
+      const ids = matchRegistrarRows(registrars || [], registrarName).map(
+        (row) => row.id,
+      );
+      if (!ids.length) return { data: [], error: null };
+
+      return this.supabase
         .from('domains')
         .select(
           `
@@ -93,8 +112,10 @@ export class RegistrarQueries {
         )
       `,
         )
-        .eq('registrars.name', registrarName),
-    ).pipe(
+        .in('registrar_id', ids);
+    };
+
+    return from(fetchDomains()).pipe(
       map(({ data, error }) => {
         if (error) throw error;
         return (data as unknown as Record<string, unknown>[]).map((domain) =>
