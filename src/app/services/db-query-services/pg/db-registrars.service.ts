@@ -1,5 +1,6 @@
 import { catchError, map, Observable } from 'rxjs';
 import { PgApiUtilService } from '~/app/utils/pg-api.util';
+import { normalizeRegistrarName } from '~/app/services/domain-utils.service';
 import { DbDomain, Registrar } from '~/app/../types/Database';
 
 export class RegistrarQueries {
@@ -19,17 +20,21 @@ export class RegistrarQueries {
     );
   }
 
-  // Get or insert a registrar by name, recording its url on first insert
+  // Get or insert a registrar, loose-matching existing names to avoid duplicates
   async getOrInsertRegistrarId(registrarName: string, url?: string): Promise<string> {
     const sanitizedName = (registrarName || '').trim().replace(/[/\\?#%]/g, '');
-    const selectQuery = 'SELECT id FROM registrars WHERE name = $1 LIMIT 1';
+    const selectQuery = 'SELECT id, name FROM registrars';
     const insertQuery = 'INSERT INTO registrars (name, url) VALUES ($1, $2) RETURNING id';
 
     const selectResponse = await this.pgApiUtil
-      .postToPgExecutor<{ id: string }>(selectQuery, [sanitizedName])
+      .postToPgExecutor<{ id: string; name: string }>(selectQuery)
       .toPromise();
-    if (selectResponse && selectResponse.data.length > 0) {
-      return selectResponse.data[0].id;
+    const targetName = normalizeRegistrarName(sanitizedName);
+    const existing = selectResponse?.data.find(
+      (row) => normalizeRegistrarName(row.name) === targetName,
+    );
+    if (existing) {
+      return existing.id;
     }
 
     const insertResponse = await this.pgApiUtil

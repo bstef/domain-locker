@@ -3,6 +3,15 @@ import { DbDomain } from '~/app/../types/Database';
 import { Injectable } from '@angular/core';
 import { makeEppArrayFromLabels } from '~/app/constants/security-categories';
 
+// Loose-match registrar names, ignoring case, punctuation and any trailing [Tag] suffix
+export function normalizeRegistrarName(input: string | null | undefined): string {
+  return (input || '')
+    .replace(/\s*\[[^\]]*\]\s*$/, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s,.-]+/g, '');
+}
+
 @Injectable({
   providedIn: 'root',
 })

@@ -1,5 +1,6 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
 import { catchError, from, map, Observable } from 'rxjs';
+import { normalizeRegistrarName } from '~/app/services/domain-utils.service';
 import { DbDomain, Registrar } from '~/app/../types/Database';
 
 export class RegistrarQueries {
@@ -20,30 +21,32 @@ export class RegistrarQueries {
     );
   }
 
-  // Method to get or insert registrar by name, recording its url on first insert
+  // Get or insert a registrar, loose-matching existing names to avoid duplicates
   async getOrInsertRegistrarId(registrarName: string, url?: string): Promise<string> {
     const sanitizedName = (registrarName || '').trim().replace(/[/\\?#%]/g, '');
-    const { data: existingRegistrar, error: registrarError } = await this.supabase
+    const { data: registrars, error: registrarError } = await this.supabase
       .from('registrars')
+      .select('id, name');
+
+    if (registrarError) throw registrarError;
+
+    const targetName = normalizeRegistrarName(sanitizedName);
+    const existing = (registrars || []).find(
+      (row) => normalizeRegistrarName(row.name) === targetName,
+    );
+    if (existing) {
+      return existing.id;
+    }
+
+    const { data: newRegistrar, error: insertError } = await this.supabase
+      .from('registrars')
+      .insert({ name: sanitizedName, url: url ?? null })
       .select('id')
-      .eq('name', sanitizedName)
       .single();
 
-    if (registrarError && registrarError.code !== 'PGRST116') throw registrarError;
-
-    if (existingRegistrar) {
-      return existingRegistrar.id;
-    } else {
-      const { data: newRegistrar, error: insertError } = await this.supabase
-        .from('registrars')
-        .insert({ name: sanitizedName, url: url ?? null })
-        .select('id')
-        .single();
-
-      if (insertError) throw insertError;
-      if (!newRegistrar) throw new Error('Failed to insert registrar');
-      return newRegistrar.id;
-    }
+    if (insertError) throw insertError;
+    if (!newRegistrar) throw new Error('Failed to insert registrar');
+    return newRegistrar.id;
   }
 
   getDomainCountsByRegistrar(): Observable<Record<string, number>> {
