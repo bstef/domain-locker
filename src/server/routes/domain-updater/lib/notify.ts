@@ -1,5 +1,5 @@
 import { callPgExecutor } from './pgExecutor';
-import { sendWebhookNotification } from './sendWebhookNotification';
+import { sendWebhookNotification } from '../../../utils/webhook';
 import Logger from '../../../utils/logger';
 
 const log = new Logger('domain-updater');
