@@ -56,7 +56,9 @@ export async function notifyUser(
 
     // Send webhook notification
     await sendWebhookNotification(
-      message || `Change detected in ${domainName}: ${changeType}`,
+      message
+        ? `[${domainName}] ${message}`
+        : `Change detected in ${domainName}: ${changeType}`,
       'Domain Locker Update',
       [changeType],
     );
