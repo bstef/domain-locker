@@ -1,5 +1,5 @@
 import { repos, type Repos } from '../db/repos';
-import { sendWebhookNotification } from '../utils/webhook';
+import { sendNotification } from '../utils/notifications';
 import Logger from '../utils/logger';
 
 const log = new Logger('notify');
@@ -57,7 +57,7 @@ async function deliver(db: Repos, notification: DomainNotification): Promise<boo
   const channels = (await db.notifications.channels()) ?? {};
 
   const deliveries: Promise<boolean>[] = [
-    sendWebhookNotification(body, title, [notification.changeType]),
+    sendNotification(body, title, [notification.changeType]),
   ];
 
   const email = channels['email'] as { enabled?: boolean; address?: string } | undefined;

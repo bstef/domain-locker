@@ -8,9 +8,17 @@ import Logger from '../../utils/logger';
 
 const log = new Logger('domain-updater');
 
-const CONCURRENCY = numberFromEnv('DL_UPDATER_CONCURRENCY', 5, { min: 1 });
 /** Cap per run so a large portfolio spreads over several runs instead of stalling */
 const BATCH_SIZE = numberFromEnv('DL_UPDATER_BATCH_SIZE', 100, { min: 1 });
+
+/** DL_UPDATER_CONCURRENCY was this branch's name for it, so it keeps working */
+const concurrency = () => {
+  const legacy = numberFromEnv('DL_UPDATER_CONCURRENCY', 5, { min: 1 });
+  return numberFromEnv('DL_WHOIS_CONCURRENCY', legacy, { min: 1 });
+};
+
+/** Gap between lookups, for registries which rate limit whois */
+const requestDelay = () => numberFromEnv('DL_WHOIS_DELAY_MS', 0, { min: 0 });
 
 export interface DomainRow {
   id: string;
@@ -40,14 +48,21 @@ export async function runUpdater(): Promise<{
     return { checked: 0, changed: 0, results: [] };
   }
 
-  const outcomes = await withConcurrency(domains, CONCURRENCY, async (domain) => {
-    const result = await refreshDomain(domain);
-    // Sends it to the back of the queue whether the lookup worked or not
-    await db.domains
-      .markRefreshed(domain.id)
-      .catch((err) => log.warn(`Could not mark ${domain.domain_name} refreshed: ${err}`));
-    return result;
-  });
+  const outcomes = await withConcurrency(
+    domains,
+    concurrency(),
+    async (domain) => {
+      const result = await refreshDomain(domain);
+      // Sends it to the back of the queue whether the lookup worked or not
+      await db.domains
+        .markRefreshed(domain.id)
+        .catch((err) =>
+          log.warn(`Could not mark ${domain.domain_name} refreshed: ${err}`),
+        );
+      return result;
+    },
+    requestDelay(),
+  );
 
   const results = outcomes.map((outcome) =>
     outcome.status === 'fulfilled'

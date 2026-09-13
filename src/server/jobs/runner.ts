@@ -87,11 +87,12 @@ export async function jobHistory() {
   return getDb().selectFrom('job_runs').selectAll().orderBy('name').execute();
 }
 
-/** Runs work over items with a bounded number in flight at once */
+/** Runs work over items with a bounded number in flight, optionally paced */
 export async function withConcurrency<T, R>(
   items: T[],
   limit: number,
   work: (item: T) => Promise<R>,
+  delayMs = 0,
 ): Promise<PromiseSettledResult<R>[]> {
   const results: PromiseSettledResult<R>[] = new Array(items.length);
   let next = 0;
@@ -105,6 +106,7 @@ export async function withConcurrency<T, R>(
         } catch (reason) {
           results[index] = { status: 'rejected', reason };
         }
+        if (delayMs > 0 && next < items.length) await delay(delayMs);
       }
     })(),
   );
