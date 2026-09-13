@@ -68,30 +68,45 @@ export function subdomainsRepo(db: Kysely<Database>) {
       return row ? { ...row, sd_info: toJsonString(row.sd_info) } : null;
     },
 
-    /** Replaces the domain's subdomains with exactly the list given */
-    async replaceForDomain(
+    /**
+     * Adds the names not already stored, returning how many were new, or null
+     * when the domain isn't the caller's. Discovery runs through here, so it
+     * can never drop a subdomain the user added by hand
+     */
+    async addMissingForDomain(
       domainName: string,
       subdomains: SubdomainInput[],
       userId = currentUserId(),
-    ): Promise<boolean> {
+    ): Promise<number | null> {
       const domainId = await ownedDomainId(domainName, userId);
-      if (!domainId) return false;
+      if (!domainId) return null;
 
-      await db.transaction().execute(async (trx) => {
-        await trx.deleteFrom('sub_domains').where('domain_id', '=', domainId).execute();
-        if (!subdomains.length) return;
-        await trx
-          .insertInto('sub_domains')
-          .values(
-            subdomains.map((subdomain) => ({
-              domain_id: domainId,
-              name: subdomain.name,
-              sd_info: serialise(subdomain.sd_info),
-            })),
-          )
-          .execute();
-      });
-      return true;
+      const stored = await db
+        .selectFrom('sub_domains')
+        .where('domain_id', '=', domainId)
+        .select('name')
+        .execute();
+      const known = new Set(stored.map((row) => row.name));
+
+      const missing: SubdomainInput[] = [];
+      for (const subdomain of subdomains) {
+        if (known.has(subdomain.name)) continue;
+        known.add(subdomain.name);
+        missing.push(subdomain);
+      }
+      if (!missing.length) return 0;
+
+      await db
+        .insertInto('sub_domains')
+        .values(
+          missing.map((subdomain) => ({
+            domain_id: domainId,
+            name: subdomain.name,
+            sd_info: serialise(subdomain.sd_info),
+          })),
+        )
+        .execute();
+      return missing.length;
     },
 
     async add(

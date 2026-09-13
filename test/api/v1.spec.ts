@@ -145,6 +145,30 @@ describe.skipIf(!built)('/v1 API over HTTP', () => {
     expect(body.error.code).toBe('forbidden');
   });
 
+  it('allows a save when a proxy rewrote Host, since the browser vouched for it', async () => {
+    const { status } = await api(server, '/v1/domains', {
+      headers: { Origin: 'http://domains.example.com', 'Sec-Fetch-Site': 'same-origin' },
+    });
+    expect(status).toBe(200);
+  });
+
+  it('appends discovered subdomains without dropping manual ones', async () => {
+    const path = '/v1/subdomains/http-test.com';
+    const discover = () =>
+      api<{ added: number }>(server, path, {
+        method: 'PUT',
+        body: JSON.stringify({ subdomains: [{ name: 'www' }] }),
+      });
+
+    expect((await discover()).body).toEqual({ added: 1 });
+    await api(server, path, { method: 'POST', body: JSON.stringify({ name: 'api' }) });
+
+    // Discovery running again must leave the hand-added subdomain alone
+    expect((await discover()).body).toEqual({ added: 0 });
+    const { body } = await api<{ name: string }[]>(server, path);
+    expect(body.map((sub) => sub.name)).toEqual(['api', 'www']);
+  });
+
   it('never leaks a raw driver error', async () => {
     const { body } = await api<{ error?: { message: string } }>(
       server,

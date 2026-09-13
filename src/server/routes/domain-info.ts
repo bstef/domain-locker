@@ -23,7 +23,10 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    return await lookupDomainInfo(domain);
+    const result = await lookupDomainInfo(domain);
+    // Without WHOIS there is nothing worth saving, so callers fall back to the manual form
+    if (!result.whoisFound) return { error: 'Failed to fetch WHOIS data' };
+    return result;
   } catch (err) {
     log.error(`Fatal error during domain lookup: ${(err as Error).message}`);
     return {

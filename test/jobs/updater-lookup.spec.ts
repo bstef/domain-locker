@@ -58,6 +58,7 @@ describe('updater lookup', () => {
         dns: { nameServers: ['a.iana-servers.net'], mxRecords: [], txtRecords: [] },
         ssl: {},
       } as never,
+      whoisFound: true,
     });
 
     const result = await runUpdater();

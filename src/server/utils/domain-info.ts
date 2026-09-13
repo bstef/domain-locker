@@ -122,7 +122,7 @@ const getHostData = async (ip: string): Promise<Host | undefined> => {
  */
 export async function lookupDomainInfo(
   domain: string,
-): Promise<{ domainInfo: DomainLookup; errors?: string[] }> {
+): Promise<{ domainInfo: DomainLookup; errors?: string[]; whoisFound: boolean }> {
   const errors: string[] = [];
   const dunno = null; // Fallback for unknown values
 
@@ -180,5 +180,9 @@ export async function lookupDomainInfo(
   };
 
   log.success(`Successfully resolved: ${domain}`);
-  return { domainInfo, errors: errors.length ? errors : undefined };
+  return {
+    domainInfo,
+    errors: errors.length ? errors : undefined,
+    whoisFound: Boolean(whoisData),
+  };
 }

@@ -263,6 +263,29 @@ describe.each(BACKENDS)('repositories (%s)', (backend) => {
     });
   });
 
+  describe('subdomains', () => {
+    it('adds only the names it does not already have', async () => {
+      await repo.domains.save(domainInput('subs.com', { subdomains: [] }));
+      await repo.subdomains.add('subs.com', { name: 'api', sd_info: { ports: [443] } });
+
+      expect(
+        await repo.subdomains.addMissingForDomain('subs.com', [
+          { name: 'www' },
+          { name: 'api' },
+          { name: 'www' },
+        ]),
+      ).toBe(1);
+
+      const stored = await repo.subdomains.byDomain('subs.com');
+      expect(stored.map((sub) => sub.name)).toEqual(['api', 'www']);
+      expect(stored.find((sub) => sub.name === 'api')?.sd_info).toContain('443');
+    });
+
+    it('reports an unknown domain rather than quietly doing nothing', async () => {
+      expect(await repo.subdomains.addMissingForDomain('nope.com', [])).toBeNull();
+    });
+  });
+
   describe('links', () => {
     it('adds one link across several domains and groups them on read', async () => {
       await repo.domains.save(domainInput('link-a.com', { links: [] }));

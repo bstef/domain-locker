@@ -45,6 +45,24 @@ describe('cross-site request guard', () => {
     expect(isSameOrigin(event)).toBe(true);
   });
 
+  it('allows a browser save when the proxy did not forward Host intact', () => {
+    const event = eventWith({
+      host: 'app:3000',
+      origin: 'http://localhost:8081',
+      'sec-fetch-site': 'same-origin',
+    });
+    expect(isSameOrigin(event)).toBe(true);
+  });
+
+  it('blocks a cross-site request, which cannot claim to be same-origin', () => {
+    const event = eventWith({
+      host: 'localhost:3000',
+      origin: 'https://evil.example',
+      'sec-fetch-site': 'cross-site',
+    });
+    expect(isSameOrigin(event)).toBe(false);
+  });
+
   it('honours extra allowed origins', () => {
     process.env['DL_ALLOWED_ORIGINS'] = 'https://a.example, https://b.example';
     expect(
