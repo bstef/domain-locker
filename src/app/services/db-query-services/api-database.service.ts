@@ -31,6 +31,9 @@ interface DomainPayload extends Omit<DbDomain, 'statuses'> {
   statusCodes?: string[];
 }
 
+/** The history endpoint takes 500 ids at a time */
+const UPTIME_BATCH_LIMIT = 500;
+
 /**
  * Self-hosted data access. Every call is a request to the server's /v1 API,
  * so no credentials or SQL ever reach the browser.
@@ -195,16 +198,25 @@ export default class ApiDatabaseService extends DatabaseService {
     );
   }
 
-  override getDomainUptimeBatch(
+  override async getDomainUptimeBatch(
     domainIds: string[],
     timeframe: string,
   ): Promise<Record<string, UptimeRow[]>> {
-    return this.promise(
-      this.api.post<Record<string, UptimeRow[]>>('/v1/uptime/history', {
-        domainIds,
-        timeframe,
-      }),
+    const batches: string[][] = [];
+    for (let i = 0; i < domainIds.length; i += UPTIME_BATCH_LIMIT) {
+      batches.push(domainIds.slice(i, i + UPTIME_BATCH_LIMIT));
+    }
+    const histories = await Promise.all(
+      batches.map((ids) =>
+        this.promise(
+          this.api.post<Record<string, UptimeRow[]>>('/v1/uptime/history', {
+            domainIds: ids,
+            timeframe,
+          }),
+        ),
+      ),
     );
+    return Object.assign({}, ...histories);
   }
 
   getDomainUptimeDaily(

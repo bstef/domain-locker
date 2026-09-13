@@ -266,10 +266,7 @@ async function mergeSubdomains(
       subdomains.map((subdomain) => ({
         domain_id: domainId,
         name: subdomain.name,
-        sd_info:
-          subdomain.sd_info == null
-            ? toJsonString(existing.get(subdomain.name))
-            : JSON.stringify(subdomain.sd_info),
+        sd_info: toJsonString(subdomain.sd_info ?? existing.get(subdomain.name)),
       })),
     )
     .execute();

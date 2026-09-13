@@ -9,6 +9,7 @@ import {
 import type { ZodType } from 'zod';
 import { repos, type Repos } from '../db/repos';
 import { ensureMigrated } from '../db/ready';
+import { usesSelfHostedData } from '../utils/client-env';
 import { isSameOrigin } from '../utils/same-origin';
 import Logger from '../utils/logger';
 import { requireAuth } from './auth';
@@ -56,8 +57,8 @@ export function defineApiRoute<Result, Body = undefined, Query = undefined>(
 ) {
   return defineEventHandler(async (event): Promise<Result | ApiErrorBody> => {
     try {
-      // Managed instances serve their data through Supabase, never from here
-      if (process.env['DL_ENV_TYPE'] === 'managed') {
+      // Keyed on where the data lives, so Supabase-backed instances never reach it
+      if (!usesSelfHostedData(process.env)) {
         throw new ApiError(
           'forbidden',
           'This API is only served by self-hosted instances',

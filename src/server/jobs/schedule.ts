@@ -16,8 +16,11 @@ export interface Schedule {
 
 const MINUTE = 60_000;
 
+// setInterval clamps a delay past 2^31-1 ms to 1ms, turning a long interval into a spin
+const MAX_MINUTES = 35_791;
+
 const minutesFromEnv = (name: string, fallback: number) =>
-  numberFromEnv(name, fallback, { min: 1 });
+  numberFromEnv(name, fallback, { min: 1, max: MAX_MINUTES });
 
 export function schedules(): Schedule[] {
   return [

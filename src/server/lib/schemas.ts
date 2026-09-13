@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const optionalText = z.string().trim().max(2000).nullish();
+const optionalNotes = z.string().trim().max(65_536).nullish();
 
 export const saveDomainSchema = z.object({
   domain: z.object({
@@ -8,7 +9,7 @@ export const saveDomainSchema = z.object({
     expiry_date: optionalText,
     registration_date: optionalText,
     updated_date: optionalText,
-    notes: optionalText,
+    notes: optionalNotes,
     registrar: z
       .union([
         z.string().trim().max(255),

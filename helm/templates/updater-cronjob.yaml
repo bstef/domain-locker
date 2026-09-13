@@ -7,7 +7,7 @@ kind: CronJob
 metadata:
   name: domain-locker-updater
 spec:
-  schedule: {{ .Values.updater.schedule | quote }}
+  schedule: {{ .Values.updater.schedule | default "0 3 * * *" | quote }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
@@ -19,7 +19,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: updater
-              image: {{ .Values.updater.image | quote }}
+              image: {{ .Values.updater.image | default "alpine:3.20" | quote }}
               command: ["/bin/sh", "-c"]
               args:
                 # One pass, then exit. The previous version started crond in the

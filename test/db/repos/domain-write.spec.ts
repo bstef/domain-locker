@@ -82,6 +82,15 @@ describe.each(BACKENDS)('domain writes (%s)', (backend) => {
     expect(www?.sd_info).toBeNull();
   });
 
+  it('keeps sd_info the forms send as a string from being encoded twice', async () => {
+    const saved = await repo.save({
+      domain: { domain_name: 'encoded.com' },
+      subdomains: [{ name: 'www', sd_info: JSON.stringify({ ports: [80] }) }],
+    });
+    const www = saved?.sub_domains.find((sub) => sub.name === 'www');
+    expect(JSON.parse(www?.sd_info as string)).toEqual({ ports: [80] });
+  });
+
   it('saves the host straight from the lookup API, whose field names differ', async () => {
     const saved = await repo.save({
       domain: { domain_name: 'looked-up.com' },
