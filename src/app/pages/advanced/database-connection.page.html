@@ -43,27 +43,29 @@
     }
 
     @if (leftoverCredentials.length) {
-      <p-message severity="warn" styleClass="w-full">
-        <div class="flex flex-column gap-2">
-          <span>
-            This browser still holds database credentials saved by an older version. They
-            are no longer used, and should be removed.
-          </span>
-          <ul class="m-0 pl-3">
-            @for (credential of leftoverCredentials; track credential.key) {
-              <li>{{ credential.label }}</li>
-            }
-          </ul>
-          <div>
-            <p-button
-              label="Remove stored credentials"
-              severity="warning"
-              size="small"
-              (onClick)="clearLegacyCredentials()"
-            />
+      <p-messages severity="warn">
+        <ng-template pTemplate>
+          <div class="flex flex-column gap-2 w-full">
+            <span>
+              This browser still holds database credentials saved by an older version.
+              They are no longer used, and should be removed.
+            </span>
+            <ul class="m-0 pl-3">
+              @for (credential of leftoverCredentials; track credential.key) {
+                <li>{{ credential.label }}</li>
+              }
+            </ul>
+            <div>
+              <p-button
+                label="Remove stored credentials"
+                severity="warning"
+                size="small"
+                (onClick)="clearLegacyCredentials()"
+              />
+            </div>
           </div>
-        </div>
-      </p-message>
+        </ng-template>
+      </p-messages>
     }
 
     <p class="m-0 opacity-70 text-sm">
