@@ -47,6 +47,9 @@ async function main() {
     throw new Error('Set DL_SQLITE_PATH to the SQLite file to create');
   }
 
+  // Copying a large table takes longer than the app's 15 second default
+  process.env['DL_PG_STATEMENT_TIMEOUT'] ??= '900000';
+
   const postgres = createDb('postgres');
   // createDb reads DL_PG_*, so the destination is built explicitly
   process.env['DL_PG_HOST'] = '';

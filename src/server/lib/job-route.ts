@@ -29,7 +29,7 @@ export function defineJobRoute(job: JobName, work: () => Promise<unknown>) {
       warned.add(job);
       log.info(
         `${job} was triggered externally, but the app already schedules it. ` +
-          'The updater container can be removed, see /about/self-hosting/upgrading',
+          'The updater container can be removed, see 0.3.0 release notes',
       );
     }
 
