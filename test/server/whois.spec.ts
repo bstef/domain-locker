@@ -36,6 +36,7 @@ function fakeFetch(replies: Record<string, Reply>) {
 
 describe('whois lookup chain', () => {
   afterEach(() => {
+    vi.mocked(whois).mockReset();
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
@@ -100,5 +101,26 @@ describe('whois lookup chain', () => {
 
     expect(result).toBeNull();
     expect(Date.now() - start).toBeLessThan(5000);
+  });
+
+  it('keeps the registry answer when the registrar server it refers to is down', async () => {
+    vi.mocked(whois)
+      .mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+      .mockResolvedValueOnce({
+        registrar: 'Porkbun LLC',
+        registryDomainId: '333e0d17-DONUTS',
+      });
+    vi.stubEnv('DL_WHOIS_PROVIDERS', 'whois-json');
+
+    const result = await getWhoisInfo('hs1.bz');
+
+    expect(result?.registrar).toMatchObject({
+      name: 'Porkbun LLC',
+      registryDomainId: '333e0d17-DONUTS',
+    });
+    expect(whois).toHaveBeenLastCalledWith(
+      'hs1.bz',
+      expect.objectContaining({ follow: 0 }),
+    );
   });
 });

@@ -71,14 +71,20 @@ export const getWhoisInfo = async (
   return null;
 };
 
-/** Port-43 WHOIS, wrapped with a timeout because the library has none */
+/** Keeps the registry's answer when the registrar server it refers on to is down */
+const lookupPort43 = (domain: string, timeout: number): Promise<RawWhois> =>
+  whois(domain, { timeout }).catch(() =>
+    whois(domain, { timeout, follow: 0 }),
+  ) as Promise<RawWhois>;
+
+/** Port-43 WHOIS, raced against the deadline since the library's timeout is per hop */
 async function tryWhoisJson(
   domain: string,
   deadline: number,
 ): Promise<WhoisResult | null> {
   const timeoutMs = timeLeft(deadline);
   const raw = await Promise.race([
-    whois(domain) as Promise<RawWhois>,
+    lookupPort43(domain, timeoutMs),
     new Promise<RawWhois>((_, reject) =>
       setTimeout(
         () => reject(new Error(`WHOIS timeout after ${timeoutMs}ms`)),
