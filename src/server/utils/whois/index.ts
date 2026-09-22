@@ -2,7 +2,7 @@ import whois from 'whois-json';
 import Logger from '../logger';
 import type { WhoisResult } from './types';
 import { hasUsefulWhoisData } from './normalize';
-import { FETCH_TIMEOUT_MS } from './fetch-json';
+import { timeLeft } from './fetch-json';
 import { normalizeWhoisJson, type RawWhois } from './providers/whois-json';
 import { tryWhoDat } from './providers/who-dat';
 import { tryNativeWhois } from './providers/native-whois';
@@ -11,7 +11,7 @@ import { tryWhoisXml } from './providers/whoisxml';
 
 const log = new Logger('whois');
 
-type Provider = (domain: string) => Promise<WhoisResult | null>;
+type Provider = (domain: string, deadline: number) => Promise<WhoisResult | null>;
 
 /**
  * RDAP first: it is structured, resolves its endpoint per TLD from the IANA
@@ -28,6 +28,9 @@ const PROVIDERS: Record<string, Provider> = {
 
 const DEFAULT_ORDER = ['rdap', 'whois-json', 'who-dat', 'native', 'whoisxml'];
 
+/** Total time across every source, so one stalled registry can't starve the fallbacks */
+const WHOIS_BUDGET_MS = 20000;
+
 /** Order is overridable, so an instance can prefer its own source */
 function providerOrder(): string[] {
   const configured = (process.env['DL_WHOIS_PROVIDERS'] || '')
@@ -37,15 +40,23 @@ function providerOrder(): string[] {
   return configured.length ? configured : DEFAULT_ORDER;
 }
 
-export const getWhoisInfo = async (domain: string): Promise<WhoisResult | null> => {
+export const getWhoisInfo = async (
+  domain: string,
+  budgetMs = WHOIS_BUDGET_MS,
+): Promise<WhoisResult | null> => {
   const trimmed = domain
     .replace(/^(?:https?:\/\/)?(?:www\.)?/i, '')
     .trim()
     .toLowerCase();
+  const deadline = Date.now() + budgetMs;
 
   for (const name of providerOrder()) {
+    if (Date.now() >= deadline) {
+      log.warn(`WHOIS budget spent before trying ${name} for ${trimmed}`);
+      break;
+    }
     try {
-      const result = await PROVIDERS[name](trimmed);
+      const result = await PROVIDERS[name](trimmed, deadline);
       if (hasUsefulWhoisData(result)) {
         log.success(`Got WHOIS data via ${name} for ${trimmed}`);
         return result;
@@ -61,13 +72,17 @@ export const getWhoisInfo = async (domain: string): Promise<WhoisResult | null> 
 };
 
 /** Port-43 WHOIS, wrapped with a timeout because the library has none */
-async function tryWhoisJson(domain: string): Promise<WhoisResult | null> {
+async function tryWhoisJson(
+  domain: string,
+  deadline: number,
+): Promise<WhoisResult | null> {
+  const timeoutMs = timeLeft(deadline);
   const raw = await Promise.race([
     whois(domain) as Promise<RawWhois>,
     new Promise<RawWhois>((_, reject) =>
       setTimeout(
-        () => reject(new Error(`WHOIS timeout after ${FETCH_TIMEOUT_MS}ms`)),
-        FETCH_TIMEOUT_MS,
+        () => reject(new Error(`WHOIS timeout after ${timeoutMs}ms`)),
+        timeoutMs,
       ),
     ),
   ]);
