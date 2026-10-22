@@ -79,11 +79,7 @@
         {{ 'DOMAINS.DOMAIN_COLLECTION.OR' | translate }}
       }
       @if (preFilteredText) {
-        <a
-          routerLink="/domains"
-          (click)="resetFilters()"
-          class="text-primary opacity-70 underline cursor-pointer"
-        >
+        <a routerLink="/domains" class="text-primary opacity-70 underline cursor-pointer">
           {{ 'DOMAINS.DOMAIN_COLLECTION.VIEW_ALL' | translate }}
         </a>
       }
