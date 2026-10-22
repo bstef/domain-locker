@@ -7,7 +7,6 @@ import {
   OnChanges,
   SimpleChanges,
   Output,
-  ViewChild,
   inject,
 } from '@angular/core';
 
@@ -48,9 +47,6 @@ export class DomainCollectionComponent implements OnInit, OnChanges {
     /* no-op */
   };
   @Output() $triggerReload = new EventEmitter();
-
-  @ViewChild(FieldVisibilityFilterComponent)
-  filtersComp!: FieldVisibilityFilterComponent;
 
   filteredDomains: DbDomain[] = [];
   isGridLayout = true;
@@ -234,10 +230,5 @@ export class DomainCollectionComponent implements OnInit, OnChanges {
       domain.ip_addresses?.some((ip) => ip.ip_address.includes(searchTerm)) ||
       false
     );
-  }
-
-  resetFilters() {
-    this.searchTerm = '';
-    this.filtersComp.resetView();
   }
 }

@@ -75,6 +75,7 @@ export class FieldVisibilityFilterComponent implements OnInit {
   };
   @Output() $triggerReload = new EventEmitter();
 
+  searchTerm = '';
   selectedFields: FieldOption[] = [];
   selectedFieldsList: string[] = [];
   sortOrder: FieldOption = this.sortOptions[0];
@@ -111,13 +112,25 @@ export class FieldVisibilityFilterComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.searchTerm = this.initialSearch;
     this.applyPrefs(this.loadPrefs());
   }
 
-  /* Restores the default layout, fields and sort, and forgets the saved ones */
+  /* Clears the search and restores the default layout, fields and sort */
   public resetView() {
     localStorage.removeItem(this.prefsKey);
+    this.searchTerm = '';
+    this.searchChange.emit('');
     this.applyPrefs({});
+  }
+
+  /* Whether the layout, fields or sort differ from the defaults */
+  get isCustomView(): boolean {
+    return (
+      !this.selectedLayout ||
+      this.sortOrder !== this.sortOptions[0] ||
+      this.selectedFieldsList.join() !== this.defaultSelectedFields.join()
+    );
   }
 
   /* Applies layout, fields and sort, using defaults for anything missing or unknown */
@@ -178,13 +191,8 @@ export class FieldVisibilityFilterComponent implements OnInit {
     this.savePrefs();
   }
 
-  onSearch(event: Event) {
-    const searchTerm = (event.target as HTMLInputElement).value;
-    this.searchChange.emit(searchTerm);
-  }
-
   onLayoutChange(event: boolean) {
-    this.layoutChange.emit(event === null ? true : event);
+    this.layoutChange.emit(event);
     this.savePrefs();
   }
 
